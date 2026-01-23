@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 
 interface UserData {
     id: string;
-    is_admin?: boolean;
+    role?: 'none' | 'read' | 'edit';
     nickname: string;
     last_login?: string;
     profile_image?: string;
@@ -17,7 +17,7 @@ export const addUserToProfileTable = async <T extends UserData>(userSessionData:
 
         const { data: existingData, error: fetchError } = await supabase
             .from("profiles")
-            .select("is_admin, created_at")
+            .select("role, created_at")
             .eq("id", userSessionData.id);
 
         if (fetchError) {
@@ -31,7 +31,7 @@ export const addUserToProfileTable = async <T extends UserData>(userSessionData:
                 .insert([
                     {
                         id: userSessionData.id,
-                        is_admin: false,
+                        role: 'read',
                         nickname: userSessionData.nickname,
                         profile_image: userSessionData?.profile || "",
                         last_login: KoreanTime,

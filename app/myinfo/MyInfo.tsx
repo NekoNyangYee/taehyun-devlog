@@ -18,7 +18,9 @@ import {
   LogInIcon,
   MessageSquareTextIcon,
   PencilIcon,
+  RotateCcw,
   ShieldCheckIcon,
+  Upload,
   UserCheckIcon,
   UsersIcon,
   X,
@@ -37,6 +39,10 @@ import {
   commentsQueryKey,
   fetchCommentsQueryFn,
 } from "@components/queries/commentQueries";
+import {
+  uploadImageToCloudinary,
+  validateImageFile,
+} from "@components/lib/util/cloudinary";
 
 const PROVIDER_LABEL: Record<string, string> = {
   kakao: "카카오",
@@ -66,10 +72,13 @@ export default function MyInfoPage() {
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newBannerUrl, setNewBannerUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [uploadedFileSize, setUploadedFileSize] = useState<number>(0);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [willDeleteBanner, setWillDeleteBanner] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -138,27 +147,27 @@ export default function MyInfoPage() {
       value: string;
       icon: LucideIcon;
     }> = [
-      {
-        label: "로그인 수단",
-        value: profile.provider,
-        icon: LogInIcon,
-      },
-      {
-        label: "마지막 로그인",
-        value: profile.lastSignIn,
-        icon: ClockIcon,
-      },
-      {
-        label: "계정 생성일",
-        value: profile.createdAt,
-        icon: CalendarIcon,
-      },
-      {
-        label: "세션 만료 예정",
-        value: profile.sessionExpiresAt,
-        icon: ShieldCheckIcon,
-      },
-    ];
+        {
+          label: "로그인 수단",
+          value: profile.provider,
+          icon: LogInIcon,
+        },
+        {
+          label: "마지막 로그인",
+          value: profile.lastSignIn,
+          icon: ClockIcon,
+        },
+        {
+          label: "계정 생성일",
+          value: profile.createdAt,
+          icon: CalendarIcon,
+        },
+        {
+          label: "세션 만료 예정",
+          value: profile.sessionExpiresAt,
+          icon: ShieldCheckIcon,
+        },
+      ];
 
     return items.filter((item) => item.value && item.value !== "-");
   }, [profile]);
@@ -214,35 +223,91 @@ export default function MyInfoPage() {
     );
   }
 
-  const httpRegExp = /^https:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  };
 
-  const updateProfileBanner = async () => {
-    if (!httpRegExp.test(newBannerUrl)) {
-      alert(
-        "유효한 이미지 URL을 입력해주세요. (https://로 시작하는 jpg, png, gif 등)"
-      );
+  const getFilenameFromUrl = (url: string): string => {
+    try {
+      const urlParts = url.split("/");
+      const filename = urlParts[urlParts.length - 1];
+      // Remove query parameters if any
+      return filename.split("?")[0];
+    } catch {
+      return "배너 이미지";
+    }
+  };
+
+  const resetBannerSelection = () => {
+    setSelectedFile(null);
+    setPreviewUrl("");
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      alert(validation.error);
       return;
     }
+
+    setSelectedFile(file);
+    setWillDeleteBanner(false);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const updateProfileBanner = async () => {
     setIsUpdating(true);
-    await updateProfile({ profile_banner: newBannerUrl });
-    setNewBannerUrl("");
-    setIsUpdating(false);
-    closeModal();
+    try {
+      if (!selectedFile) {
+        // 파일이 없으면 기본 배너로 변경
+        await updateProfile({ profile_banner: "/default.png" });
+        setPreviewUrl("");
+        setWillDeleteBanner(false);
+        closeModal();
+      } else {
+        // 파일이 있으면 업로드 후 변경
+        const { url, bytes } = await uploadImageToCloudinary(selectedFile);
+        await updateProfile({ profile_banner: url });
+        setUploadedFileSize(bytes);
+        setSelectedFile(null);
+        setPreviewUrl("");
+        setWillDeleteBanner(false);
+        closeModal();
+      }
+    } catch (error) {
+      console.error("배너 업데이트 실패:", error);
+      alert("배너 업데이트에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const cancelUpdateBanner = () => {
-    if (newBannerUrl || newBannerUrl === profiles[0]?.profile_banner) {
+    if (selectedFile) {
       const confirmCancel = window.confirm(
         "변경 사항이 저장되지 않습니다. 정말 취소하시겠습니까?"
       );
       if (!confirmCancel) return;
     }
-    setNewBannerUrl("");
+    setSelectedFile(null);
+    setPreviewUrl("");
     closeModal();
   };
 
   const bannerModalOpen = () => {
     setIsModalOpen(true);
+    setWillDeleteBanner(false);
   };
 
   const closeModal = () => {
@@ -259,11 +324,10 @@ export default function MyInfoPage() {
           <div
             className="absolute h-full inset-0 transform bg-cover bg-center"
             style={{
-              backgroundImage: `url(${
-                profiles[0]?.profile_banner
-                  ? profiles[0]?.profile_banner
-                  : "/default.png"
-              })`,
+              backgroundImage: `url(${profiles[0]?.profile_banner
+                ? profiles[0]?.profile_banner
+                : "/default.png"
+                })`,
             }}
           />
           <div className="absolute inset-0 bg-white/25" />
@@ -282,7 +346,7 @@ export default function MyInfoPage() {
               alt="프로필 이미지"
               className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-white shadow-xl object-cover"
             />
-            {profiles.find((profile) => profile.is_admin) && (
+            {profiles.find((profile) => profile.role === 'edit') && (
               <div className="absolute bottom-0 right-0 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#0075FF] shadow-lg">
                 <UserCheckIcon size={20} className="text-white" />
               </div>
@@ -353,7 +417,7 @@ export default function MyInfoPage() {
               ))}
             </div>
           </section>
-          {profiles.find((profile) => profile.is_admin) && (
+          {profiles.find((profile) => profile.role === 'edit') && (
             <section className="space-y-4">
               <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
@@ -468,69 +532,229 @@ export default function MyInfoPage() {
       <div
         onClick={cancelUpdateBanner}
         style={{ willChange: isModalOpen ? "opacity" : "auto" }}
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-all duration-300 ease-out ${
-          isModalOpen && isAnimating
-            ? "opacity-100"
-            : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-all duration-300 ease-out ${isModalOpen && isAnimating
+          ? "opacity-100"
+          : "opacity-0 pointer-events-none"
+          }`}
       >
         <div
           onClick={(e) => e.stopPropagation()}
           style={{ willChange: isModalOpen ? "transform, opacity" : "auto" }}
-          className={`relative w-full max-w-2xl rounded-2xl border border-containerColor bg-white p-6 shadow-xl transition-all duration-300 ease-out ${
-            isModalOpen && isAnimating
-              ? "scale-100 opacity-100"
-              : "scale-95 opacity-0"
-          }`}
+          className={`relative w-full max-w-2xl rounded-2xl border border-containerColor bg-white p-6 shadow-xl transition-all duration-300 ease-out ${isModalOpen && isAnimating
+            ? "scale-100 opacity-100"
+            : "scale-95 opacity-0"
+            }`}
         >
           <h2 className="mb-6 text-2xl font-semibold">프로필 배너 수정</h2>
           <div className="space-y-6">
             <div className="flex flex-col gap-2">
               <label className="block text-sm font-medium text-gray-700">
-                현재 배너 이미지
+                배너 미리보기
               </label>
               <div className="h-40 w-full overflow-hidden rounded-lg border border-containerColor">
                 <img
                   src={
-                    newBannerUrl ||
-                    profiles[0]?.profile_banner ||
-                    "/default.png"
+                    previewUrl
+                      ? previewUrl
+                      : willDeleteBanner
+                        ? "/default.png"
+                        : profiles[0]?.profile_banner || "/default.png"
                   }
-                  alt="현재 배너"
+                  alt="배너 미리보기"
                   className="h-full w-full object-cover"
                 />
               </div>
             </div>
 
+
             <div className="flex flex-col gap-2">
-              <label
-                htmlFor="bannerUrl"
-                className="block text-sm font-medium text-gray-700"
-              >
-                새 배너 이미지 URL
+              <label className="block text-sm font-medium text-gray-700">
+                배너 이미지 선택
               </label>
-              <input
-                id="bannerUrl"
-                type="text"
-                value={newBannerUrl}
-                onChange={(e) => setNewBannerUrl(e.target.value)}
-                placeholder="이미지 URL을 입력하세요"
-                disabled={isUpdating}
-                className={`w-full rounded-lg border border-containerColor px-4 py-2.5 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/5 ${
-                  isUpdating ? "cursor-not-allowed opacity-50" : ""
-                }`}
-              />
+
+              {!selectedFile ? (
+                <>
+                  {profiles[0]?.profile_banner && profiles[0]?.profile_banner !== "/default.png" && !willDeleteBanner ? (
+                    <>
+                      {/* 커스텀 배너 이미지 정보 표시 */}
+                      <div className="flex items-center justify-between w-full p-4 border border-containerColor rounded-lg bg-white">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="flex items-center justify-center w-12 h-12 flex-shrink-0 rounded-lg bg-black text-white">
+                            <svg
+                              className="w-6 h-6"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {getFilenameFromUrl(profiles[0].profile_banner)}
+                            </p>
+                            <p className="text-xs text-metricsText truncate">
+                              현재 배너 이미지
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                          <label
+                            htmlFor="bannerFile"
+                            className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 transition cursor-pointer"
+                            title="새 이미지 선택"
+                          >
+                            <Upload size={18} />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setWillDeleteBanner(true);
+                              setSelectedFile(null);
+                              setPreviewUrl("");
+                            }}
+                            disabled={isUpdating}
+                            className="p-2 rounded-lg border border-containerColor bg-white text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="선택 취소"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                      </div>
+                      <input
+                        id="bannerFile"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        onChange={handleFileSelect}
+                        disabled={isUpdating}
+                        className="hidden"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      {/* 기본 이미지 - 파일 업로드 UI */}
+                      {/* 기본 이미지 - 파일 업로드 UI */}
+                      <div className="flex flex-col gap-2">
+                        <label
+                          htmlFor="bannerFile"
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-containerColor rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg
+                              className="w-10 h-10 mb-3 text-metricsText"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              />
+                            </svg>
+                            <p className="mb-2 text-sm text-gray-700">
+                              <span className="font-semibold">클릭하여 파일 선택</span>
+                            </p>
+                            <p className="text-xs text-metricsText">
+                              JPG, PNG, GIF, WEBP (최대 5MB)
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                      <input
+                        id="bannerFile"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        onChange={handleFileSelect}
+                        disabled={isUpdating}
+                        className="hidden"
+                      />
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center justify-between w-full p-4 border border-containerColor rounded-lg bg-white">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="flex items-center justify-center w-12 h-12 flex-shrink-0 rounded-lg bg-black text-white">
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-metricsText truncate">
+                        {formatFileSize(selectedFile.size)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                    <label
+                      htmlFor="bannerFileReselect"
+                      className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 transition cursor-pointer"
+                      title="다시 선택"
+                    >
+                      <Upload size={18} />
+                    </label>
+                    <input
+                      id="bannerFileReselect"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleFileSelect}
+                      disabled={isUpdating}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setPreviewUrl("");
+                      }}
+                      disabled={isUpdating}
+                      className="p-2 rounded-lg border border-containerColor bg-white text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="선택 취소"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 items-center">
+              {willDeleteBanner && profiles[0]?.profile_banner && profiles[0]?.profile_banner !== "/default.png" && (
+                <button
+                  onClick={() => setWillDeleteBanner(false)}
+                  className="mr-auto flex items-center gap-2 text-sm text-metricsText hover:text-gray-900 transition underline underline-offset-4"
+                >
+                  <RotateCcw size={16} />
+                  기존 배너 복원
+                </button>
+              )}
               <button
                 onClick={() => {
                   cancelUpdateBanner();
                 }}
                 disabled={isUpdating}
-                className={`rounded-button border border-containerColor bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 ${
-                  isUpdating ? "cursor-not-allowed opacity-50" : ""
-                }`}
+                className={`rounded-button border border-containerColor bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 ${isUpdating ? "cursor-not-allowed opacity-50" : ""
+                  }`}
               >
                 취소
               </button>
@@ -538,10 +762,9 @@ export default function MyInfoPage() {
                 onClick={() => {
                   updateProfileBanner();
                 }}
-                disabled={!newBannerUrl || isUpdating}
-                className={`rounded-button bg-black px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 ${
-                  isUpdating ? "cursor-not-allowed opacity-50" : ""
-                }`}
+                disabled={(!selectedFile && !willDeleteBanner) || isUpdating}
+                className={`rounded-button bg-black px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 ${isUpdating ? "cursor-not-allowed opacity-50" : ""
+                  }`}
               >
                 {isUpdating ? "변경 중..." : "배너 변경"}
               </button>

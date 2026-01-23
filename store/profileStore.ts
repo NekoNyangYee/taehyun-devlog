@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 export interface Profile {
   id: string;
-  is_admin: boolean;
+  role: 'none' | 'read' | 'edit';
   nickname: string;
   last_login: string;
   created_at: string;
@@ -34,7 +34,7 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
     let query = supabase
       .from("profiles")
       .select(
-        "id, is_admin, nickname, last_login, created_at, profile_image, profile_banner"
+        "id, role, nickname, last_login, created_at, profile_image, profile_banner"
       );
 
     // userId가 제공되면 특정 사용자만 조회
