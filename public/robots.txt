@@ -4,6 +4,3 @@ Allow: /
 
 # Host
 Host: https://taehyun-devlog.vercel.app
-
-# Sitemaps
-Sitemap: https://taehyun-devlog.vercel.app/sitemap.xml
