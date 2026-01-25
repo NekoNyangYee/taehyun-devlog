@@ -13,10 +13,14 @@ export default function LoginDetailPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const getRedirectURL = () => {
+    let url;
     if (typeof window === "undefined") {
-      return process.env.NEXT_PUBLIC_REDIRECT_URL || "http://localhost:3000/";
+      url = process.env.NEXT_PUBLIC_REDIRECT_URL || "http://localhost:3000/";
+    } else {
+      url = `${window.location.origin}/`;
     }
-    return `${window.location.origin}/`;
+    console.log("🔄 결정된 Redirect URL:", url);
+    return url;
   };
 
   const handleBack = () => {
@@ -28,7 +32,7 @@ export default function LoginDetailPage() {
 
     try {
       const redirectTo = getRedirectURL();
-      console.log("🔹 메인 페이지 로그인 Redirecting to:", redirectTo);
+      console.log(`🔹 [${provider}] 로그인 시도. RedirectTo:`, redirectTo);
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
