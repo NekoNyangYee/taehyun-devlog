@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "TaeHyun's Devlog",
     description: "프론트엔드 개발자 김태현의 기술 블로그입니다.",
-    url: "https://taehyun-blog-renewal.vercel.app", // 실제 도메인으로 변경 필요
+    url: "https://taehyun-devlog.vercel.app", // 실제 도메인으로 변경 필요
     siteName: "TaeHyun's Devlog",
     images: [
       {

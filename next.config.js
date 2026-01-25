@@ -10,15 +10,12 @@ const withPWA = require("next-pwa")({
 const nextConfig = withPWA({
   reactStrictMode: true,
 
-  // ✅ 이거 추가
-  output: "export",
-
   compiler: {
     removeConsole:
       process.env.NODE_ENV === "production"
         ? {
-            exclude: ["error", "warn"],
-          }
+          exclude: ["error", "warn"],
+        }
         : false,
   },
 

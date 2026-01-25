@@ -29,7 +29,7 @@ export default function PostPage() {
               },
               mainEntityOfPage: {
                 "@type": "WebPage",
-                "@id": "https://taehyun-blog-renewal.vercel.app/posts",
+                "@id": "https://taehyun-devlog.vercel.app/posts",
               },
             }),
           }}
