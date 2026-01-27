@@ -86,7 +86,11 @@ export default function PostsPage() {
   const removeBookmarkMutation = useRemoveBookmark(userId);
 
   useEffect(() => {
-    const categoryFromURL = decodeURIComponent(pathname.split("/").pop() || "");
+    let categoryFromURL = pathname.split("/").pop() || "";
+    try {
+      categoryFromURL = decodeURIComponent(categoryFromURL);
+    } catch { }
+
     if (
       categoryFromURL &&
       categoryFromURL !== "posts" &&
@@ -192,7 +196,7 @@ export default function PostsPage() {
                 className="group flex h-full flex-col overflow-hidden rounded-2xl border border-containerColor/70 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
               >
                 <Link
-                  href={`/posts/${currentCategoryName}/${post.id}`}
+                  href={`/posts/${encodeURIComponent(currentCategoryName)}/${post.id}`}
                   className="flex flex-col h-full"
                 >
                   <div className="relative h-40 w-full bg-gray-100">

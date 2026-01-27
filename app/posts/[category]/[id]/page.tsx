@@ -9,20 +9,36 @@ interface PageProps {
   }>;
 }
 
-// 게시물 정보 가져오기 (Server Side)
-async function getPost(id: string) {
+import { cache } from "react";
+import { PostState } from "@components/types/post";
+
+// 게시물 정보 가져오기 (Server Side) - Request Memoization 적용
+const getPost = cache(async (id: string, minimal = false) => {
   const postId = Number(id);
   if (!Number.isFinite(postId)) return null;
 
-  const { data, error } = await supabase
-    .from("posts")
-    .select("id, title, contents, category_id")
-    .eq("id", postId)
-    .single();
+  if (minimal) {
+    // 메타데이터용 최소 필드만 가져오기
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id, title, category_id")
+      .eq("id", postId)
+      .single();
 
-  if (error || !data) return null;
-  return data;
-}
+    if (error || !data) return null;
+    return data as { id: number; title: string; category_id: number };
+  } else {
+    // 전체 필드 가져오기
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("id", postId)
+      .single();
+
+    if (error || !data) return null;
+    return data;
+  }
+});
 
 // 카테고리 정보 가져오기 (Server Side)
 async function getCategory(categoryId: number) {
@@ -36,29 +52,15 @@ async function getCategory(categoryId: number) {
   return data;
 }
 
-// 본문에서 첫 번째 이미지 추출
-function extractFirstImage(htmlContent: string): string | null {
-  const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
-  return imgMatch ? imgMatch[1] : null;
-}
 
-// 본문에서 텍스트만 추출하여 description 생성
-function extractDescription(htmlContent: string, maxLength = 160): string {
-  // HTML 태그 제거
-  const textContent = htmlContent
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 
-  if (textContent.length <= maxLength) return textContent;
-  return textContent.slice(0, maxLength).trim() + "...";
-}
-
+// Metadata generation uses cached getPost
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const { id, category } = resolvedParams;
 
-  const post = await getPost(id);
+  // 메타데이터 생성용으로 최소 필드만 가져오기 (성능 최적화)
+  const post = await getPost(id, true);
 
   // 게시물이 없으면 기본 메타데이터 반환
   if (!post) {
@@ -70,12 +72,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const categoryData = await getCategory(post.category_id);
 
-  // 썸네일 우선순위: 본문 첫 이미지 > 카테고리 썸네일 > 기본 이미지
-  const firstImageFromContent = extractFirstImage(post.contents || "");
-  const ogImage = firstImageFromContent || categoryData?.thumbnail || "/profile.jpg";
+  // 카테고리 썸네일을 OG 이미지로 사용 (본문 파싱 제거로 성능 향상)
+  const ogImage = categoryData?.thumbnail || "/profile.jpg";
 
-  // description 생성
-  const description = extractDescription(post.contents || "");
+  // description은 제목 기반으로 생성 (본문이 없으므로)
+  const description = `${post.title} - ${categoryData?.name || ''} 카테고리의 게시물입니다.`;
 
   const baseUrl = "https://taehyun-devlog.vercel.app";
   const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${id}`;
@@ -108,6 +109,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default function PostDetailPage() {
+export default async function PostDetailPage({ params }: PageProps) {
+  const resolvedParams = await params;
+  const post = await getPost(resolvedParams.id);
+
   return <PostDetailClient />;
 }

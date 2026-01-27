@@ -204,17 +204,26 @@ export default function PostDetailClient() {
             const postCategory = categories.find(
                 (cat) => cat.id === post.category_id
             );
-            const urlCategoryDecoded = Array.isArray(urlCategory)
-                ? decodeURIComponent(urlCategory[0])
-                : decodeURIComponent(urlCategory);
+
+            let urlCategoryValue = Array.isArray(urlCategory)
+                ? urlCategory[0]
+                : urlCategory;
+
+            // Safe decode to handle both encoded (computer%20science) and decoded but potentially problematic strings
+            try {
+                urlCategoryValue = decodeURIComponent(urlCategoryValue);
+            } catch (e) {
+                // Ignore decoding errors (e.g., if it's already decoded or has invalid % sequences)
+            }
 
             // lowerURL로 소문자 변환해서 비교
             if (
                 postCategory &&
-                lowerURL(postCategory.name) !== urlCategoryDecoded.toLowerCase()
+                lowerURL(postCategory.name) !== urlCategoryValue.toLowerCase()
             ) {
                 console.error("카테고리 불일치:", {
-                    url: urlCategoryDecoded,
+                    urlRaw: urlCategory,
+                    urlDecoded: urlCategoryValue,
                     actual: postCategory.name,
                 });
                 setIsNotFound(true);
@@ -492,7 +501,7 @@ export default function PostDetailClient() {
                 <div className="absolute inset-0 bg-black/60"></div>
                 <div className="absolute inset-0 flex flex-col gap-4 justify-center items-center text-white p-container">
                     <Link
-                        href={`/posts/${category?.name}`}
+                        href={`/posts/${encodeURIComponent(category?.name || "")}`}
                         className="flex gap-2 items-center bg-gray-900 bg-opacity-70 px-3 py-1 rounded-md"
                     >
                         <TagIcon size={16} className="inline-block" />
@@ -551,9 +560,11 @@ export default function PostDetailClient() {
             <div className="flex flex-col md:flex-row gap-4 w-full my-4">
                 {previousPage && (
                     <Link
-                        href={`/posts/${lowerURL(
-                            categories.find((cat) => cat.id === previousPage.category_id)
-                                ?.name || lowerURL(category?.name || "")
+                        href={`/posts/${encodeURIComponent(
+                            lowerURL(
+                                categories.find((cat) => cat.id === previousPage.category_id)
+                                    ?.name || lowerURL(category?.name || "")
+                            )
                         )}/${previousPage.id}`}
                         className="bg-searchInput p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300"
                     >
@@ -570,9 +581,11 @@ export default function PostDetailClient() {
                 )}
                 {nextPage && (
                     <Link
-                        href={`/posts/${lowerURL(
-                            categories.find((cat) => cat.id === nextPage.category_id)?.name ||
-                            lowerURL(category?.name || "")
+                        href={`/posts/${encodeURIComponent(
+                            lowerURL(
+                                categories.find((cat) => cat.id === nextPage.category_id)?.name ||
+                                lowerURL(category?.name || "")
+                            )
                         )}/${nextPage.id}`}
                         className="bg-searchInput p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300"
                     >
@@ -708,8 +721,8 @@ export default function PostDetailClient() {
                                         <div className="flex items-center gap-1">
                                             <span
                                                 className={`flex items-center gap-2 font-semibold ${comment.author_id === post?.author_id
-                                                        ? "font-normal text-[12px] bg-black rounded-full text-white px-2 py-1"
-                                                        : ""
+                                                    ? "font-normal text-[12px] bg-black rounded-full text-white px-2 py-1"
+                                                    : ""
                                                     }`}
                                             >
                                                 {comment.author_name}
@@ -813,8 +826,8 @@ export default function PostDetailClient() {
                                                         <div className="flex items-center gap-1">
                                                             <span
                                                                 className={`flex items-center gap-2 font-semibold ${reply.author_id === post?.author_id
-                                                                        ? "font-normal text-[12px] bg-black rounded-full text-white px-2 py-1"
-                                                                        : ""
+                                                                    ? "font-normal text-[12px] bg-black rounded-full text-white px-2 py-1"
+                                                                    : ""
                                                                     }`}
                                                             >
                                                                 {reply.author_name}

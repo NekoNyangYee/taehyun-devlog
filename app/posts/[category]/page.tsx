@@ -48,9 +48,13 @@ export default function CategoryPage({
   const pathname = usePathname();
   const { session } = useSessionStore();
   const userId = session?.user?.id;
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    decodeURIComponent(params.category)
-  );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
+    try {
+      return decodeURIComponent(params.category);
+    } catch {
+      return params.category;
+    }
+  });
   const [sortOrder, setSortOrder] = useState<string>("new-sort");
 
   // ✅ TanStack Query로 데이터 가져오기
@@ -83,7 +87,7 @@ export default function CategoryPage({
   const removeBookmarkMutation = useRemoveBookmark(userId);
 
   useEffect(() => {
-    const categoryFromURL = decodeURIComponent(pathname.split("/").pop() || "");
+    const categoryFromURL = pathname.split("/").pop() || "";
     if (categoryFromURL !== "posts" && selectedCategory !== categoryFromURL) {
       setSelectedCategory(categoryFromURL);
     }
@@ -146,7 +150,7 @@ export default function CategoryPage({
               (cat) => cat.id === post.category_id
             );
             const imageUrl = category?.thumbnail;
-            const currentCategoryName = category?.name.toLowerCase();
+            const currentCategoryName = category?.name.toLowerCase() || "";
             const categoryName = category?.name || "미분류";
             const isBookmarked = bookmarks.includes(post.id);
 
@@ -173,7 +177,7 @@ export default function CategoryPage({
             return (
               <Link
                 key={post.id}
-                href={`/posts/${currentCategoryName}/${post.id}`}
+                href={`/posts/${encodeURIComponent(currentCategoryName)}/${post.id}`}
               >
                 <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-containerColor/70 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
                   <div className="relative h-40 w-full bg-gray-100">
