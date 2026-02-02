@@ -42,8 +42,15 @@ import {
   useAddBookmark,
   useRemoveBookmark,
 } from "@components/queries/postMutations";
+import { PostStateWithoutContents } from "@components/types/post";
+import { Category } from "@components/types/category";
 
-export default function PostsPage() {
+interface PostsPageProps {
+  initialPosts?: PostStateWithoutContents[];
+  initialCategories?: Category[];
+}
+
+export default function PostsPage({ initialPosts = [], initialCategories = [] }: PostsPageProps) {
   const pathname = usePathname();
   const { session } = useSessionStore();
   const userId = session?.user?.id;
@@ -56,15 +63,16 @@ export default function PostsPage() {
     setIsClient(true);
   }, []);
 
-  // ✅ TanStack Query로 데이터 가져오기
   const { data: posts = [] } = useQuery({
     queryKey: postsQueryKey,
     queryFn: fetchPostsQueryFn,
+    initialData: initialPosts,
   });
 
   const { data: categories = [] } = useQuery({
     queryKey: categoriesQueryKey,
     queryFn: fetchCategoriesQueryFn,
+    initialData: initialCategories,
   });
 
   const { data: bookmarks = [] } = useQuery({
