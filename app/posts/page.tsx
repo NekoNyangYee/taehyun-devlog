@@ -3,6 +3,9 @@ import PostsPageView from "./Posts";
 import { fetchPostsQueryFn } from "@components/queries/postQueries";
 import { fetchCategoriesQueryFn } from "@components/queries/categoryQueries";
 
+// 동적 렌더링 강제 (빌드 시 정적 생성 방지)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "게시물 목록 | TaeHyun's Devlog",
   description: "프론트엔드 개발자 김태현의 기술 블로그 포스트 목록입니다.",
