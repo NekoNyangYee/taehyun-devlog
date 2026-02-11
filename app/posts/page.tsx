@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import PostsPageView from "./Posts";
+import PostsContent from "./_components/PostsContent";
 import { fetchPostsQueryFn } from "@components/queries/postQueries";
 import { fetchCategoriesQueryFn } from "@components/queries/categoryQueries";
 
 // 동적 렌더링 강제 (빌드 시 정적 생성 방지)
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "게시물 목록 | TaeHyun's Devlog",
@@ -50,6 +50,11 @@ const jsonLd = {
   },
 };
 
+/**
+ * Posts 페이지 (Server Component)
+ * - 서버에서 데이터 미리 가져오기 (SSR)
+ * - Client Component에 초기 데이터 전달
+ */
 export default async function PostPage() {
   // 서버 사이드에서 데이터 미리 가져오기 (SSR)
   const [initialPosts, initialCategories] = await Promise.all([
@@ -63,10 +68,11 @@ export default async function PostPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PostsPageView
+      <PostsContent
         initialPosts={initialPosts}
         initialCategories={initialCategories}
       />
     </>
   );
 }
+
