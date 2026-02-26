@@ -1,17 +1,14 @@
-// app/bookmark/page.tsx
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
+import BookmarkContent from "./_components/BookmarkContent";
 
 export const metadata: Metadata = {
   title: "북마크 | TaeHyun's Devlog",
 };
 
-// ✅ 클라이언트에서만 실행되도록 withSessionCheck 적용된 컴포넌트를 불러옴
-const BookMarkPageWithSession = dynamic(
-  () => import("../bookmarks/BookMarkPageWithSession"),
-  { ssr: false }
-);
-
-export default function Page() {
-  return <BookMarkPageWithSession />;
+/**
+ * 북마크 페이지 (Server Component)
+ * - 조립자 역할
+ */
+export default function BookmarkPage() {
+  return <BookmarkContent />;
 }

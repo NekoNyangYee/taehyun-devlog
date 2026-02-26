@@ -10,31 +10,29 @@ import { cn } from "@components/lib/utils";
 import { PostStateWithoutContents } from "@components/types/post";
 
 /**
- * 게시물 그리드 카드 컴포넌트 (Presentational)
- * - 북마크 버튼 포함
+ * 북마크 카드 컴포넌트 (Presentational)
+ * - PostGridCard와 동일한 디자인 적용
  * - 순수하게 화면만 렌더링
  */
-interface PostGridCardProps {
+interface BookmarkCardProps {
   post: PostStateWithoutContents;
   categoryName: string;
   categorySlug: string;
   thumbnailUrl?: string;
   commentCount: number;
   isBookmarked: boolean;
-  showBookmark: boolean;
   onBookmarkToggle: (e: React.MouseEvent) => void;
 }
 
-export function PostGridCard({
+export function BookmarkCard({
   post,
   categoryName,
   categorySlug,
   thumbnailUrl,
   commentCount,
   isBookmarked,
-  showBookmark,
   onBookmarkToggle,
-}: PostGridCardProps) {
+}: BookmarkCardProps) {
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-containerColor/70 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
       <Link
@@ -60,20 +58,18 @@ export function PostGridCard({
             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
               {categoryName}
             </span>
-            {showBookmark && (
-              <button
-                onClick={onBookmarkToggle}
-                className="relative z-10 pointer-events-auto"
-                type="button"
-              >
-                <BookmarkIcon
-                  size={18}
-                  className={cn(
-                    isBookmarked ? "fill-yellow-500 stroke-none" : "fill-none",
-                  )}
-                />
-              </button>
-            )}
+            <button
+              onClick={onBookmarkToggle}
+              className="relative z-10 pointer-events-auto"
+              type="button"
+            >
+              <BookmarkIcon
+                size={18}
+                className={cn(
+                  isBookmarked ? "fill-yellow-500 stroke-none" : "fill-none",
+                )}
+              />
+            </button>
           </div>
 
           <h3 className="truncate text-lg font-semibold leading-tight text-gray-900">
