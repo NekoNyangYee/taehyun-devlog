@@ -3,8 +3,6 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const WINDOW_SIZE = 8;
-
 interface ImageViewerProps {
   images: string[];
   selectedIndex: number | null;
@@ -20,8 +18,16 @@ export default function ImageViewer({
 }: ImageViewerProps) {
   const isOpen = selectedIndex !== null;
   const [visible, setVisible] = useState(false);
-  const [windowStart, setWindowStart] = useState(0);
-  const prevIndexRef = useRef<number | null>(null);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    if (selectedIndex === null) return;
+    thumbnailRefs.current[selectedIndex]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [selectedIndex]);
 
   const handlePrev = useCallback(() => {
     if (selectedIndex === null) return;
@@ -33,52 +39,12 @@ export default function ImageViewer({
     onSelect(selectedIndex < images.length - 1 ? selectedIndex + 1 : 0);
   }, [selectedIndex, images.length, onSelect]);
 
-  // 슬라이딩 윈도우: selectedIndex가 윈도우 경계를 넘으면 한 칸씩 이동
-  // 순환 이동 시(마지막→처음, 처음→마지막)는 윈도우도 함께 초기화
-  useEffect(() => {
-    if (selectedIndex === null) return;
-    const maxStart = Math.max(0, images.length - WINDOW_SIZE);
-    const prevIndex = prevIndexRef.current;
-    prevIndexRef.current = selectedIndex;
-
-    // 순환: 마지막 → 처음
-    if (selectedIndex === 0 && prevIndex === images.length - 1) {
-      setWindowStart(0);
-      return;
-    }
-    // 순환: 처음 → 마지막
-    if (selectedIndex === images.length - 1 && prevIndex === 0) {
-      setWindowStart(maxStart);
-      return;
-    }
-
-    setWindowStart((prev) => {
-      if (selectedIndex >= prev + WINDOW_SIZE)
-        return Math.min(prev + 1, maxStart);
-      if (selectedIndex < prev) return Math.max(prev - 1, 0);
-      return prev;
-    });
-  }, [selectedIndex, images.length]);
-
-  // 뷰어가 열릴 때 선택된 이미지가 윈도우 중앙에 오도록 초기화
-  useEffect(() => {
-    if (!isOpen || selectedIndex === null) return;
-    const maxStart = Math.max(0, images.length - WINDOW_SIZE);
-    setWindowStart(
-      Math.min(
-        Math.max(0, selectedIndex - Math.floor(WINDOW_SIZE / 2)),
-        maxStart,
-      ),
-    );
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // 등장 애니메이션
   useEffect(() => {
     if (isOpen) {
       requestAnimationFrame(() => setVisible(true));
     } else {
       setVisible(false);
-      prevIndexRef.current = null;
     }
   }, [isOpen]);
 
@@ -112,10 +78,6 @@ export default function ImageViewer({
   if (!isOpen || images.length === 0) return null;
 
   const selectedSrc = images[selectedIndex];
-  const visibleThumbnails = images.slice(
-    windowStart,
-    windowStart + WINDOW_SIZE,
-  );
 
   return (
     <div
@@ -176,7 +138,7 @@ export default function ImageViewer({
       {/* 하단 고정 영역 */}
       {images.length > 1 && (
         <div
-          className="relative z-10 flex-shrink-0 flex flex-col items-center gap-2 pb-4 pt-2"
+          className="relative z-10 flex-shrink-0 flex flex-col items-center gap-2 pb-4 pt-2 w-full"
           onClick={(e) => e.stopPropagation()}
         >
           {/* 모바일 하단 화살표 */}
@@ -203,28 +165,30 @@ export default function ImageViewer({
             {selectedIndex + 1} / {images.length}
           </div>
 
-          {/* 썸네일 슬라이딩 윈도우 (최대 7개) */}
-          <div className="flex gap-2 px-4 pb-1">
-            {visibleThumbnails.map((src, i) => {
-              const realIndex = windowStart + i;
-              return (
+          {/* 썸네일 목록 */}
+          <div className="w-full overflow-x-auto scrollbar-viewer flex md:justify-center">
+            <div className="flex gap-2 px-4 py-2">
+              {images.map((src, index) => (
                 <button
-                  key={realIndex}
-                  onClick={() => onSelect(realIndex)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all duration-200 ${
-                    realIndex === selectedIndex
-                      ? "border-white scale-105 opacity-100"
+                  key={index}
+                  ref={(el) => {
+                    thumbnailRefs.current[index] = el;
+                  }}
+                  onClick={() => onSelect(index)}
+                  className={`flex-shrink-0 w-12 h-12 md:w-16 md:h-16 rounded-md overflow-hidden border-2 transition-all duration-200 ${
+                    index === selectedIndex
+                      ? "border-white ring-2 ring-white ring-offset-1 ring-offset-black opacity-100"
                       : "border-transparent opacity-50 hover:opacity-80"
                   }`}
                 >
                   <img
                     src={src}
-                    alt={`썸네일 ${realIndex + 1}`}
+                    alt={`썸네일 ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
       )}
