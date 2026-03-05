@@ -58,6 +58,7 @@ export default function NavBar() {
   return (
     <>
       {currentPath !== "/login" &&
+        !currentPath.startsWith("/signup/confirm") &&
         !isLoading && ( // ✅ 로딩이 끝날 때까지 UI 유지
           <aside className="sticky left-0 top-[65px] h-[calc(100vh-65px)] bg-white flex flex-col justify-between gap-2 z-0 max-2xl:hidden">
             <div className="p-container w-60 flex flex-col">
