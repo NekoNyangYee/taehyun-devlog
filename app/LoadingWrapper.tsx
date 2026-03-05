@@ -5,8 +5,10 @@ import PageLoading from "../components/loading/PageLoading";
 import { supabase } from "../lib/supabaseClient";
 import { addUserToProfileTable } from "../lib/loginUtils";
 import NotFound from "./not-found";
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { usePostStore } from "@components/store/postStore";
+import { useSessionStore } from "@components/store/sessionStore";
 import {
   fetchPostsQueryFn,
   postsQueryKey,
@@ -17,8 +19,33 @@ export default function LoadingWrapper({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const { addSession } = useSessionStore();
   const [loading, setLoading] = useState(true);
   const [showNotFound, setShowNotFound] = useState(false);
+
+  useEffect(() => {
+    const ensureSignedOutForPendingSignup = async () => {
+      if (typeof window === "undefined") return;
+
+      const pendingSignup = sessionStorage.getItem("pending-signup-user");
+      if (!pendingSignup) return;
+
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        await supabase.auth.signOut();
+      }
+
+      addSession(null);
+
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("blog-user-session");
+        localStorage.removeItem("session-storage");
+      }
+    };
+
+    ensureSignedOutForPendingSignup();
+  }, [addSession, pathname]);
 
   const postsQuery = useQuery({
     queryKey: postsQueryKey,
@@ -40,6 +67,18 @@ export default function LoadingWrapper({
     }, 5000);
 
     const addUser = async () => {
+      if (pathname.startsWith("/signup/confirm")) {
+        return;
+      }
+
+      if (typeof window !== "undefined") {
+        const authIntent = sessionStorage.getItem("auth-intent");
+        const pendingSignup = sessionStorage.getItem("pending-signup-user");
+        if (authIntent || pendingSignup) {
+          return;
+        }
+      }
+
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
@@ -62,7 +101,7 @@ export default function LoadingWrapper({
     addUser();
 
     return () => clearTimeout(timeoutId);
-  }, [postsQuery.isLoading]);
+  }, [pathname, postsQuery.isLoading]);
 
   if (loading) {
     return <PageLoading />;
