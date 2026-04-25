@@ -57,6 +57,7 @@ import {
   fetchProfileQueryFn,
 } from "@components/queries/profileQueries";
 import ImageViewer from "@components/components/ImageViewer";
+import MobileTOC from "@components/components/MobileTOC";
 
 interface Heading {
   id: string;
@@ -170,6 +171,7 @@ export default function PostDetailClient() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
+  const [activeHeadingId, setActiveHeadingId] = useState<string>("");
 
   const setPostLoading = useUIStore((state) => state.setPostLoading);
   const queryClient = useQueryClient();
@@ -298,6 +300,30 @@ export default function PostDetailClient() {
       setUpdatedContent(updatedHtml);
     }
   }, [post?.contents]);
+
+  // 스크롤 위치 기반 현재 활성 헤딩 추적 (뷰포트 중앙 기준)
+  useEffect(() => {
+    if (headings.length === 0) return;
+
+    const handleScroll = () => {
+      const viewportMiddle = window.innerHeight / 2;
+      let currentId = headings[0]?.id ?? "";
+      for (const heading of headings) {
+        const el = document.getElementById(heading.id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= viewportMiddle) {
+          currentId = heading.id;
+        } else {
+          break;
+        }
+      }
+      setActiveHeadingId(currentId);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [headings]);
 
   // 좋아요 상태만 감시 (다른 post 필드 변경 시 불필요한 실행 방지)
   useEffect(() => {
@@ -527,8 +553,9 @@ export default function PostDetailClient() {
   console.log("메인 컴포넌트 렌더링");
 
   return (
-    <div className="break-words whitespace-pre-wrap h-full w-full max-w-[1200px] mx-auto p-4">
-      <div className="relative w-full h-72 overflow-hidden rounded-lg">
+    <div className="relative flex-1 min-w-0 w-full">
+      {/* Hero image - 헤더 바로 아래 sticky 고정 */}
+      <div className="sticky top-[65px] h-[400px] z-0">
         <img
           src={imageUrl}
           alt="게시물 대표 이미지"
@@ -558,7 +585,19 @@ export default function PostDetailClient() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col-reverse lg:flex-row gap-6 mt-6">
+
+      {/* 스크롤 가능한 콘텐츠 영역 - hero와 겹쳐서 부드러운 전환 */}
+      <div className="relative z-10 -mt-[160px]">
+        {/* 흰색 그라디언트 전환 - 이미지 하단 경계 가리기 */}
+        <div className="h-[160px] bg-gradient-to-b from-transparent to-white pointer-events-none" />
+        <div className="bg-white min-h-screen">
+          <MobileTOC
+            headingGroups={headingGroups}
+            activeId={activeHeadingId}
+            onScrollTo={scrollToHeading}
+          />
+          <div className="break-words whitespace-pre-wrap w-full max-w-[1200px] mx-auto px-4 pb-4">
+      <div className="flex flex-col-reverse lg:flex-row gap-6">
         <article className="flex-1 min-w-0">
           <RenderedContent
             html={updatedContent || post?.contents || ""}
@@ -567,14 +606,16 @@ export default function PostDetailClient() {
           />
         </article>
         {headingGroups.length > 0 && (
-          <aside className="flex flex-col gap-2 lg:w-[300px] lg:sticky top-20 self-start p-4 bg-white border border-containerColor rounded-lg shadow-md w-full">
+          <aside className="hidden lg:flex flex-col gap-2 lg:w-[300px] lg:sticky top-20 self-start p-4 bg-white border border-containerColor rounded-lg shadow-md w-full">
             <h3 className="text-lg font-semibold m-0">목차</h3>
             <nav className="flex flex-col gap-4">
               {headingGroups.map((group, index) => (
                 <div key={group.h2.id} className="flex flex-col gap-2">
                   <button
                     onClick={() => scrollToHeading(group.h2.id)}
-                    className="text-sm font-bold cursor-pointer hover:underline text-left"
+                    className={`text-sm font-bold cursor-pointer hover:underline text-left ${
+                      activeHeadingId === group.h2.id ? "text-blue-500" : ""
+                    }`}
                   >
                     {`${index + 1}. ${group.h2.text}`}
                   </button>
@@ -584,7 +625,11 @@ export default function PostDetailClient() {
                         <button
                           key={subHeading.id}
                           onClick={() => scrollToHeading(subHeading.id)}
-                          className="text-xs text-gray-600 cursor-pointer hover:underline text-left"
+                          className={`text-xs cursor-pointer hover:underline text-left ${
+                            activeHeadingId === subHeading.id
+                              ? "text-blue-500"
+                              : "text-gray-600"
+                          }`}
                         >
                           {subHeading.text}
                         </button>
@@ -926,6 +971,9 @@ export default function PostDetailClient() {
           </p>
         </div>
       )}
+          </div>
+        </div>
+      </div>
       <GotoTop />
       <ImageViewer
         images={postImages}

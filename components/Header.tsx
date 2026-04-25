@@ -47,9 +47,7 @@ export default function Header() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (currentPath === "/login" || currentPath.startsWith("/signup/confirm")) {
-    return null;
-  }
+  if (currentPath === "/login") return null;
 
   return (
     <>

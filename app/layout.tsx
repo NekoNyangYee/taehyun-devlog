@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@components/components/Header";
 import NavBar from "@components/components/NavBar";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import PageLoading from "@components/components/loading/PageLoading";
 import Footer from "@components/components/Footer";
 import Script from "next/script";
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="ko">

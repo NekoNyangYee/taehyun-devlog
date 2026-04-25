@@ -1,19 +1,10 @@
-"use client";
-
 import React from "react";
 import LogoIcon from "./icons/LogoIcon";
-import { usePathname } from "next/navigation";
 
 const GITHUB_URL = "https://github.com/kth08"; // 깃허브 주소는 필요시 수정
 const EMAIL = "mailto:kth08.dev@gmail.com"; // 이메일 주소는 필요시 수정
 
 export default function Footer() {
-  const currentPath = usePathname();
-
-  if (currentPath.startsWith("/signup/confirm")) {
-    return null;
-  }
-
   return (
     <footer className="w-full bg-gray-100 border-t border-gray-200 mt-auto py-6 px-4 flex flex-col items-center text-gray-700 text-sm">
       <div className="flex items-center gap-2 mb-2">
