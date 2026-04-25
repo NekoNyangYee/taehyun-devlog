@@ -28,7 +28,7 @@ export function GotoTop() {
     <div>
       <button
         onClick={handleClick}
-        className={`fixed bottom-8 right-8 p-3 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all duration-300 ${
+        className={`fixed bottom-8 right-8 z-50 p-3 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all duration-300 ${
           currentHeight ? "opacity-100" : "opacity-0"
         }`}
         aria-label="Go to top"

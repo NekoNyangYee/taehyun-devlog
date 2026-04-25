@@ -10,7 +10,7 @@ export const fetchProfileQueryFn = async (
   let query = supabase
     .from("profiles")
     .select(
-      "id, role, nickname, last_login, created_at, profile_image, profile_banner"
+      "id, nickname, last_login, created_at, profile_image, profile_banner"
     );
 
   if (userId) {

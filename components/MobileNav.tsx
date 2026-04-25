@@ -132,7 +132,7 @@ export default function MobileNavBar({
           <Link
             href={"/"}
             className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
-              "/"
+              "/",
             )}`}
             onClick={handleClose}
           >
@@ -142,29 +142,27 @@ export default function MobileNavBar({
           <Link
             href="/posts"
             className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
-              "/posts"
+              "/posts",
             )}`}
             onClick={handleClose}
           >
             <Grid2X2Icon size={18} />
             <span className="truncate">게시물</span>
           </Link>
-          {isClient && session && (
-            <Link
-              href={"/bookmarks"}
-              className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
-                "/bookmarks"
-              )}`}
-              onClick={handleClose}
-            >
-              <StarIcon size={18} />
-              <span className="truncate">북마크</span>
-            </Link>
-          )}
+          <Link
+            href={"/bookmarks"}
+            className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
+              "/bookmarks",
+            )}`}
+            onClick={handleClose}
+          >
+            <StarIcon size={18} />
+            <span className="truncate">북마크</span>
+          </Link>
           <Link
             href={"/myinfo"}
             className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
-              "/myinfo"
+              "/myinfo",
             )}`}
             onClick={handleClose}
           >
@@ -174,7 +172,7 @@ export default function MobileNavBar({
           <Link
             href={"/profile"}
             className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
-              "/profile"
+              "/profile",
             )}`}
             onClick={handleClose}
           >
