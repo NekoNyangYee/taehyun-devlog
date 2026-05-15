@@ -23,9 +23,7 @@ export default function ScrollProgressBar() {
       setScrollProgress(progress);
     };
 
-    setScrollProgress(0);
-    window.addEventListener("scroll", handleClientScrollBar);
-
+    window.addEventListener("scroll", handleClientScrollBar, { passive: true });
     return () => window.removeEventListener("scroll", handleClientScrollBar);
   }, []);
 

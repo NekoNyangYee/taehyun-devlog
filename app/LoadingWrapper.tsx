@@ -7,7 +7,6 @@ import { addUserToProfileTable } from "../lib/loginUtils";
 import NotFound from "./not-found";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { usePostStore } from "@components/store/postStore";
 import { useSessionStore } from "@components/store/sessionStore";
 import {
   fetchPostsQueryFn,
@@ -21,7 +20,6 @@ export default function LoadingWrapper({
 }) {
   const pathname = usePathname();
   const { addSession } = useSessionStore();
-  const [loading, setLoading] = useState(true);
   const [showNotFound, setShowNotFound] = useState(false);
 
   useEffect(() => {
@@ -55,15 +53,11 @@ export default function LoadingWrapper({
   });
 
   useEffect(() => {
-    if (!postsQuery.isLoading) {
-      setLoading(false);
-      return;
-    }
+    if (!postsQuery.isLoading) return;
 
     const timeoutId = setTimeout(() => {
       console.log("5초 타임아웃 - 404 표시");
       setShowNotFound(true);
-      setLoading(false);
     }, 5000);
 
     const addUser = async () => {
@@ -103,12 +97,12 @@ export default function LoadingWrapper({
     return () => clearTimeout(timeoutId);
   }, [pathname, postsQuery.isLoading]);
 
-  if (loading) {
-    return <PageLoading />;
-  }
-
   if (showNotFound) {
     return <NotFound />;
+  }
+
+  if (postsQuery.isLoading) {
+    return <PageLoading />;
   }
 
   return <>{children}</>;

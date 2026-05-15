@@ -23,23 +23,31 @@ export function useBannerUpdate() {
     const [isAnimating, setIsAnimating] = useState(false);
     const [willDeleteBanner, setWillDeleteBanner] = useState(false);
 
+    // 모달 mount/unmount 관리
+    useEffect(() => {
+        if (!isModalOpen) return;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, [isModalOpen]);
+
+    // mount 후 한 프레임 뒤에 enter 애니메이션 시작, close 시 300ms 후 unmount
     useEffect(() => {
         if (isModalOpen) {
-            setIsVisible(true);
-            document.body.style.overflow = "hidden";
-            const timer = setTimeout(() => {
-                setIsAnimating(true);
-            }, 10);
-            return () => clearTimeout(timer);
+            const raf = requestAnimationFrame(() => setIsVisible(true));
+            const timer = setTimeout(() => setIsAnimating(true), 10);
+            return () => {
+                cancelAnimationFrame(raf);
+                clearTimeout(timer);
+            };
         }
-
-        document.body.style.overflow = "auto";
-        if (isVisible) {
+        const timer = setTimeout(() => {
+            setIsVisible(false);
             setIsAnimating(false);
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            return () => clearTimeout(timer);
-        }
-    }, [isModalOpen, isVisible]);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [isModalOpen]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

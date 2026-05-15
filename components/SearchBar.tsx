@@ -1,7 +1,7 @@
 "use client";
 
-import { CornerDownRight, Search } from "lucide-react";
-import { useState, useRef, useEffect, use } from "react";
+import { Search } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSessionStore } from "@components/store/sessionStore";
 import Link from "next/link";
@@ -20,6 +20,7 @@ import {
   commentsQueryKey,
   fetchCommentsQueryFn,
 } from "@components/queries/commentQueries";
+import { PostStateWithoutContents } from "@components/types/post";
 
 export default function SearchBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -81,19 +82,8 @@ export default function SearchBar() {
       )
     : [];
 
-  // 게시물 id로 카테고리명 찾기
-  const getCategoryNameByPostId = (postId: number) => {
-    const post = posts.find((p) => p.id === postId);
-    // @ts-ignore: category_id가 실제로는 number임을 가정
-    return post && (post as any).category_name
-      ? (post as any).category_name
-      : post && (post as any).category_id
-      ? (post as any).category_id
-      : "";
-  };
-
   // posts에서 카테고리 id로 카테고리 이름 찾기
-  const getCategoryName = (post: any) => {
+  const getCategoryName = (post: PostStateWithoutContents) => {
     const category = categories.find((cat) => cat.id === post.category_id);
     return category ? category.name : "";
   };
@@ -127,27 +117,26 @@ export default function SearchBar() {
     setTimeout(() => setKeyword(""), 500);
   };
 
+  // 모달 열림 시 body 스크롤 잠금
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
+    if (!isOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
       document.body.style.overflow = "auto";
-    }
+    };
   }, [isOpen]);
 
+  // mount(isVisible=true) → 다음 프레임에서 enter 애니메이션(isOpen=true)
   useEffect(() => {
-    if (isVisible) {
-      const openTimeout = setTimeout(() => setIsOpen(true), 0);
-      return () => clearTimeout(openTimeout);
-    } else {
-      setIsOpen(false);
-    }
+    if (!isVisible) return;
+    const raf = requestAnimationFrame(() => setIsOpen(true));
+    return () => cancelAnimationFrame(raf);
   }, [isVisible]);
 
+  // exit 애니메이션 종료 후 unmount(isVisible=false)
   useEffect(() => {
-    if (!isOpen && isVisible) {
-      closeTimeout.current = setTimeout(() => setIsVisible(false), 300);
-    }
+    if (isOpen || !isVisible) return;
+    closeTimeout.current = setTimeout(() => setIsVisible(false), 300);
     return () => {
       if (closeTimeout.current) clearTimeout(closeTimeout.current);
     };

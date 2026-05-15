@@ -39,13 +39,14 @@ export default function ImageViewer({
     onSelect(selectedIndex < images.length - 1 ? selectedIndex + 1 : 0);
   }, [selectedIndex, images.length, onSelect]);
 
-  // 등장 애니메이션
+  // 등장 애니메이션: open 시 rAF로 visible=true, close 시 즉시 visible=false
   useEffect(() => {
-    if (isOpen) {
-      requestAnimationFrame(() => setVisible(true));
-    } else {
+    if (!isOpen) return;
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => {
+      cancelAnimationFrame(raf);
       setVisible(false);
-    }
+    };
   }, [isOpen]);
 
   const handleClose = useCallback(() => {

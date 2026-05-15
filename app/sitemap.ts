@@ -64,11 +64,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .eq("visibility", "public")
         .order("created_at", { ascending: false });
 
+    type SitemapPost = {
+        id: number;
+        updated_at: string | null;
+        created_at: string;
+        categories: { name: string } | { name: string }[] | null;
+    };
+
     // 게시물 URL 생성
     const postPages: MetadataRoute.Sitemap =
-        posts?.map((post: any) => {
-            // 조인된 카테고리 데이터에서 이름 추출
-            const categoryName = post.categories?.name || "uncategorized";
+        (posts as SitemapPost[] | null)?.map((post) => {
+            // 조인된 카테고리 데이터에서 이름 추출 (단일/배열 모두 대응)
+            const rawCategory = Array.isArray(post.categories)
+                ? post.categories[0]
+                : post.categories;
+            const categoryName = rawCategory?.name || "uncategorized";
 
             return {
                 url: `${baseUrl}/posts/${encodeURIComponent(categoryName)}/${post.id}`,

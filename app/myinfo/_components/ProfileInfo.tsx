@@ -44,14 +44,14 @@ export function ProfileInfo({
                         <>
                             <CheckCheck size={16} className="text-green-500" />
                             <p className="text-green-500">
-                                해당 계정은 TaeHyun's Devlog의 인증된 계정입니다.
+                                해당 계정은 TaeHyun&apos;s Devlog의 인증된 계정입니다.
                             </p>
                         </>
                     ) : (
                         <>
                             <CircleAlert size={16} className="text-red-500" />
                             <p className="text-red-500">
-                                해당 계정은 TaeHyun's Devlog의 미인증된 계정입니다.
+                                해당 계정은 TaeHyun&apos;s Devlog의 미인증된 계정입니다.
                             </p>
                         </>
                     )}

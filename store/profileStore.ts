@@ -74,11 +74,21 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
         return;
       }
 
+      type UserRoleRow = {
+        user_id: string;
+        role_id: number;
+        roles: { name: string } | { name: string }[] | null;
+      };
+
       // 3. profiles와 roles 데이터 병합
       const profilesWithRoles = (profilesData ?? []).map((profile) => {
-        // Supabase 조인 결과 타입 처리
-        const userRole = (rolesData as any)?.find((r: any) => r.user_id === profile.id);
-        const roleName = userRole?.roles?.name as string | undefined;
+        const userRole = (rolesData as UserRoleRow[] | null)?.find(
+          (r) => r.user_id === profile.id
+        );
+        const rolesRel = Array.isArray(userRole?.roles)
+          ? userRole?.roles[0]
+          : userRole?.roles;
+        const roleName = rolesRel?.name;
 
         // role 매핑: 'editor' -> 'edit', 'viewer' -> 'read', 기타 -> 'none'
         let role: 'none' | 'read' | 'edit' = 'none';

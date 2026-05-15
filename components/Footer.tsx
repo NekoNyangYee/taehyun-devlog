@@ -9,7 +9,7 @@ export default function Footer() {
     <footer className="w-full bg-gray-100 border-t border-gray-200 mt-auto py-6 px-4 flex flex-col items-center text-gray-700 text-sm">
       <div className="flex items-center gap-2 mb-2">
         <LogoIcon />
-        <span className="font-bold text-base">TaeHyun's Devlog</span>
+        <span className="font-bold text-base">TaeHyun&apos;s Devlog</span>
       </div>
       <p className="mb-2 text-center max-w-xl">
         개발과 성장의 기록을 남기는 블로그입니다. <br className="sm:hidden" />

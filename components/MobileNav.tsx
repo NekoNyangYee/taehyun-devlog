@@ -4,26 +4,20 @@ import {
   Grid2X2Icon,
   HomeIcon,
   LogOutIcon,
-  SettingsIcon,
   LogInIcon,
-  InfoIcon,
   HandIcon,
   StarIcon,
-  XIcon,
   UserRoundCog,
   PanelLeftClose,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "./ui/button";
 import { supabase } from "@components/lib/supabaseClient";
 import { useSessionStore } from "@components/store/sessionStore";
-import { useQuery } from "@tanstack/react-query";
-import {
-  categoriesQueryKey,
-  fetchCategoriesQueryFn,
-} from "@components/queries/categoryQueries";
+import { useIsClient } from "@components/lib/hooks/useIsClient";
+import { useAnimatedMount } from "@components/lib/hooks/useAnimatedMount";
 
 export default function MobileNavBar({
   isOpen,
@@ -35,57 +29,17 @@ export default function MobileNavBar({
   const currentPath: string = usePathname();
   const router = useRouter();
   const { session, addSession } = useSessionStore();
-  const [profileName, setProfileName] = useState<string>("");
-  const [isVisible, setIsVisible] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useIsClient();
+  const { isVisible, isAnimating } = useAnimatedMount(isOpen, 300);
 
-  // 클라이언트 마운트 확인
+  // 모달 열림 시 body 스크롤 잠금
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // TanStack Query로 카테고리 가져오기
-  const { data: categories = [] } = useQuery({
-    queryKey: categoriesQueryKey,
-    queryFn: fetchCategoriesQueryFn,
-  });
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!session?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("nickname")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error) {
-        console.error("프로필 가져오기 에러:", error);
-        return;
-      }
-
-      if (data?.nickname) {
-        setProfileName(data.nickname);
-      }
-    };
-
-    fetchProfile();
-  }, [session]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      document.body.style.overflow = "hidden";
-      setTimeout(() => setIsAnimating(true), 10); // 마운트 후 애니메이션 시작
-    } else if (isVisible) {
-      // 닫기 시작
-      setIsAnimating(false);
+    if (!isOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
       document.body.style.overflow = "auto";
-      setTimeout(() => setIsVisible(false), 300); // 애니메이션 후 언마운트
-    }
-  }, [isOpen, isVisible]);
+    };
+  }, [isOpen]);
 
   const handleClose = () => {
     onClose();

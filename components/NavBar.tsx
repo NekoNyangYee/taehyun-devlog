@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSessionStore } from "@components/store/sessionStore";
 import {
   Grid2X2Icon,
@@ -20,27 +20,23 @@ import {
   categoriesQueryKey,
   fetchCategoriesQueryFn,
 } from "@components/queries/categoryQueries";
+import { useIsClient } from "@components/lib/hooks/useIsClient";
 
 export default function NavBar() {
   const currentPath: string = usePathname();
   const { session, isLoading, fetchSession, addSession } = useSessionStore();
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-
-  // 클라이언트 마운트 확인
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const isClient = useIsClient();
 
   // TanStack Query로 카테고리 가져오기
-  const { data: categories = [] } = useQuery({
+  useQuery({
     queryKey: categoriesQueryKey,
     queryFn: fetchCategoriesQueryFn,
   });
 
   useEffect(() => {
     fetchSession(); // ✅ 세션 동기화
-  }, []);
+  }, [fetchSession]);
 
   const handleLogout = async () => {
     alert("로그아웃 되었습니다.");

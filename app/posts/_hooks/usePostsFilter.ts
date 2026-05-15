@@ -1,69 +1,68 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 import dayjs from "@components/lib/util/dayjs";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
+import { lowerURL } from "@components/lib/util/lowerURL";
 
 /**
  * Posts 페이지 필터링 및 정렬 로직 Hook
- * - URL 기반 카테고리 필터링
- * - 정렬 옵션 관리
- * - 파생 상태 계산
+ * - selectedCategory는 pathname에서 파생 (단일 소스)
+ * - setSelectedCategory는 router.push로 URL 변경
  */
 export function usePostsFilter(
     posts: PostStateWithoutContents[],
     categories: Category[]
 ) {
     const pathname = usePathname();
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const router = useRouter();
     const [sortOrder, setSortOrder] = useState<string>("new-sort");
 
-    // URL에서 카테고리 추출
-    useEffect(() => {
-        let categoryFromURL = pathname.split("/").pop() || "";
+    // pathname에서 선택된 카테고리 파생
+    const selectedCategory = useMemo<string | null>(() => {
+        const segment = pathname.split("/").pop() || "";
+        if (!segment || segment === "posts") return null;
         try {
-            categoryFromURL = decodeURIComponent(categoryFromURL);
-        } catch { }
-
-        if (
-            categoryFromURL &&
-            categoryFromURL !== "posts" &&
-            selectedCategory !== categoryFromURL
-        ) {
-            setSelectedCategory(categoryFromURL);
-        } else if (categoryFromURL === "posts") {
-            setSelectedCategory(null);
+            return decodeURIComponent(segment);
+        } catch {
+            return segment;
         }
-    }, [pathname, selectedCategory]);
+    }, [pathname]);
+
+    const setSelectedCategory = useCallback(
+        (category: string | null) => {
+            if (!category) {
+                router.push("/posts");
+            } else {
+                router.push(`/posts/${lowerURL(category)}`);
+            }
+        },
+        [router]
+    );
 
     // 필터링 및 정렬된 게시물 (파생 상태)
     const filteredAndSortedPosts = useMemo(() => {
-        let filtered = posts;
+        const filtered = selectedCategory
+            ? posts.filter((post) => {
+                  const category = categories.find((cat) => cat.id === post.category_id);
+                  return (
+                      category?.name.toLowerCase() === selectedCategory.toLowerCase()
+                  );
+              })
+            : posts;
 
-        // 카테고리 필터링
-        if (selectedCategory) {
-            filtered = posts.filter((post) => {
-                const category = categories.find((cat) => cat.id === post.category_id);
-                return category?.name.toLowerCase() === selectedCategory.toLowerCase();
-            });
-        }
-
-        // 정렬
         return [...filtered].sort((a, b) => {
             const dateA = dayjs(a.created_at).toDate();
             const dateB = dayjs(b.created_at).toDate();
 
-            if (sortOrder === "new-sort") {
-                return dateB.getTime() - dateA.getTime();
-            } else if (sortOrder === "old-sort") {
-                return dateA.getTime() - dateB.getTime();
-            } else if (sortOrder === "max-view-sort") {
+            if (sortOrder === "new-sort") return dateB.getTime() - dateA.getTime();
+            if (sortOrder === "old-sort") return dateA.getTime() - dateB.getTime();
+            if (sortOrder === "max-view-sort")
                 return (b.view_count ?? 0) - (a.view_count ?? 0);
-            } else if (sortOrder === "min-view-sort") {
+            if (sortOrder === "min-view-sort")
                 return (a.view_count ?? 0) - (b.view_count ?? 0);
-            }
             return 0;
         });
     }, [posts, categories, selectedCategory, sortOrder]);

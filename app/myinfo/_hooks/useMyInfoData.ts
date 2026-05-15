@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+
 import { useSessionStore } from "@components/store/sessionStore";
 import { useProfileStore } from "@components/store/profileStore";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ import {
 export function useMyInfoData() {
     const { session, isLoading, fetchSession } = useSessionStore();
     const { profiles, fetchProfiles } = useProfileStore();
+    const userId = session?.user?.id;
 
     // 서버 상태 조회
     const { data: posts = [] } = useQuery({
@@ -49,23 +51,21 @@ export function useMyInfoData() {
     }, [session, fetchSession]);
 
     useEffect(() => {
-        if (!session?.user?.id) return;
-        fetchProfiles(session.user.id);
-    }, [session?.user?.id, fetchProfiles]);
+        if (!userId) return;
+        fetchProfiles(userId);
+    }, [userId, fetchProfiles]);
 
-    // 사용자 게시물 필터링 (파생 상태)
-    const userPosts = useMemo(() => {
-        if (!session?.user?.id) return [];
-        return posts.filter((post) => post.author_id === session.user.id);
-    }, [posts, session?.user?.id]);
-
-    // 최신순 정렬 (파생 상태)
+    // 사용자 게시물 필터링 + 최신순 정렬 (파생 상태)
     const sortedUserPosts = useMemo(() => {
-        return [...userPosts].sort(
-            (a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-    }, [userPosts]);
+        if (!userId) return [];
+        return posts
+            .filter((post) => post.author_id === userId)
+            .sort(
+                (a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+            );
+    }, [posts, userId]);
 
     // 댓글 수 맵 (파생 상태)
     const commentCountMap = useMemo(() => {

@@ -70,6 +70,39 @@ interface HeadingGroup {
   h3: Heading[];
 }
 
+/** 본문에서 h2, h3 태그에 고유 id를 부여하고 목차 데이터를 반환 (순수 함수) */
+function extractHeadings(htmlContent: string) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlContent, "text/html");
+
+  const headingCounts: { [key: string]: number } = {};
+  let h2Count = 0;
+
+  const headings = Array.from(doc.querySelectorAll("h2, h3")).map((heading) => {
+    let baseId =
+      heading.textContent?.replace(/\s+/g, "-").toLowerCase() || "";
+
+    if (headingCounts[baseId]) {
+      headingCounts[baseId] += 1;
+      baseId = `${baseId}-${headingCounts[baseId]}`;
+    } else {
+      headingCounts[baseId] = 1;
+    }
+
+    heading.id = baseId;
+    if (heading.tagName === "H2") h2Count++;
+
+    return {
+      id: baseId,
+      text: heading.textContent || "",
+      tag: heading.tagName,
+      h2Index: h2Count,
+    };
+  });
+
+  return { headings, updatedHtml: doc.body.innerHTML };
+}
+
 /**
  * 별도 컴포넌트로 분리: 부모 재렌더 시에도 컴포넌트 아이덴티티 유지되어 깜빡임 방지
  */
@@ -111,7 +144,7 @@ function RenderedContent({
     let attempts = 0;
     const maxAttempts = 10;
     const tryHighlight = () => {
-      const hljs = (window as any)?.hljs;
+      const hljs = window.hljs;
       if (hljs) {
         ref.current?.querySelectorAll("pre code").forEach((el) => {
           hljs.highlightElement(el as HTMLElement);
@@ -153,15 +186,10 @@ export default function PostDetailClient() {
   const { id, category: urlCategory } = params;
 
   const [post, setPost] = useState<PostState | null>(null);
-  const [headings, setHeadings] = useState<
-    { id: string; text: string; tag: string }[]
-  >([]);
-  const [updatedContent, setUpdatedContent] = useState<string>("");
   const [hasIncremented, setHasIncremented] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isHeartClicked, setIsHeartClicked] = useState<boolean>(false);
   const [comment, setComment] = useState<string>("");
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isAdmin] = useState<boolean>(false);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState<string>("");
   const [isStatus, setIsStatus] = useState<boolean>(true);
@@ -221,19 +249,22 @@ export default function PostDetailClient() {
 
   const isHydratingPost = postDetailQuery.isLoading && !postDetailQuery.data;
 
+  // query state → 로컬 상태 동기화 (setPost/setIsNotFound는 외부 비동기 상태 반영용으로
+  // 룰의 의도와 충돌하므로 disable. TanStack Query setQueryData 기반 리팩토링은 별도 작업).
   useEffect(() => {
-    if (postDetailQuery.error) {
-      console.error("게시물 상세 로드 실패:", postDetailQuery.error);
-      setIsNotFound(true);
-      setLoading(false);
-      setPostLoading(false);
-    }
+    if (!postDetailQuery.error) return;
+    console.error("게시물 상세 로드 실패:", postDetailQuery.error);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsNotFound(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(false);
+    setPostLoading(false);
   }, [postDetailQuery.error, setPostLoading]);
 
   useEffect(() => {
-    if (postDetailQuery.data) {
-      setPost(postDetailQuery.data);
-    }
+    if (!postDetailQuery.data) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPost(postDetailQuery.data);
   }, [postDetailQuery.data]);
 
   // ✅ URL 카테고리와 실제 게시물 카테고리 검증
@@ -264,6 +295,7 @@ export default function PostDetailClient() {
           urlDecoded: urlCategoryValue,
           actual: postCategory.name,
         });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsNotFound(true);
       }
     }
@@ -292,14 +324,13 @@ export default function PostDetailClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post?.id, hasIncremented]);
 
-  // 본문 내용이 실제로 바뀔 때만 목차 재계산 (좋아요로 인한 불필요한 재계산 방지)
-  useEffect(() => {
-    if (post?.contents) {
-      const { headings, updatedHtml } = extractHeadings(post.contents);
-      setHeadings(headings);
-      setUpdatedContent(updatedHtml);
-    }
-  }, [post?.contents]);
+  // 본문 내용이 바뀔 때만 목차 재계산 (좋아요로 인한 불필요한 재계산 방지)
+  const postContents = post?.contents;
+  const { headings, updatedContent } = useMemo(() => {
+    if (!postContents) return { headings: [], updatedContent: "" };
+    const result = extractHeadings(postContents);
+    return { headings: result.headings, updatedContent: result.updatedHtml };
+  }, [postContents]);
 
   // 스크롤 위치 기반 현재 활성 헤딩 추적 (뷰포트 중앙 기준)
   useEffect(() => {
@@ -325,49 +356,10 @@ export default function PostDetailClient() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [headings]);
 
-  // 좋아요 상태만 감시 (다른 post 필드 변경 시 불필요한 실행 방지)
-  useEffect(() => {
-    if (post && session?.user?.id) {
-      setIsHeartClicked(post.liked_by_user?.includes(session.user.id) ?? false);
-    }
-  }, [post?.liked_by_user, session?.user?.id]);
-
-  /** 본문에서 h2, h3 태그에 고유 id 추가 */
-  const extractHeadings = (htmlContent: string) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
-
-    const headingCounts: { [key: string]: number } = {};
-    let h2Count = 0; // h2 제목 개수를 추적
-
-    const headings = Array.from(doc.querySelectorAll("h2, h3")).map(
-      (heading) => {
-        let baseId =
-          heading.textContent?.replace(/\s+/g, "-").toLowerCase() || "";
-
-        // 같은 제목이 있으면 숫자 추가하여 고유 id 생성
-        if (headingCounts[baseId]) {
-          headingCounts[baseId] += 1;
-          baseId = `${baseId}-${headingCounts[baseId]}`;
-        } else {
-          headingCounts[baseId] = 1;
-        }
-
-        heading.id = baseId; // 실제 HTML에도 적용
-
-        if (heading.tagName === "H2") h2Count++; // h2 개수 증가
-
-        return {
-          id: baseId,
-          text: heading.textContent || "",
-          tag: heading.tagName,
-          h2Index: h2Count, // h2 순서 저장
-        };
-      },
-    );
-
-    return { headings, updatedHtml: doc.body.innerHTML };
-  };
+  // 좋아요 상태 (파생)
+  const isHeartClicked =
+    !!session?.user?.id &&
+    (post?.liked_by_user?.includes(session.user.id) ?? false);
 
   /** 클릭 시 해당 제목으로 스크롤 이동 + URL 변경 */
   const scrollToHeading = (id: string, updateUrl = true) => {
@@ -460,8 +452,8 @@ export default function PostDetailClient() {
       { postId: post.id, likedByUser: userId },
       {
         onSuccess: (metrics) => {
+          // post.liked_by_user가 업데이트되면 isHeartClicked는 자동 파생됨
           setPost((prev) => (prev ? { ...prev, ...metrics } : prev));
-          setIsHeartClicked(metrics.liked_by_user?.includes(userId) ?? false);
         },
         onError: (error) => {
           console.error("🚨 좋아요 처리 중 오류 발생:", error);

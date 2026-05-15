@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import CategoryButtons from "@components/components/CategoryButtons";
 import { PostGridCard } from "./PostGridCard";
 import { SortSelect } from "./SortSelect";
 import { usePostsData } from "../_hooks/usePostsData";
 import { usePostsFilter } from "../_hooks/usePostsFilter";
 import { useBookmarkToggle } from "../_hooks/useBookmarkToggle";
+import { useIsClient } from "@components/lib/hooks/useIsClient";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
@@ -25,12 +25,7 @@ export default function PostsContent({
     initialPosts = [],
     initialCategories = [],
 }: PostsContentProps) {
-    const [isClient, setIsClient] = useState(false);
-
-    // 클라이언트 마운트 확인 - Hydration 에러 방지
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
+    const isClient = useIsClient();
 
     // 데이터 관리
     const { posts, categories, comments, bookmarks, userId, session } =
