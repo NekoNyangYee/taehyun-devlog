@@ -350,3 +350,22 @@ html.theme-transitioning body {
     scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
   }
 }
+
+/* Aurora 배경 keyframe
+ * aurora.tsx에서 arbitrary value `[animation:aurora_var(--animation-speed)_linear_infinite]` 형태로 사용함.
+ * tailwind.config.ts의 animation.aurora 엔트리는 animate-aurora 클래스가 코드에 등장해야만 keyframe을 emit하기에,
+ * arbitrary value 방식에서는 production 빌드 시 purge되어 애니메이션이 멈춘다.
+ * 여기서 직접 정의해 빌드 환경과 무관하게 항상 사용 가능하도록 보장.
+ */
+@keyframes aurora {
+  from {
+    background-position:
+      50% 50%,
+      50% 50%;
+  }
+  to {
+    background-position:
+      350% 50%,
+      350% 50%;
+  }
+}
