@@ -23,18 +23,18 @@ export function ScrollControls({
             <button
                 onClick={onScrollLeft}
                 disabled={!canScrollLeft}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:hover:scale-100"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:hover:scale-100"
                 aria-label="왼쪽으로 스크롤"
             >
-                <ChevronLeft size={18} className="text-gray-700" />
+                <ChevronLeft size={18} className="text-gray-700 dark:text-gray-200" />
             </button>
             <button
                 onClick={onScrollRight}
                 disabled={!canScrollRight}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:hover:scale-100"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 border border-gray-200 dark:border-white/10 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:hover:scale-100"
                 aria-label="오른쪽으로 스크롤"
             >
-                <ChevronRight size={18} className="text-gray-700" />
+                <ChevronRight size={18} className="text-gray-700 dark:text-gray-200" />
             </button>
         </div>
     );

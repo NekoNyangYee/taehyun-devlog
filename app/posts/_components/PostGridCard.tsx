@@ -36,12 +36,12 @@ export function PostGridCard({
   onBookmarkToggle,
 }: PostGridCardProps) {
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-containerColor/70 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg dark:hover:border-white/20">
       <Link
         href={`/posts/${encodeURIComponent(categorySlug)}/${post.id}`}
         className="flex flex-col h-full"
       >
-        <div className="relative h-40 w-full bg-gray-100">
+        <div className="relative h-40 w-full bg-gray-100 dark:bg-zinc-800">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -49,7 +49,7 @@ export function PostGridCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gray-200 text-sm text-metricsText">
+            <div className="flex h-full w-full items-center justify-center bg-gray-200 dark:bg-zinc-800 text-sm text-metricsText">
               이미지 없음
             </div>
           )}
@@ -57,7 +57,7 @@ export function PostGridCard({
 
         <div className="flex flex-1 flex-col gap-3 p-5">
           <div className="flex items-center justify-between">
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+            <span className="rounded-full bg-gray-100 dark:bg-white/10 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
               {categoryName}
             </span>
             {showBookmark && (
@@ -76,7 +76,7 @@ export function PostGridCard({
             )}
           </div>
 
-          <h3 className="truncate text-lg font-semibold leading-tight text-gray-900">
+          <h3 className="truncate text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100">
             {post.title}
           </h3>
           <p className="text-sm text-metricsText">

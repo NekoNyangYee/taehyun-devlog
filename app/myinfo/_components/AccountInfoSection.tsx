@@ -18,8 +18,8 @@ export function AccountInfoSection({
     accountDetails,
 }: AccountInfoSectionProps) {
     return (
-        <section className="rounded-container border border-containerColor bg-white p-4 md:p-6 shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-containerColor/60 pb-4 md:flex-row md:items-center md:justify-between">
+        <section className="rounded-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-4 md:p-6 shadow-sm">
+            <div className="flex flex-col gap-3 border-b border-gray-200 dark:border-white/10 pb-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 className="text-xl font-semibold">계정 정보</h2>
                     <p className="text-sm text-metricsText">
@@ -37,16 +37,16 @@ export function AccountInfoSection({
                 {accountDetails.map(({ label, value, icon: Icon }) => (
                     <div
                         key={label}
-                        className="flex items-start gap-3 rounded-2xl border border-containerColor/60 bg-gray-50 px-3 py-3 md:px-4 md:py-4"
+                        className="flex items-start gap-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 md:px-4 md:py-4"
                     >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white shadow-sm">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black dark:bg-white dark:text-black text-white shadow-sm">
                             <Icon size={18} />
                         </span>
                         <div className="text-left">
                             <p className="text-xs font-semibold uppercase tracking-wide text-metricsText">
                                 {label}
                             </p>
-                            <p className="text-base font-semibold text-gray-900">{value}</p>
+                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">{value}</p>
                         </div>
                     </div>
                 ))}

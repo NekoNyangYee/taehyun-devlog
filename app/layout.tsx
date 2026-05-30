@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@components/components/Header";
-import NavBar from "@components/components/NavBar";
 import { Suspense, type ReactNode } from "react";
 import PageLoading from "@components/components/loading/PageLoading";
 import Footer from "@components/components/Footer";
+import PageTransition from "@components/components/PageTransition";
+import { AuroraBackground } from "@components/components/ui/aurora";
+import { ThemeProvider } from "@components/components/ThemeProvider";
 import Script from "next/script";
 import { ReactQueryProvider } from "./ReactQueryProvider";
+
+// FOUC 방지: body 파싱 전에 html에 dark 클래스 + color-scheme 적용
+// color-scheme은 CSS 파싱 전에 브라우저가 사용하는 기본 캔버스/스크롤바 색상까지 맞춰주어 깜빡임 최소화
+const themeInitScript = `
+(function(){try{var t=localStorage.getItem('app-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;if(d){r.classList.add('dark');}r.style.colorScheme=d?'dark':'light';}catch(e){}})();
+`;
 
 export const metadata: Metadata = {
   title: "TaeHyun's Devlog",
@@ -51,7 +59,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22223b" />
@@ -87,16 +95,37 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
         />
+        {/* 테마 FOUC 방지 인라인 스크립트 */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="flex flex-col h-screen">
-        <ReactQueryProvider>
-          <Header />
-          <div className="flex flex-1  max-w-[90rem] box-border mx-auto w-full pt-[65px]">
-            <NavBar />
-            <Suspense fallback={<PageLoading />}>{children}</Suspense>
-          </div>
-          <Footer />
-        </ReactQueryProvider>
+      <body className="relative isolate flex flex-col h-screen">
+        {/*
+         * 전역 Aurora 배경 (Aceternity / shadcn.io 샘플)
+         * AuroraBackground 컴포넌트의 className으로 base 스타일(h-[100vh], bg-zinc-50/bg-zinc-900, relative)을 모두 덮어쓴다:
+         * - h-[300px]            → 작은 상단 배너 영역만 차지
+         * - bg-transparent       → body 배경이 비치도록 (light에서 zinc-50 회색감 제거)
+         * - absolute top-0 ...   → 페이지 상단에 고정 (스크롤 시 함께 위로 사라짐)
+         * - z-[1]                → 콘텐츠(z:0) 위, 헤더(z:30) 아래
+         * - pointer-events-none  → 클릭 통과
+         */}
+        <AuroraBackground
+          showRadialGradient
+          animationSpeed={40}
+          className="absolute top-0 left-0 right-0 h-[300px] min-h-0 bg-transparent dark:bg-transparent -z-10 pointer-events-none"
+        >
+          <></>
+        </AuroraBackground>
+        <ThemeProvider>
+          <ReactQueryProvider>
+            <Header />
+            <div className="flex flex-1 max-w-[90rem] box-border mx-auto w-full pt-[65px]">
+              <Suspense fallback={<PageLoading />}>
+                <PageTransition>{children}</PageTransition>
+              </Suspense>
+            </div>
+            <Footer />
+          </ReactQueryProvider>
+        </ThemeProvider>
         <Script
           src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
           strategy="afterInteractive"

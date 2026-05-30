@@ -112,7 +112,94 @@ blockquote {
   @apply bg-gray-100 border-l-4 border-gray-500 p-4 my-4;
 }
 
+.dark blockquote {
+  @apply bg-white/5 border-gray-400;
+}
+
+/* ========== 게시물 본문 텍스트 톤 ==========
+ * 일반 p / li: 진한 그레이 — 본문 가독성 + 강조 텍스트와 구분
+ * 제목 / 강조 / 인라인 code 등: foreground (진한 색) — 시각적 위계 강조
+ */
+.post-content p,
+.post-content li {
+  color: #4b5563; /* gray-600: 적당히 진한 그레이 */
+}
+.dark .post-content p,
+.dark .post-content li {
+  color: #d1d5db; /* gray-300: 다크 배경에서도 또렷한 밝은 그레이 */
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content strong,
+.post-content b,
+.post-content em,
+.post-content i,
+.post-content code,
+.post-content blockquote {
+  color: hsl(var(--foreground));
+}
+
+.post-content a {
+  color: #2563eb; /* blue-600 */
+}
+.dark .post-content a {
+  color: #93c5fd; /* blue-300 */
+}
+.dark hr {
+  border-color: hsl(var(--border));
+}
+
 :root {
+  /* ============================================================
+   * 시맨틱 컬러 팔레트 (라이트 모드)
+   * - 다크 모드에서 .dark 셀렉터로 같은 변수명을 덮어씀
+   * - HSL 형식 문자열 (Tailwind에서 hsl(var(--token)) 으로 사용)
+   * ============================================================ */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --primary: 222 47% 11%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* 좋아요/하트 (라이트) */
+  --like: 0 84% 60%;
+  --like-foreground: 0 84% 35%;
+  --like-bg: 0 100% 96%;
+  --like-border: 0 90% 88%;
+
+  /* 댓글 제출 등 primary CTA */
+  --action: 222 47% 11%;
+  --action-foreground: 0 0% 100%;
+  --action-hover: 222 47% 20%;
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 222 47% 11%;
+
+  /* ============================================================
+   * 레거시 변수 (점진적 마이그레이션용 — 기존 컴포넌트 호환)
+   * ============================================================ */
   --border-color-container: #e8e8e8;
   --border-color-edit: #c4c4c4;
   --border-color-logout: #ff9494;
@@ -149,6 +236,75 @@ blockquote {
 
   --width-profile-image: 34px;
   --height-profile-image: 34px;
+}
+
+.dark {
+  /* ============================================================
+   * 시맨틱 컬러 팔레트 (다크 모드 — 블랙/그레이 계열, 채도 0%)
+   * ============================================================ */
+  --background: 0 0% 4%;
+  --foreground: 0 0% 98%;
+
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 65%;
+
+  --accent: 0 0% 14%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 63% 50%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* 좋아요/하트 (다크) */
+  --like: 0 75% 60%;
+  --like-foreground: 0 90% 75%;
+  --like-bg: 0 60% 18%;
+  --like-border: 0 60% 30%;
+
+  /* primary CTA (다크) */
+  --action: 0 0% 98%;
+  --action-foreground: 0 0% 9%;
+  --action-hover: 0 0% 88%;
+
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+  --ring: 0 0% 84%;
+
+  /* 레거시 변수 다크 오버라이드 */
+  --border-color-container: #2a2a2a;
+  --border-color-input: #2a2a2a;
+  --background-color-input: #161616;
+  --background-color-nav-button: #ffffff;
+  --text-color-metrics: #9ca3af;
+  --text-color-edit: #e5e7eb;
+}
+
+/* html과 body 모두에 테마 배경색 적용 — 새로고침 시 body가 그려지기 전 html의 기본 흰색이 잠시 보이는 깜빡임 방지 */
+html,
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* 다크모드 토글 시에만 색상 전환을 부드럽게.
+ * 전체 자손에 적용하면 렌더 비용이 매우 커서 렉이 걸리므로 html/body만 대상으로 한다.
+ * 자식 요소의 색 전환은 각자의 transition-colors / transition-* 유틸리티에 위임. */
+html.theme-transitioning,
+html.theme-transitioning body {
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
 }
 
 .mask-blob {

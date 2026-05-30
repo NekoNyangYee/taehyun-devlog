@@ -22,7 +22,7 @@ export function ProfileBanner({ bannerUrl, onEditClick }: ProfileBannerProps) {
             <div className="absolute inset-0 bg-white/25" />
             <button
                 onClick={onEditClick}
-                className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-button border border-white/50 bg-black/50 px-3 py-2 text-sm text-white backdrop-blur-sm transition hover:bg-black/70"
+                className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-button border border-white/50 bg-black/50 px-3 py-2 text-sm text-white backdrop-blur-sm transition hover:bg-black/70"
             >
                 <PencilIcon size={16} />
                 배너 수정

@@ -60,7 +60,7 @@ export default function MobileTOC({
           : "opacity-0 -translate-y-2 pointer-events-none"
       }`}
     >
-      <div className="mx-auto max-w-[600px] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+      <div className="mx-auto max-w-[600px] bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-gray-200 dark:border-white/10 overflow-hidden">
         <Accordion
           type="single"
           collapsible
@@ -82,8 +82,8 @@ export default function MobileTOC({
                       onClick={() => handleClick(group.h2.id)}
                       className={`text-sm font-bold text-left ${
                         activeId === group.h2.id
-                          ? "text-blue-500"
-                          : "text-gray-900"
+                          ? "text-blue-500 dark:text-blue-300"
+                          : "text-gray-900 dark:text-gray-100"
                       }`}
                     >
                       {`${index + 1}. ${group.h2.text}`}
@@ -97,8 +97,8 @@ export default function MobileTOC({
                             onClick={() => handleClick(subHeading.id)}
                             className={`text-xs text-left ${
                               activeId === subHeading.id
-                                ? "text-blue-500"
-                                : "text-gray-600"
+                                ? "text-blue-500 dark:text-blue-300"
+                                : "text-gray-600 dark:text-gray-400"
                             }`}
                           >
                             {subHeading.text}

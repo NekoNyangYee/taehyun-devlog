@@ -30,7 +30,7 @@ export default function ScrollProgressBar() {
   const shouldShowProgressBar = /^\/posts\/[^\/]+\/\d+$/.test(currentPath);
 
   return shouldShowProgressBar && !isPostLoading ? (
-    <div className="fixed top-0 left-0 w-full h-1 z-20">
+    <div className="fixed top-0 left-0 w-full h-1 z-40 pointer-events-none">
       <div
         className="h-1 bg-black"
         style={{ width: `${scrollProgress}%` } as CSSProperties}

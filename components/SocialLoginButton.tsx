@@ -1,10 +1,5 @@
 import Image from "next/image";
 
-/**
- * 소셜 로그인 버튼 컴포넌트 (Presentational)
- * - 순수하게 UI만 렌더링
- * - 이벤트 핸들러는 Props로 주입
- */
 interface SocialLoginButtonProps {
   provider: "google" | "kakao";
   onClick: () => void;

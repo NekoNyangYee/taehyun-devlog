@@ -8,7 +8,7 @@ import LoadingWrapper from "./LoadingWrapper";
  */
 export default function Home() {
   return (
-    <div className="h-full flex flex-col w-full overflow-hidden">
+    <div className="flex flex-col w-full">
       <LoadingWrapper>
         <HomeContent />
       </LoadingWrapper>

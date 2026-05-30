@@ -31,13 +31,13 @@ export function UserPostsSection({
                         </p>
                     </div>
                 </div>
-                <div className="flex h-40 md:h-56 flex-col items-center justify-center rounded-container border border-dashed border-containerColor bg-white text-center text-metricsText">
+                <div className="flex h-40 md:h-56 flex-col items-center justify-center rounded-container border border-dashed border-gray-300 dark:border-white/15 bg-white dark:bg-zinc-900 text-center text-metricsText">
                     <p className="text-base font-medium">
                         아직 작성한 게시물이 없습니다.
                     </p>
                     <Link
                         href="/posts"
-                        className="mt-3 rounded-button border border-containerColor px-4 py-2 text-sm transition hover:bg-gray-100"
+                        className="mt-3 rounded-button border border-gray-300 dark:border-white/15 px-4 py-2 text-sm transition hover:bg-gray-100 dark:hover:bg-white/10"
                     >
                         게시물 보러가기
                     </Link>
@@ -57,7 +57,7 @@ export function UserPostsSection({
                 </div>
                 <Link
                     href="/posts"
-                    className="self-start rounded-button border border-containerColor px-4 py-2 text-sm text-metricsText transition hover:bg-gray-100"
+                    className="self-start rounded-button border border-gray-300 dark:border-white/15 px-4 py-2 text-sm text-metricsText transition hover:bg-gray-100 dark:hover:bg-white/10"
                 >
                     전체 게시물 보기
                 </Link>
@@ -77,8 +77,8 @@ export function UserPostsSection({
                             href={`/posts/${categorySlug}/${post.id}`}
                             className="group"
                         >
-                            <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-containerColor/70 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
-                                <div className="relative h-32 sm:h-36 md:h-40 w-full bg-gray-100">
+                            <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg dark:hover:border-white/20">
+                                <div className="relative h-32 sm:h-36 md:h-40 w-full bg-gray-100 dark:bg-zinc-800">
                                     {imageUrl ? (
                                         <img
                                             src={imageUrl}
@@ -86,14 +86,14 @@ export function UserPostsSection({
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-gray-200 text-sm text-metricsText">
+                                        <div className="flex h-full w-full items-center justify-center bg-gray-200 dark:bg-zinc-800 text-sm text-metricsText">
                                             이미지 없음
                                         </div>
                                     )}
                                 </div>
                                 <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
                                     <div className="flex items-center justify-between">
-                                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                                        <span className="rounded-full bg-gray-100 dark:bg-white/10 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
                                             {categoryName}
                                         </span>
                                         <BookmarkIcon
@@ -103,7 +103,7 @@ export function UserPostsSection({
                                             strokeWidth={1.5}
                                         />
                                     </div>
-                                    <h3 className="truncate text-lg font-semibold leading-tight text-gray-900">
+                                    <h3 className="truncate text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100">
                                         {post.title}
                                     </h3>
                                     <p className="text-sm text-metricsText">by {post.author_name || "익명"}</p>

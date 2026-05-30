@@ -80,7 +80,7 @@ export function BannerModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{ willChange: isOpen ? "transform, opacity" : "auto" }}
-        className={`relative w-full max-w-2xl rounded-2xl border border-containerColor bg-white p-6 shadow-xl transition-all duration-300 ease-out ${
+        className={`relative w-full max-w-2xl rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-6 shadow-xl transition-all duration-300 ease-out ${
           isOpen && isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
       >
@@ -91,7 +91,7 @@ export function BannerModal({
             <label className="block text-sm font-medium text-gray-700">
               배너 미리보기
             </label>
-            <div className="relative h-40 w-full overflow-hidden rounded-lg border border-containerColor bg-gray-100">
+            <div className="relative h-40 w-full overflow-hidden rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100">
               {!imageError ? (
                 <img
                   src={displayBanner}
@@ -136,7 +136,7 @@ export function BannerModal({
                 {hasCustomBanner && !willDeleteBanner ? (
                   <>
                     {/* 현재 배너 정보 */}
-                    <div className="flex items-center justify-between w-full p-4 border border-containerColor rounded-lg bg-white">
+                    <div className="flex items-center justify-between w-full p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="flex items-center justify-center w-12 h-12 flex-shrink-0 rounded-lg bg-black text-white">
                           <svg
@@ -174,7 +174,7 @@ export function BannerModal({
                           type="button"
                           onClick={onDeleteBanner}
                           disabled={isUpdating}
-                          className="p-2 rounded-lg border border-containerColor bg-white text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                           title="선택 취소"
                         >
                           <X size={18} />
@@ -196,7 +196,7 @@ export function BannerModal({
                     <div className="flex flex-col gap-2">
                       <label
                         htmlFor="bannerFile"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-containerColor rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
                       >
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <svg
@@ -236,7 +236,7 @@ export function BannerModal({
               </>
             ) : (
               /* 선택된 파일 정보 */
-              <div className="flex items-center justify-between w-full p-4 border border-containerColor rounded-lg bg-white">
+              <div className="flex items-center justify-between w-full p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="flex items-center justify-center w-12 h-12 flex-shrink-0 rounded-lg bg-black text-white">
                     <svg
@@ -282,7 +282,7 @@ export function BannerModal({
                     type="button"
                     onClick={onDeleteBanner}
                     disabled={isUpdating}
-                    className="p-2 rounded-lg border border-containerColor bg-white text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     title="선택 취소"
                   >
                     <X size={18} />
@@ -306,7 +306,7 @@ export function BannerModal({
             <button
               onClick={onCancel}
               disabled={isUpdating}
-              className={`rounded-button border border-containerColor bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 ${
+              className={`rounded-button border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 ${
                 isUpdating ? "cursor-not-allowed opacity-50" : ""
               }`}
             >

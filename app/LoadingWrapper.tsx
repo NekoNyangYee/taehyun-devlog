@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import { addUserToProfileTable } from "../lib/loginUtils";
 import NotFound from "./not-found";
 import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useIsRestoring, useQuery } from "@tanstack/react-query";
 import { useSessionStore } from "@components/store/sessionStore";
 import {
   fetchPostsQueryFn,
@@ -21,6 +21,8 @@ export default function LoadingWrapper({
   const pathname = usePathname();
   const { addSession } = useSessionStore();
   const [showNotFound, setShowNotFound] = useState(false);
+  // 캐시 영속 복원 동안에는 콘텐츠가 곧 채워지므로, isRestoring + isLoading 모두 끝났을 때만 children 마운트
+  const isRestoring = useIsRestoring();
 
   useEffect(() => {
     const ensureSignedOutForPendingSignup = async () => {
@@ -56,7 +58,6 @@ export default function LoadingWrapper({
     if (!postsQuery.isLoading) return;
 
     const timeoutId = setTimeout(() => {
-      console.log("5초 타임아웃 - 404 표시");
       setShowNotFound(true);
     }, 5000);
 
@@ -88,7 +89,6 @@ export default function LoadingWrapper({
           email: data.session.user.email,
         };
         await addUserToProfileTable(userSessionData);
-        console.log("유저 추가 완료");
       }
     };
 
@@ -101,7 +101,10 @@ export default function LoadingWrapper({
     return <NotFound />;
   }
 
-  if (postsQuery.isLoading) {
+  // 캐시 복원 중 OR 첫 패칭 중이면 PageLoading 표시.
+  // 둘 다 끝난 시점에 children 마운트 → contentReveal 애니메이션 첫 마운트 시 재생됨.
+  // (cached data는 restore 직후 query.data로 동기 반영되므로 추가 fetch 로딩 없이 바로 콘텐츠 노출)
+  if (isRestoring || postsQuery.isLoading) {
     return <PageLoading />;
   }
 

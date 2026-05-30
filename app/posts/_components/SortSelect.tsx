@@ -22,7 +22,7 @@ export function SortSelect({ value, onChange }: SortSelectProps) {
             <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="정렬" />
             </SelectTrigger>
-            <SelectContent className={cn("w-auto bg-white")}>
+            <SelectContent className={cn("w-auto bg-white dark:bg-zinc-900 dark:border-white/10")}>
                 <SelectItem value="new-sort">최신순</SelectItem>
                 <SelectItem value="old-sort">오래된순</SelectItem>
                 <SelectItem value="max-view-sort">조회수 높은순</SelectItem>

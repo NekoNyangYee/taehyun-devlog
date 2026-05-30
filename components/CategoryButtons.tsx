@@ -66,7 +66,7 @@ export default function CategorySelect<
       <SelectTrigger className="w-[200px]">
         <SelectValue placeholder="카테고리 선택" />
       </SelectTrigger>
-      <SelectContent className={cn("w-auto bg-white")}>
+      <SelectContent className={cn("w-auto bg-white dark:bg-zinc-900 dark:border-white/10")}>
         <SelectGroup>
           <SelectLabel>카테고리</SelectLabel>
           <SelectItem value="all">전체 ({posts.length})</SelectItem>

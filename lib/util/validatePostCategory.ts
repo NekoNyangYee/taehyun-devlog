@@ -20,17 +20,12 @@ export async function validatePostCategory(
     const decodedCategory = decodeURIComponent(categoryParam);
     const normalizedUrlCategory = lowerURL(decodedCategory);
 
-    console.log("정규화된 카테고리:", normalizedUrlCategory);
-
     // 1차 검증: 카테고리 존재 여부 확인
     const { data: categories, error: categoryError } = await supabase
       .from("categories")
       .select("id, name");
 
-    console.log("카테고리 조회:", { categories, categoryError });
-
     if (categoryError) {
-      console.log("카테고리 조회 실패");
       return { isValid: false, error: "카테고리 조회 실패" };
     }
 
@@ -38,10 +33,7 @@ export async function validatePostCategory(
       (cat) => lowerURL(cat.name) === normalizedUrlCategory
     );
 
-    console.log("매칭된 카테고리:", matchedCategory);
-
     if (!matchedCategory) {
-      console.log("존재하지 않는 카테고리");
       return { isValid: false, error: "존재하지 않는 카테고리" };
     }
 
@@ -52,28 +44,18 @@ export async function validatePostCategory(
       .eq("id", postId)
       .single();
 
-    console.log("게시물 조회:", { post, postError });
-
     if (postError || !post) {
-      console.log("게시물을 찾을 수 없음");
       return { isValid: false, error: "게시물을 찾을 수 없음" };
     }
 
     // 게시물의 카테고리 ID와 URL 카테고리의 ID가 일치하는지 확인
-    console.log("카테고리 ID 비교:", {
-      postCategoryId: post.category_id,
-      matchedCategoryId: matchedCategory.id,
-    });
-
     if (post.category_id !== matchedCategory.id) {
-      console.log("카테고리 불일치");
       return {
         isValid: false,
         error: "카테고리 불일치",
       };
     }
 
-    console.log("검증 성공");
     return { isValid: true };
   } catch (error) {
     console.error("검증 중 오류 발생:", error);

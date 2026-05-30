@@ -6,8 +6,8 @@ const EMAIL = "mailto:kth08.dev@gmail.com"; // 이메일 주소는 필요시 수
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-gray-100 border-t border-gray-200 mt-auto py-6 px-4 flex flex-col items-center text-gray-700 text-sm">
-      <div className="flex items-center gap-2 mb-2">
+    <footer className="w-full bg-gray-100 dark:bg-zinc-950 border-t border-gray-200 dark:border-white/10 mt-auto py-6 px-4 flex flex-col items-center text-gray-700 dark:text-gray-300 text-sm">
+      <div className="flex items-center gap-2 mb-2 dark:[&_svg_path]:fill-white dark:[&_svg_rect]:fill-white dark:[&_svg_path]:stroke-white">
         <LogoIcon />
         <span className="font-bold text-base">TaeHyun&apos;s Devlog</span>
       </div>
@@ -25,7 +25,7 @@ export default function Footer() {
           <img
             src="/github.svg"
             alt="GitHub"
-            className="w-6 h-6 hover:opacity-70 transition"
+            className="w-6 h-6 hover:opacity-70 transition dark:invert"
           />
         </a>
         <a href={EMAIL} aria-label="Email">
@@ -45,7 +45,7 @@ export default function Footer() {
           </svg>
         </a>
       </div>
-      <div className="text-xs text-gray-500 text-center">
+      <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
         &copy; 2025 TaeHyun-Devlog. All rights reserved.
       </div>
     </footer>

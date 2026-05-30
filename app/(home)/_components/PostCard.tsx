@@ -34,7 +34,7 @@ export function PostCard({
             href={`/posts/${categorySlug}/${post.id}`}
             className="min-w-[300px] max-w-[300px]"
         >
-            <article className="group h-full flex flex-col overflow-hidden rounded-2xl border border-containerColor/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-containerColor relative">
+            <article className="group h-full flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-gray-300 dark:hover:border-white/20 relative">
                 {isPopular && (
                     <div className="absolute top-3 right-3 z-10 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white flex items-center gap-1">
                         <HeartIcon size={12} fill="currentColor" />
@@ -42,7 +42,7 @@ export function PostCard({
                     </div>
                 )}
 
-                <div className="relative h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                <div className="relative h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 overflow-hidden">
                     {thumbnailUrl ? (
                         <Image
                             src={thumbnailUrl}
@@ -63,22 +63,22 @@ export function PostCard({
                     <div className="flex items-center justify-between gap-2">
                         <span
                             className={`rounded-full px-3 py-1 text-xs font-medium ${isPopular
-                                ? "bg-red-50 text-red-600"
-                                : "bg-gray-100 text-gray-600"
+                                ? "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300"
+                                : "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300"
                                 }`}
                         >
                             {categoryName}
                         </span>
                     </div>
 
-                    <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-gray-900 group-hover:text-gray-700 transition">
+                    <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-white transition">
                         {post.title}
                     </h3>
 
                     <p className="text-sm text-metricsText">by {post.author_name || "익명"}</p>
                     <p className="text-xs text-metricsText">{formatDate(post.created_at)}</p>
 
-                    <div className="mt-auto flex items-center gap-4 pt-4 text-sm text-metricsText border-t border-gray-100">
+                    <div className="mt-auto flex items-center gap-4 pt-4 text-sm text-metricsText border-t border-gray-100 dark:border-white/10">
                         <span
                             className={`flex items-center gap-1.5 ${isPopular ? "font-semibold text-gray-700" : "hover:text-gray-700"
                                 } transition`}

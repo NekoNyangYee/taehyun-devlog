@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import GitHubCalendar from "react-github-calendar";
 import dayjs from "dayjs";
+import { motion } from "framer-motion";
+import { contentReveal } from "@components/components/motion/contentReveal";
 
 export default function ProfileDetailPage() {
   const [profile] = useState({
@@ -50,23 +52,26 @@ export default function ProfileDetailPage() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 bg-background z-0">
+    <motion.div
+      {...contentReveal}
+      className="w-full h-full flex flex-col gap-6 bg-background z-0 -mt-[65px]"
+    >
       <div className="relative w-full h-[500px] bg-center bg-cover bg-no-repeat bg-[url('/profile.webp')]">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-zinc-950 z-10" />
         <div className="relative z-20 w-full h-full flex items-end justify-start p-8">
-          <div className="text-gray-800 space-y-2">
+          <div className="text-gray-800 dark:text-gray-100 space-y-2">
             <h1 className="text-4xl font-bold">{profile.name}</h1>
             <p className="text-lg">{profile.description}</p>
             <div className="flex flex-wrap gap-4 mt-2">
               <a
                 href={`mailto:${profile.email}`}
-                className="px-4 py-2 border border-gray-800 rounded-md hover:bg-gray-800 hover:text-white transition"
+                className="px-4 py-2 border border-gray-800 dark:border-gray-300 rounded-md hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-black transition"
               >
                 {profile.email}
               </a>
               <a
                 href={profile.github}
-                className="px-4 py-2 border border-gray-800 rounded-md hover:bg-gray-800 hover:text-white transition"
+                className="px-4 py-2 border border-gray-800 dark:border-gray-300 rounded-md hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-black transition"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -77,7 +82,7 @@ export default function ProfileDetailPage() {
         </div>
       </div>
 
-      <div className="p-container border border-containerColor rounded-container mx-4">
+      <div className="p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mx-4">
         <h2 className="text-xl font-semibold mb-4">기술 스택</h2>
         <div className="flex flex-wrap gap-2">
           {profile.stacks.map((stack, index) => (
@@ -92,7 +97,7 @@ export default function ProfileDetailPage() {
       </div>
 
       {/* GitHub Calendar */}
-      <div className="p-container border border-containerColor rounded-container mx-4">
+      <div className="p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mx-4">
         <h2 className="text-xl font-semibold">깃허브 컨트리뷰션</h2>
         <div className="w-full flex flex-col items-center">
           <div className="w-full overflow-x-auto">
@@ -117,45 +122,45 @@ export default function ProfileDetailPage() {
 
       {/* 학력 */}
       <div className="flex max-md:flex-col gap-4 mx-4">
-        <div className="w-full p-container border border-containerColor rounded-container mb-4">
+        <div className="w-full p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mb-4">
           <h2 className="text-xl font-semibold mb-4">학력</h2>
           <div className="space-y-4">
             {profile.education.map((edu, index) => (
               <div
                 key={index}
-                className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800"
+                className="flex items-start gap-4 p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-white/5"
               >
-                <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white text-sm font-bold">
+                <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 dark:bg-white dark:text-black text-white text-sm font-bold">
                   {index + 1}
                 </span>
                 <div>
-                  <p className="text-lg font-semibold">{edu.school}</p>
-                  <p className="text-sm text-gray-600">{edu.period}</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{edu.school}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{edu.period}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="w-full p-container border border-containerColor rounded-container mb-4">
+        <div className="w-full p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mb-4">
           <h2 className="text-xl font-semibold mb-4">활동</h2>
           <div className="space-y-4">
             {profile.career.map((job, index) => (
               <div
                 key={index}
-                className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800"
+                className="flex items-start gap-4 p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-white/5"
               >
-                <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white text-sm font-bold">
+                <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 dark:bg-white dark:text-black text-white text-sm font-bold">
                   {index + 1}
                 </span>
                 <div>
-                  <p className="text-lg font-semibold">{job.company}</p>
-                  <p className="text-sm text-gray-600">{job.period}</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{job.company}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{job.period}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

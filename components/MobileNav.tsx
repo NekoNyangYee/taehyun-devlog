@@ -22,9 +22,11 @@ import { useAnimatedMount } from "@components/lib/hooks/useAnimatedMount";
 export default function MobileNavBar({
   isOpen,
   onClose,
+  onLoginClick,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onLoginClick?: () => void;
 }) {
   const currentPath: string = usePathname();
   const router = useRouter();
@@ -56,8 +58,8 @@ export default function MobileNavBar({
   const isActive = (path: string) =>
     currentPath === path ||
     (path === "/posts" && currentPath.startsWith("/posts"))
-      ? "bg-black text-white font-semibold"
-      : "bg-transparent text-gray-700 hover:bg-gray-100";
+      ? "bg-black text-white font-semibold dark:bg-white dark:text-black"
+      : "bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10";
 
   if (!isVisible) return null;
 
@@ -72,13 +74,13 @@ export default function MobileNavBar({
         ></div>
       )}
       <aside
-        className={`fixed top-0 left-0 pt-16 w-[70%] max-w-[300px] h-full bg-white flex flex-col justify-between items-center gap-2 z-40 shadow-lg transition-transform duration-300 ${
+        className={`fixed top-0 left-0 pt-16 w-[70%] max-w-[300px] h-full bg-white dark:bg-zinc-950 flex flex-col justify-between items-center gap-2 z-40 shadow-lg transition-transform duration-300 ${
           isAnimating ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <button
           onClick={handleClose}
-          className="absolute top-0 right-0 m-4 bg-white shadow-none rounded-full"
+          className="absolute top-0 right-0 m-4 bg-white dark:bg-transparent shadow-none rounded-full text-gray-700 dark:text-gray-200"
         >
           <PanelLeftClose size={24} />
         </button>
@@ -134,7 +136,7 @@ export default function MobileNavBar({
             <span className="truncate">안녕하세요!</span>
           </Link>
         </div>
-        <div className="flex flex-col gap-2 w-full p-container border-t border-containerColor items-center">
+        <div className="flex flex-col gap-2 w-full p-container border-t border-gray-200 dark:border-white/10 items-center">
           {isClient && session && (
             <div className="flex gap-2 mb-4 w-full">
               <img
@@ -163,14 +165,16 @@ export default function MobileNavBar({
               </Button>
             </>
           ) : (
-            <Link
-              href="/login"
+            <Button
+              onClick={() => {
+                handleClose();
+                onLoginClick?.();
+              }}
               className="w-full h-10 p-button border border-editButton rounded-button bg-editButton text-loginText flex items-center justify-center gap-2"
-              onClick={handleClose}
             >
               <LogInIcon size={18} />
               로그인
-            </Link>
+            </Button>
           )}
         </div>
       </aside>

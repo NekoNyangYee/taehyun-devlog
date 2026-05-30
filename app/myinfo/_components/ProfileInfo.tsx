@@ -25,7 +25,7 @@ export function ProfileInfo({
                 <img
                     src={avatar}
                     alt="프로필 이미지"
-                    className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-white shadow-xl object-cover"
+                    className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-white dark:border-zinc-900 shadow-xl object-cover"
                 />
                 {isEditor && (
                     <div className="absolute bottom-0 right-0 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#0075FF] shadow-lg">

@@ -22,7 +22,7 @@ import {
 } from "@components/queries/commentQueries";
 import { PostStateWithoutContents } from "@components/types/post";
 
-export default function SearchBar() {
+export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [keyword, setKeyword] = useState("");
@@ -153,7 +153,7 @@ export default function SearchBar() {
       />
       <div className="absolute top-[10%] left-1/2 w-full max-w-2xl transform -translate-x-1/2">
         <div
-          className={`bg-white rounded-lg shadow-lg transition-all duration-300 mx-4 overflow-hidden max-h-[80vh]
+          className={`bg-white dark:bg-zinc-900 rounded-lg shadow-lg transition-all duration-300 mx-4 overflow-hidden max-h-[80vh]
             ${
               isOpen
                 ? "translate-y-3 opacity-100 scale-100"
@@ -161,14 +161,14 @@ export default function SearchBar() {
             }`}
         >
           <div
-            className="flex items-center gap-2 border-b p-container"
+            className="flex items-center gap-2 border-b border-gray-200 dark:border-white/10 p-container"
             ref={searchInputRef}
           >
-            <Search size={20} className="text-gray-500" />
+            <Search size={20} className="text-gray-500 dark:text-gray-400" />
             <input
               type="text"
               placeholder="검색어를 입력하세요..."
-              className="w-full outline-none text-base"
+              className="w-full outline-none text-base bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500"
               autoFocus
               value={keyword}
               onChange={(e) => {
@@ -317,13 +317,21 @@ export default function SearchBar() {
       <div className="relative">
         <button
           onClick={handleOpen}
-          className="flex bg-white items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300 w-[270px] max-md:w-auto justify-start max-md:bg-transparent max-md:border-none cursor-text"
+          aria-label="검색"
+          className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors duration-300 ${
+            isLight
+              ? "hover:bg-white/15"
+              : "hover:bg-white/40 hover:backdrop-blur-md dark:hover:bg-white/10 dark:hover:backdrop-blur-md"
+          }`}
         >
           <Search
-            size={28}
-            className="text-gray-500 max-md:text-black w-5 h-5"
+            size={20}
+            className={`transition-colors duration-300 ${
+              isLight
+                ? "text-white"
+                : "text-gray-700 dark:text-gray-200"
+            }`}
           />
-          <span className="text-gray-500 hidden md:inline">검색...</span>
         </button>
       </div>
       {isVisible &&

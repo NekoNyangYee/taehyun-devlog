@@ -29,21 +29,24 @@ export function useBookmarkData() {
   const { session } = useSessionStore();
   const userId = session?.user?.id;
 
-  const { data: posts = [] } = useQuery({
+  const postsQuery = useQuery({
     queryKey: postsQueryKey,
     queryFn: fetchPostsQueryFn,
   });
+  const posts = postsQuery.data ?? [];
 
-  const { data: categories = [] } = useQuery({
+  const categoriesQuery = useQuery({
     queryKey: categoriesQueryKey,
     queryFn: fetchCategoriesQueryFn,
   });
+  const categories = categoriesQuery.data ?? [];
 
-  const { data: bookmarks = [] } = useQuery({
+  const bookmarksQuery = useQuery({
     queryKey: bookmarkQueryKey(userId),
     queryFn: () => fetchBookmarksQueryFn(userId),
     enabled: Boolean(userId),
   });
+  const bookmarks = bookmarksQuery.data ?? [];
 
   const postIds = useMemo(() => posts.map((post) => post.id), [posts]);
 
@@ -59,6 +62,12 @@ export function useBookmarkData() {
     [posts, bookmarks],
   );
 
+  // session 있을 때만 bookmarks fetch가 시작되므로, 그 때만 로딩 체크
+  const isLoading =
+    postsQuery.isPending ||
+    categoriesQuery.isPending ||
+    (Boolean(userId) && bookmarksQuery.isPending);
+
   return {
     bookmarkedPosts,
     categories,
@@ -66,5 +75,6 @@ export function useBookmarkData() {
     bookmarks,
     userId,
     session,
+    isLoading,
   };
 }

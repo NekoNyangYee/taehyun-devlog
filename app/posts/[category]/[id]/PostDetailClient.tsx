@@ -58,6 +58,9 @@ import {
 } from "@components/queries/profileQueries";
 import ImageViewer from "@components/components/ImageViewer";
 import MobileTOC from "@components/components/MobileTOC";
+import { useLoginModalStore } from "@components/store/loginModalStore";
+import { motion } from "framer-motion";
+import { contentReveal } from "@components/components/motion/contentReveal";
 
 interface Heading {
   id: string;
@@ -204,6 +207,7 @@ export default function PostDetailClient() {
   const setPostLoading = useUIStore((state) => state.setPostLoading);
   const queryClient = useQueryClient();
   const userId = session?.user?.id;
+  const openLogin = useLoginModalStore((s) => s.open);
 
   // ✅ TanStack Query로 데이터 가져오기
   const { data: posts = [] } = useQuery({
@@ -267,39 +271,39 @@ export default function PostDetailClient() {
     setPost(postDetailQuery.data);
   }, [postDetailQuery.data]);
 
-  // ✅ URL 카테고리와 실제 게시물 카테고리 검증
+  // ✅ URL 카테고리와 실제 게시물 카테고리 검증 (불일치 시 올바른 URL로 replace)
+  // 주의: 게시물 전환 중 race condition 방지 위해 post.id === numericPostId 일 때만 검증
   useEffect(() => {
-    if (post && categories.length > 0 && urlCategory) {
-      const postCategory = categories.find(
-        (cat) => cat.id === post.category_id,
-      );
+    if (!post || categories.length === 0 || !urlCategory) return;
+    if (post.id !== numericPostId) return; // 이전 게시물 데이터로 잘못 검증되는 것 방지
 
-      let urlCategoryValue = Array.isArray(urlCategory)
-        ? urlCategory[0]
-        : urlCategory;
+    const postCategory = categories.find(
+      (cat) => cat.id === post.category_id,
+    );
+    if (!postCategory) return;
 
-      // Safe decode to handle both encoded (computer%20science) and decoded but potentially problematic strings
-      try {
-        urlCategoryValue = decodeURIComponent(urlCategoryValue);
-      } catch (e) {
-        // Ignore decoding errors (e.g., if it's already decoded or has invalid % sequences)
-      }
+    let urlCategoryValue = Array.isArray(urlCategory)
+      ? urlCategory[0]
+      : urlCategory;
 
-      // lowerURL로 소문자 변환해서 비교
-      if (
-        postCategory &&
-        lowerURL(postCategory.name) !== urlCategoryValue.toLowerCase()
-      ) {
-        console.error("카테고리 불일치:", {
-          urlRaw: urlCategory,
-          urlDecoded: urlCategoryValue,
-          actual: postCategory.name,
-        });
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsNotFound(true);
-      }
+    try {
+      urlCategoryValue = decodeURIComponent(urlCategoryValue);
+    } catch {
+      /* already decoded or invalid % sequence */
     }
-  }, [post, categories, urlCategory]);
+
+    const normalizedUrl = urlCategoryValue.trim().toLowerCase();
+    const normalizedActual = lowerURL(postCategory.name).trim();
+
+    if (normalizedUrl !== normalizedActual) {
+      console.warn("[PostDetail] 카테고리 불일치 - 올바른 URL로 교정", {
+        urlDecoded: urlCategoryValue,
+        actual: postCategory.name,
+      });
+      const correctSlug = encodeURIComponent(lowerURL(postCategory.name));
+      router.replace(`/posts/${correctSlug}/${post.id}`);
+    }
+  }, [post, categories, urlCategory, router, numericPostId]);
 
   useEffect(() => {
     setPostLoading(isHydratingPost);
@@ -396,7 +400,6 @@ export default function PostDetailClient() {
   }, [updatedContent]);
 
   const category = categories.find((cat) => cat.id === post?.category_id);
-  const imageUrl = category?.thumbnail;
 
   if (isNotFound) {
     return <NotFound />;
@@ -437,11 +440,9 @@ export default function PostDetailClient() {
   const handleHeartClick = () => {
     if (!session) {
       if (
-        confirm(
-          "로그인을 해야 좋아요를 누를 수 있습니다. 로그인 페이지로 이동할까요?",
-        )
+        confirm("로그인을 해야 좋아요를 누를 수 있습니다. 로그인 하시겠어요?")
       ) {
-        router.push("/login");
+        openLogin();
       }
       return;
     }
@@ -530,65 +531,52 @@ export default function PostDetailClient() {
     setReplyingTo((prev) => (prev === commentId ? null : commentId));
   };
 
-  console.log("렌더링 시점:", { loading, isNotFound });
-
   if (loading || isHydratingPost) {
-    console.log("PageLoading 렌더링");
     return <PageLoading />;
   }
 
   if (isNotFound) {
-    console.log("NotFound 렌더링");
     return <NotFound />;
   }
 
-  console.log("메인 컴포넌트 렌더링");
-
   return (
-    <div className="relative flex-1 min-w-0 w-full">
-      {/* Hero image - 헤더 바로 아래 sticky 고정 */}
-      <div className="sticky top-[65px] h-[400px] z-0">
-        <img
-          src={imageUrl}
-          alt="게시물 대표 이미지"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60"></div>
-        <div className="absolute inset-0 flex flex-col gap-4 justify-center items-center text-white p-container">
-          <Link
-            href={`/posts/${encodeURIComponent(category?.name || "")}`}
-            className="flex gap-2 items-center bg-gray-900 bg-opacity-70 px-3 py-1 rounded-md"
-          >
-            <TagIcon size={16} className="inline-block" />
-            {postCategory(post.category_id)}
-          </Link>
-          <div className="bg-transparent px-4 py-2 rounded-container">
-            <h2 className="text-3xl font-bold text-center">{post.title}</h2>
-          </div>
-          <div className="flex gap-4 text-sm">
-            <div className="flex gap-2 items-center bg-gray-900 bg-opacity-70 px-3 py-1 rounded-md">
-              <CalendarRangeIcon size={16} className="inline-block" />
-              {formatDate(post.created_at)}
-            </div>
-            <div className="flex gap-2 items-center bg-gray-900 bg-opacity-70 px-3 py-1 rounded-md">
-              <EyeIcon size={16} className="inline-block" />
-              {post.view_count}
-            </div>
-          </div>
+    <motion.div
+      {...contentReveal}
+      className="relative flex-1 min-w-0 w-full"
+    >
+      {/* 제목 / 카테고리 / 메타 정보 */}
+      <div className="w-full max-w-[1200px] mx-auto px-4 pt-10 pb-6 flex flex-col gap-4">
+        <Link
+          href={`/posts/${encodeURIComponent(category?.name || "")}`}
+          className="inline-flex items-center gap-2 self-start rounded-full bg-gray-900 text-white px-3 py-1 text-sm"
+        >
+          <TagIcon size={14} />
+          {postCategory(post.category_id)}
+        </Link>
+        <h1 className="text-3xl md:text-4xl font-bold leading-tight text-gray-900 dark:text-gray-100">
+          {post.title}
+        </h1>
+        <div className="flex flex-wrap items-center gap-4 text-sm text-metricsText">
+          <span className="flex items-center gap-1.5">
+            <CalendarRangeIcon size={16} />
+            {formatDate(post.created_at)}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <EyeIcon size={16} />
+            {post.view_count}
+          </span>
         </div>
       </div>
 
-      {/* 스크롤 가능한 콘텐츠 영역 - hero와 겹쳐서 부드러운 전환 */}
-      <div className="relative z-10 -mt-[160px]">
-        {/* 흰색 그라디언트 전환 - 이미지 하단 경계 가리기 */}
-        <div className="h-[160px] bg-gradient-to-b from-transparent to-white pointer-events-none" />
-        <div className="bg-white min-h-screen">
+      {/* 본문 영역 */}
+      <div className="relative z-10">
+        <div className="min-h-screen">
           <MobileTOC
             headingGroups={headingGroups}
             activeId={activeHeadingId}
             onScrollTo={scrollToHeading}
           />
-          <div className="break-words whitespace-pre-wrap w-full max-w-[1200px] mx-auto px-4 pb-4">
+          <div className="break-words whitespace-pre-wrap w-full max-w-[1200px] mx-auto px-4 pt-12 pb-4">
       <div className="flex flex-col-reverse lg:flex-row gap-6">
         <article className="flex-1 min-w-0">
           <RenderedContent
@@ -598,15 +586,17 @@ export default function PostDetailClient() {
           />
         </article>
         {headingGroups.length > 0 && (
-          <aside className="hidden lg:flex flex-col gap-2 lg:w-[300px] lg:sticky top-20 self-start p-4 bg-white border border-containerColor rounded-lg shadow-md w-full">
+          <aside className="hidden lg:flex flex-col gap-2 lg:w-[300px] lg:sticky top-20 self-start w-full">
             <h3 className="text-lg font-semibold m-0">목차</h3>
-            <nav className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-4 border-l border-gray-200 dark:border-white/15 pl-4">
               {headingGroups.map((group, index) => (
                 <div key={group.h2.id} className="flex flex-col gap-2">
                   <button
                     onClick={() => scrollToHeading(group.h2.id)}
-                    className={`text-sm font-bold cursor-pointer hover:underline text-left ${
-                      activeHeadingId === group.h2.id ? "text-blue-500" : ""
+                    className={`text-sm font-bold cursor-pointer hover:underline text-left rounded px-2 py-1 transition-colors ${
+                      activeHeadingId === group.h2.id
+                        ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
+                        : ""
                     }`}
                   >
                     {`${index + 1}. ${group.h2.text}`}
@@ -617,10 +607,10 @@ export default function PostDetailClient() {
                         <button
                           key={subHeading.id}
                           onClick={() => scrollToHeading(subHeading.id)}
-                          className={`text-xs cursor-pointer hover:underline text-left ${
+                          className={`text-xs cursor-pointer hover:underline text-left rounded px-2 py-1 transition-colors ${
                             activeHeadingId === subHeading.id
-                              ? "text-blue-500"
-                              : "text-gray-600"
+                              ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
+                              : "text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           {subHeading.text}
@@ -643,12 +633,12 @@ export default function PostDetailClient() {
                   ?.name || lowerURL(category?.name || ""),
               ),
             )}/${previousPage.id}`}
-            className="bg-searchInput p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300"
+            className="bg-gray-50 dark:bg-zinc-900 p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300 dark:border-white/10"
           >
             <div className="flex gap-4 items-center justify-between">
               <ArrowLeftCircle size={34} className="text-gray-500" />
               <div className="flex flex-col">
-                <p className="text-sm text-gray-700 text-right">이전 게시물</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 text-right">이전 게시물</p>
                 <p className="truncate max-w-[200px] overflow-hidden text-ellipsis text-right font-bold">
                   {previousPage.title}
                 </p>
@@ -664,11 +654,11 @@ export default function PostDetailClient() {
                   ?.name || lowerURL(category?.name || ""),
               ),
             )}/${nextPage.id}`}
-            className="bg-searchInput p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300"
+            className="bg-gray-50 dark:bg-zinc-900 p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300 dark:border-white/10"
           >
             <div className="flex gap-4 items-center justify-between">
               <div className="flex flex-col">
-                <p className="text-sm text-gray-700">다음 게시물</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">다음 게시물</p>
                 <p className="truncate leading-tight max-w-[200px] overflow-hidden text-ellipsis font-bold">
                   {nextPage.title}
                 </p>
@@ -682,24 +672,24 @@ export default function PostDetailClient() {
         <Button
           onClick={handleHeartClick}
           className={cn(
-            `flex items-center gap-1 border border-slate-containerColor rounded-button ${
+            `flex items-center gap-1 border rounded-button transition-colors ${
               isHeartClicked
-                ? "border-logoutColor text-logoutText bg-logoutButton"
-                : "border- text-containerColor bg-white"
+                ? "border-like-border bg-like-bg text-like-foreground"
+                : "border-gray-300 dark:border-white/15 text-gray-700 dark:text-gray-200 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800"
             }`,
           )}
         >
           <Heart
             size={20}
             className={cn(
-              `${isHeartClicked ? "fill-red-500 stroke-none" : "currentColor"}`,
+              isHeartClicked ? "fill-like stroke-like" : "currentColor",
             )}
           />
           {post?.like_count}
         </Button>
       </div>
       <Link href="/profile">
-        <div className="flex items-center justify-between gap-4 py-6 border-t border-slate-containerColor mt-4 hover:cursor-pointer">
+        <div className="flex items-center justify-between gap-4 py-6 border-t border-gray-200 dark:border-white/10 mt-4 hover:cursor-pointer">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-full overflow-hidden shadow-md flex-shrink-0">
               <Image
@@ -714,7 +704,7 @@ export default function PostDetailClient() {
               <span className="text-xs font-semibold text-metricsText tracking-wider">
                 작성자
               </span>
-              <p className="text-lg font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {authorProfile?.nickname || "(알 수 없음)"}
               </p>
             </div>
@@ -726,7 +716,7 @@ export default function PostDetailClient() {
           <span className="font-bold">{comments.length}개의 댓글</span>
         </div>
         <Textarea
-          className="w-full min-h-40 resize-none p-container border rounded"
+          className="w-full min-h-40 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
           placeholder={
             session
               ? "댓글을 입력하세요. (최대 1000자)"
@@ -744,7 +734,11 @@ export default function PostDetailClient() {
         <div className="flex gap-2 justify-end">
           {session ? (
             <>
-              <Button onClick={() => setIsStatus((prev) => !prev)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsStatus((prev) => !prev)}
+                className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
+              >
                 {isStatus ? (
                   <>
                     <EyeIcon /> 공개
@@ -756,7 +750,7 @@ export default function PostDetailClient() {
                 )}
               </Button>
               <Button
-                className="flex gap-2 w-auto p-button bg-navButton text-white rounded-button"
+                className="flex gap-2 w-auto p-button bg-action text-action-foreground hover:bg-action-hover rounded-button"
                 onClick={handleSubmitReply}
               >
                 <SendIcon size={20} />
@@ -764,11 +758,12 @@ export default function PostDetailClient() {
               </Button>
             </>
           ) : (
-            <Link href="/login">
-              <Button className="bg-navButton text-white rounded-button">
-                로그인 하러 가기
-              </Button>
-            </Link>
+            <Button
+              onClick={openLogin}
+              className="bg-action text-action-foreground hover:bg-action-hover rounded-button"
+            >
+              로그인 하러 가기
+            </Button>
           )}
         </div>
       </div>
@@ -778,7 +773,7 @@ export default function PostDetailClient() {
           .map((comment) => (
             <div
               key={comment.id}
-              className="flex flex-col gap-2 border-b border-slate-containerColor py-container last:border-b-0"
+              className="flex flex-col gap-2 border-b border-gray-200 dark:border-white/10 py-container last:border-b-0"
             >
               {canViewComment(comment) && (
                 <div className="flex items-center gap-4">
@@ -800,7 +795,7 @@ export default function PostDetailClient() {
                       <span
                         className={`flex items-center gap-2 font-semibold ${
                           comment.author_id === post?.author_id
-                            ? "font-normal text-[12px] bg-black rounded-full text-white px-2 py-1"
+                            ? "font-normal text-[12px] bg-black dark:bg-white dark:text-black rounded-full text-white px-2 py-1"
                             : ""
                         }`}
                       >
@@ -827,7 +822,8 @@ export default function PostDetailClient() {
                   <div className="flex gap-2 justify-start">
                     {canViewComment(comment) && (
                       <Button
-                        className="p-0 text-metricsText"
+                        variant="ghost"
+                        className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
                         onClick={() => toggleReply(Number(comment.id))}
                       >
                         {replyingTo === comment.id ? "답장 취소" : "답장하기"}
@@ -835,7 +831,8 @@ export default function PostDetailClient() {
                     )}
                     {session?.user.id === comment.author_id && (
                       <Button
-                        className="text-metricsText rounded-button p-0"
+                        variant="ghost"
+                        className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
                         onClick={() => deleteHandleComment(Number(comment.id))}
                       >
                         삭제하기
@@ -845,15 +842,19 @@ export default function PostDetailClient() {
                 )}
               </div>
               {replyingTo === comment.id && (
-                <div className="flex flex-col border-l rounded-container border border-slate-containerColor overflow-hidden">
+                <div className="flex flex-col border-l rounded-container border border-gray-200 dark:border-white/10 overflow-hidden">
                   <Textarea
-                    className="w-full min-h-40 resize-none p-container border-none rounded-none"
+                    className="w-full min-h-40 resize-none p-container border-none rounded-none bg-white dark:bg-zinc-900 dark:text-gray-100"
                     placeholder="답글을 입력하세요"
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                   />
-                  <div className="flex gap-2 justify-end">
-                    <Button onClick={() => setIsReplyStatus((prev) => !prev)}>
+                  <div className="flex gap-2 justify-end p-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsReplyStatus((prev) => !prev)}
+                      className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                    >
                       {isReplyStatus ? (
                         <>
                           <EyeIcon /> 공개
@@ -868,7 +869,7 @@ export default function PostDetailClient() {
                       onClick={() =>
                         handleSubmitSubCommment(Number(comment.id))
                       }
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 bg-action text-action-foreground hover:bg-action-hover"
                     >
                       <SendIcon size={20} />
                       등록
@@ -884,7 +885,7 @@ export default function PostDetailClient() {
                   .map((reply) => (
                     <div
                       key={reply.id}
-                      className="flex flex-col gap-2 p-container border-b border-slate-containerColor bg-gray-100 last:border-b-0"
+                      className="flex flex-col gap-2 p-container border-b border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 last:border-b-0"
                     >
                       {canViewComment(reply) && (
                         <div className="flex items-center gap-4">
@@ -906,7 +907,7 @@ export default function PostDetailClient() {
                               <span
                                 className={`flex items-center gap-2 font-semibold ${
                                   reply.author_id === post?.author_id
-                                    ? "font-normal text-[12px] bg-black rounded-full text-white px-2 py-1"
+                                    ? "font-normal text-[12px] bg-black dark:bg-white dark:text-black rounded-full text-white px-2 py-1"
                                     : ""
                                 }`}
                               >
@@ -939,7 +940,8 @@ export default function PostDetailClient() {
                         <div className="flex gap-2 justify-start">
                           {session?.user?.id === reply.author_id && (
                             <Button
-                              className="text-metricsText rounded-button p-0"
+                              variant="ghost"
+                              className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
                               onClick={() => deleteHandleComment(reply.id)}
                             >
                               삭제하기
@@ -953,7 +955,7 @@ export default function PostDetailClient() {
             </div>
           ))
       ) : (
-        <div className="flex flex-col gap-2 p-container rounded-container border border-slate-containerColor h-[300px] items-center justify-center">
+        <div className="flex flex-col gap-2 p-container rounded-container border border-gray-200 dark:border-white/10 h-[300px] items-center justify-center">
           <MessageSquareXIcon
             size={48}
             className="text-gray-500 items-center justify-center mx-auto"
@@ -973,6 +975,6 @@ export default function PostDetailClient() {
         onClose={() => setSelectedImageIndex(null)}
         onSelect={setSelectedImageIndex}
       />
-    </div>
+    </motion.div>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { LockIcon } from "lucide-react";
+import { useLoginModalStore } from "@components/store/loginModalStore";
+import { motion } from "framer-motion";
+import { contentReveal } from "@components/components/motion/contentReveal";
 import { ProfileBanner } from "./ProfileBanner";
 import { ProfileInfo } from "./ProfileInfo";
 import { AccountInfoSection } from "./AccountInfoSection";
@@ -27,6 +29,7 @@ export default function MyInfoContent() {
   } = useMyInfoData();
 
   const { profile, accountDetails } = useProfileData(session);
+  const openLogin = useLoginModalStore((s) => s.open);
 
   const {
     isModalOpen,
@@ -55,19 +58,22 @@ export default function MyInfoContent() {
 
   if (!profile) {
     return (
-      <section className="flex w-full min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+      <motion.section
+        {...contentReveal}
+        className="flex w-full min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center"
+      >
         <LockIcon size={48} className="text-metricsText" />
         <p className="text-lg font-semibold">로그인이 필요합니다.</p>
         <p className="text-sm text-metricsText">
           내 정보 페이지는 로그인 후 이용할 수 있어요.
         </p>
-        <Link
-          href="/login"
+        <button
+          onClick={openLogin}
           className="p-button rounded-button border border-editButton bg-editButton px-6 py-3 text-loginText"
         >
           로그인 하러 가기
-        </Link>
-      </section>
+        </button>
+      </motion.section>
     );
   }
 
@@ -80,9 +86,12 @@ export default function MyInfoContent() {
       : "/default.png";
 
   return (
-    <section className="flex w-full flex-col">
+    <motion.section
+      {...contentReveal}
+      className="flex w-full flex-col -mt-[65px]"
+    >
       {/* 헤더 */}
-      <header className="relative flex w-full flex-col items-center overflow-hidden border-y border-containerColor bg-white">
+      <header className="relative flex w-full flex-col items-center overflow-hidden border-y border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900">
         <ProfileBanner bannerUrl={currentBanner} onEditClick={openModal} />
         <ProfileInfo
           avatar={profile.avatar}
@@ -136,6 +145,6 @@ export default function MyInfoContent() {
           }}
         />
       )}
-    </section>
+    </motion.section>
   );
 }

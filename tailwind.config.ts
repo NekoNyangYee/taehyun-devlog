@@ -10,6 +10,53 @@ export default {
 	],
 	theme: {
 		extend: {
+			colors: {
+				/* 시맨틱 토큰 — hsl(var(--token)) 패턴 */
+				background: 'hsl(var(--background))',
+				foreground: 'hsl(var(--foreground))',
+				card: {
+					DEFAULT: 'hsl(var(--card))',
+					foreground: 'hsl(var(--card-foreground))'
+				},
+				popover: {
+					DEFAULT: 'hsl(var(--popover))',
+					foreground: 'hsl(var(--popover-foreground))'
+				},
+				primary: {
+					DEFAULT: 'hsl(var(--primary))',
+					foreground: 'hsl(var(--primary-foreground))'
+				},
+				secondary: {
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--secondary-foreground))'
+				},
+				muted: {
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))'
+				},
+				accent: {
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
+				},
+				destructive: {
+					DEFAULT: 'hsl(var(--destructive))',
+					foreground: 'hsl(var(--destructive-foreground))'
+				},
+				like: {
+					DEFAULT: 'hsl(var(--like))',
+					foreground: 'hsl(var(--like-foreground))',
+					bg: 'hsl(var(--like-bg))',
+					border: 'hsl(var(--like-border))'
+				},
+				action: {
+					DEFAULT: 'hsl(var(--action))',
+					foreground: 'hsl(var(--action-foreground))',
+					hover: 'hsl(var(--action-hover))'
+				},
+				border: 'hsl(var(--border))',
+				input: 'hsl(var(--input))',
+				ring: 'hsl(var(--ring))'
+			},
 			width: {
 				profileImage: 'var(--width-profile-image)'
 			},
@@ -80,11 +127,20 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				aurora: {
+					from: {
+						backgroundPosition: '50% 50%, 50% 50%'
+					},
+					to: {
+						backgroundPosition: '350% 50%, 350% 50%'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				aurora: 'aurora 60s linear infinite'
 			}
 		}
 	},

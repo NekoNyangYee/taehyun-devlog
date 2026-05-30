@@ -42,12 +42,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "monthly",
             priority: 0.5,
         },
-        {
-            url: `${baseUrl}/login`,
-            lastModified: new Date(),
-            changeFrequency: "yearly",
-            priority: 0.3,
-        },
     ];
 
     // 모든 공개 게시물 가져오기 (카테고리 정보 포함)

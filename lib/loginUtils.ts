@@ -22,7 +22,7 @@ export const addUserToProfileTable = async <T extends UserData>(userSessionData:
             .eq("id", userSessionData.id);
 
         if (fetchError) {
-            console.log("프로필을 조회하는 중 문제가 발생하였어요.", fetchError);
+            console.error("프로필을 조회하는 중 문제가 발생하였어요.", fetchError);
             return;
         }
 
@@ -40,7 +40,7 @@ export const addUserToProfileTable = async <T extends UserData>(userSessionData:
                 ]);
 
             if (insertError) {
-                console.log("프로필을 추가하는 중 문제가 발생하였어요.", insertError);
+                console.error("프로필을 추가하는 중 문제가 발생하였어요.", insertError);
                 return;
             }
 
@@ -53,7 +53,7 @@ export const addUserToProfileTable = async <T extends UserData>(userSessionData:
                 .single();
 
             if (roleError || !viewerRole) {
-                console.log("viewer role을 찾을 수 없습니다:", roleError);
+                console.error("viewer role을 찾을 수 없습니다:", roleError);
                 return;
             }
 
@@ -68,16 +68,12 @@ export const addUserToProfileTable = async <T extends UserData>(userSessionData:
                 ]);
 
             if (userRoleError) {
-                console.log("사용자 role 할당 중 문제가 발생하였어요:", userRoleError);
+                console.error("사용자 role 할당 중 문제가 발생하였어요:", userRoleError);
                 return;
             }
-
-            console.log("프로필 추가 및 role 할당 완료");
-        } else {
-            console.log("이미 존재하는 유저입니다.");
         }
 
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 };
