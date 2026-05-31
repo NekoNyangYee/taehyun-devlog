@@ -9,6 +9,8 @@ import { motion, type Variants } from "framer-motion";
 
 interface CategoryGridProps {
   categories: Category[];
+  /** category_id -> 공개 게시물 수 */
+  counts?: Record<number, number>;
 }
 
 const easeOut: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -26,21 +28,24 @@ const gridContainer: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.08 },
   },
 };
 
 const gridItem: Variants = {
-  hidden: { opacity: 0, y: 24, scale: 0.94 },
+  hidden: { opacity: 0, y: 16 },
   show: {
     opacity: 1,
     y: 0,
-    scale: 1,
-    transition: { duration: 0.5, ease: easeOut },
+    transition: { duration: 0.4, ease: easeOut },
   },
 };
 
-export function CategoryGrid({ categories }: CategoryGridProps) {
+/**
+ * 카테고리 — 컴팩트 아이콘 카드 그리드
+ * - 작은 썸네일 아이콘 + 이름 + 글 개수
+ */
+export function CategoryGrid({ categories, counts = {} }: CategoryGridProps) {
   return (
     <motion.section
       initial="hidden"
@@ -62,35 +67,46 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
 
       <motion.div
         variants={gridContainer}
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
       >
         {categories.map((category) => {
           const imageUrl = category?.thumbnail;
           const categoryLink = lowerURL(category.name);
+          const count = counts[category.id] ?? 0;
 
           return (
             <motion.div
               key={category.id}
               variants={gridItem}
-              whileHover={{ y: -6, scale: 1.03 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              whileHover={{ y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
             >
-              <Link href={`/posts/${categoryLink}`}>
-                <div className="group relative h-32 sm:h-40 overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 border border-containerColor/50">
-                  <Image
-                    src={imageUrl}
-                    alt={category.name}
-                    fill
-                    quality={65}
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end justify-start p-4">
-                    <span className="text-white font-bold text-base sm:text-lg leading-tight">
-                      {category.name}
+              <Link
+                href={`/posts/${categoryLink}`}
+                className="group flex items-center gap-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-3 transition-colors hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5"
+              >
+                <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900">
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={category.name}
+                      fill
+                      quality={50}
+                      className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      sizes="48px"
+                    />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center text-metricsText">
+                      <Grid2X2Plus size={20} />
                     </span>
-                  </div>
-                </div>
+                  )}
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {category.name}
+                  </span>
+                  <span className="text-xs text-metricsText">{count}개의 글</span>
+                </span>
               </Link>
             </motion.div>
           );

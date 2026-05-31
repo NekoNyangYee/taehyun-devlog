@@ -69,7 +69,7 @@ export default function MyInfoContent() {
         </p>
         <button
           onClick={openLogin}
-          className="p-button rounded-button border border-editButton bg-editButton px-6 py-3 text-loginText"
+          className="p-button rounded-button bg-action px-6 py-3 text-action-foreground transition-colors hover:bg-action-hover"
         >
           로그인 하러 가기
         </button>

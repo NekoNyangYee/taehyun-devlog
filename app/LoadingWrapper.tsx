@@ -9,9 +9,11 @@ import { usePathname } from "next/navigation";
 import { useIsRestoring, useQuery } from "@tanstack/react-query";
 import { useSessionStore } from "@components/store/sessionStore";
 import {
-  fetchPostsQueryFn,
-  postsQueryKey,
+  featuredPostsQueryKey,
+  fetchFeaturedPostsQueryFn,
 } from "@components/queries/postQueries";
+
+const FEATURED_LIMIT = 5;
 
 export default function LoadingWrapper({
   children,
@@ -47,9 +49,10 @@ export default function LoadingWrapper({
     ensureSignedOutForPendingSignup();
   }, [addSession, pathname]);
 
+  // 홈 로딩 게이트 — 무거운 전체 게시물 대신 캐러셀용 최신 5개만 패칭
   const postsQuery = useQuery({
-    queryKey: postsQueryKey,
-    queryFn: fetchPostsQueryFn,
+    queryKey: featuredPostsQueryKey(FEATURED_LIMIT),
+    queryFn: () => fetchFeaturedPostsQueryFn(FEATURED_LIMIT),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
   });

@@ -8,7 +8,7 @@ import {
   HandIcon,
   StarIcon,
   UserRoundCog,
-  PanelLeftClose,
+  PanelRightClose,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -58,7 +58,7 @@ export default function MobileNavBar({
   const isActive = (path: string) =>
     currentPath === path ||
     (path === "/posts" && currentPath.startsWith("/posts"))
-      ? "bg-black text-white font-semibold dark:bg-white dark:text-black"
+      ? "bg-black text-white font-semibold dark:bg-zinc-800 dark:text-white"
       : "bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10";
 
   if (!isVisible) return null;
@@ -74,15 +74,15 @@ export default function MobileNavBar({
         ></div>
       )}
       <aside
-        className={`fixed top-0 left-0 pt-16 w-[70%] max-w-[300px] h-full bg-white dark:bg-zinc-950 flex flex-col justify-between items-center gap-2 z-40 shadow-lg transition-transform duration-300 ${
-          isAnimating ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 right-0 pt-16 w-[70%] max-w-[300px] h-full bg-white dark:bg-zinc-950 flex flex-col justify-between items-center gap-2 z-40 shadow-lg transition-transform duration-300 ${
+          isAnimating ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <button
           onClick={handleClose}
-          className="absolute top-0 right-0 m-4 bg-white dark:bg-transparent shadow-none rounded-full text-gray-700 dark:text-gray-200"
+          className="absolute top-0 left-0 m-4 bg-transparent shadow-none rounded-full text-gray-700 dark:text-gray-200"
         >
-          <PanelLeftClose size={24} />
+          <PanelRightClose size={24} />
         </button>
         <div className="p-container w-full flex flex-col overflow-auto scrollbar-hide">
           <Link
@@ -170,7 +170,7 @@ export default function MobileNavBar({
                 handleClose();
                 onLoginClick?.();
               }}
-              className="w-full h-10 p-button border border-editButton rounded-button bg-editButton text-loginText flex items-center justify-center gap-2"
+              className="w-full h-10 p-button rounded-button bg-action text-action-foreground transition-colors hover:bg-action-hover flex items-center justify-center gap-2"
             >
               <LogInIcon size={18} />
               로그인

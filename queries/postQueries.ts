@@ -5,6 +5,10 @@ import {
   PostStateWithoutContents,
 } from "@components/types/post";
 
+/** 목록/카드에 필요한 게시물 컬럼 (본문 contents 제외) */
+const POST_LIST_COLUMNS =
+  "id, title, author_id, author_name, visibility, created_at, updated_at, view_count, like_count, category_id, liked_by_user";
+
 export const postsQueryKey = ["posts"] as const;
 export const bookmarkQueryKey = (userId?: string) =>
   ["bookmarks", userId] as const;
@@ -16,9 +20,7 @@ export const fetchPostsQueryFn = async (): Promise<
 > => {
   const { data, error } = await supabase
     .from("posts")
-    .select(
-      "id, title, author_id, author_name, visibility, created_at, updated_at, view_count, like_count, category_id, liked_by_user"
-    )
+    .select(POST_LIST_COLUMNS)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -27,6 +29,105 @@ export const fetchPostsQueryFn = async (): Promise<
 
   const safeData = (data ?? []).filter((post) => post.visibility === "public");
   return safeData;
+};
+
+export interface PostsPage {
+  posts: PostStateWithoutContents[];
+  total: number;
+}
+
+export const postsPageQueryKey = (page: number, pageSize: number) =>
+  ["posts", "page", page, pageSize] as const;
+
+/**
+ * 서버 사이드 페이지네이션 — Supabase range + exact count.
+ * visibility 필터를 DB단(`.eq`)에서 처리하고 페이지당 행만 가져온다.
+ */
+export const fetchPostsPageQueryFn = async (
+  page: number,
+  pageSize: number
+): Promise<PostsPage> => {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from("posts")
+    .select(POST_LIST_COLUMNS, { count: "exact" })
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    throw new Error(`게시물 페이지 불러오기 에러: ${error.message}`);
+  }
+
+  return {
+    posts: (data ?? []) as PostStateWithoutContents[],
+    total: count ?? 0,
+  };
+};
+
+export const featuredPostsQueryKey = (limit: number) =>
+  ["posts", "featured", limit] as const;
+
+/** 캐러셀용 최신 공개 게시물 (limit개) */
+export const fetchFeaturedPostsQueryFn = async (
+  limit = 5
+): Promise<PostStateWithoutContents[]> => {
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_LIST_COLUMNS)
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`추천 게시물 불러오기 에러: ${error.message}`);
+  }
+
+  return (data ?? []) as PostStateWithoutContents[];
+};
+
+export const popularPostsQueryKey = (limit: number) =>
+  ["posts", "popular", limit] as const;
+
+/** 인기 글 사이드바용 — 조회수 상위 공개 게시물 (limit개) */
+export const fetchPopularPostsQueryFn = async (
+  limit = 4
+): Promise<PostStateWithoutContents[]> => {
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_LIST_COLUMNS)
+    .eq("visibility", "public")
+    .order("view_count", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`인기 게시물 불러오기 에러: ${error.message}`);
+  }
+
+  return (data ?? []) as PostStateWithoutContents[];
+};
+
+export const postsByIdsQueryKey = (ids: number[]) =>
+  ["posts", "byIds", [...ids].sort((a, b) => a - b)] as const;
+
+/** 특정 id 목록의 게시물 메타 조회 (최신 댓글의 게시물 제목 매핑용) */
+export const fetchPostsByIdsQueryFn = async (
+  ids: number[]
+): Promise<PostStateWithoutContents[]> => {
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select(POST_LIST_COLUMNS)
+    .in("id", ids);
+
+  if (error) {
+    throw new Error(`게시물 조회 에러: ${error.message}`);
+  }
+
+  return (data ?? []) as PostStateWithoutContents[];
 };
 
 export const fetchBookmarksQueryFn = async (

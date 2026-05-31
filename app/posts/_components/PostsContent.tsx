@@ -62,9 +62,9 @@ export default function PostsContent({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={gridKey}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="w-full"
         >

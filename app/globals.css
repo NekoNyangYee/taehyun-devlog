@@ -68,16 +68,18 @@ hr {
   margin: 1rem 0;
 }
 
-/* ✅ Unordered List (불릿 리스트) 스타일 유지 */
-ul {
-  list-style-type: disc !important;
+/* ✅ 게시물 본문/에디터의 리스트만 마커 유지.
+ * (전역 ul/ol에 걸면 앱 UI 리스트에도 불릿/숫자가 새어 나오므로 본문 영역으로 스코프 한정) */
+.post-content ul,
+.ProseMirror ul {
+  list-style-type: disc;
   padding-left: 1.5rem; /* 왼쪽 여백 */
   margin-left: 1.2rem;
 }
 
-/* ✅ Ordered List (숫자 리스트) 스타일 유지 */
-ol {
-  list-style-type: decimal !important;
+.post-content ol,
+.ProseMirror ol {
+  list-style-type: decimal;
   padding-left: 1.5rem;
 }
 
