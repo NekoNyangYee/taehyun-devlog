@@ -79,8 +79,12 @@ export function useBannerUpdate() {
                 closeModal();
             } else {
                 // 파일이 있으면 업로드 후 변경
-                const { url } = await uploadImageToCloudinary(selectedFile);
-                await updateProfile({ profile_banner: url });
+                const { url, bytes, filename } =
+                    await uploadImageToCloudinary(selectedFile);
+                const bannerUrl = new URL(url);
+                bannerUrl.searchParams.set("filename", filename);
+                bannerUrl.searchParams.set("bytes", String(bytes));
+                await updateProfile({ profile_banner: bannerUrl.toString() });
                 setSelectedFile(null);
                 setPreviewUrl("");
                 setWillDeleteBanner(false);

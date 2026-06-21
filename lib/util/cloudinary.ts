@@ -1,11 +1,7 @@
-/**
- * Cloudinary에 이미지를 업로드하고 webp 포맷으로 변환된 URL을 반환합니다.
- * @param file - 업로드할 이미지 파일
- * @returns webp 포맷의 Cloudinary URL과 파일 크기
- */
 export async function uploadImageToCloudinary(file: File): Promise<{
   url: string;
   bytes: number;
+  filename: string;
 }> {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -17,7 +13,7 @@ export async function uploadImageToCloudinary(file: File): Promise<{
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
-  formData.append("folder", "blog-banner"); // 카테고리별 폴더 정리
+  formData.append("folder", "blog-banner");
 
   try {
     const response = await fetch(
@@ -25,7 +21,7 @@ export async function uploadImageToCloudinary(file: File): Promise<{
       {
         method: "POST",
         body: formData,
-      }
+      },
     );
 
     if (!response.ok) {
@@ -33,31 +29,22 @@ export async function uploadImageToCloudinary(file: File): Promise<{
     }
 
     const data = await response.json();
-
-    // webp 포맷으로 변환하고 최적화된 URL 반환
-    // f_webp: webp 포맷으로 변환
-    // q_auto: 자동 품질 최적화
-    // w_800: 너비 800px로 리사이즈
     const optimizedUrl = data.secure_url.replace(
       "/upload/",
-      "/upload/f_webp,q_auto,w_800/"
+      "/upload/f_webp,q_auto,w_800/",
     );
 
     return {
       url: optimizedUrl,
-      bytes: data.bytes, // Cloudinary에서 반환하는 파일 크기
+      bytes: data.bytes,
+      filename: file.name,
     };
   } catch (error) {
-    console.error("Cloudinary 업로드 에러:", error);
+    console.error("Cloudinary 업로드 오류:", error);
     throw error;
   }
 }
 
-/**
- * 이미지 파일 유효성 검사
- * @param file - 검사할 파일
- * @returns 유효성 검사 결과
- */
 export function validateImageFile(file: File): {
   isValid: boolean;
   error?: string;
@@ -69,7 +56,7 @@ export function validateImageFile(file: File): {
     "image/gif",
     "image/webp",
   ];
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  const maxSize = 5 * 1024 * 1024;
 
   if (!validTypes.includes(file.type)) {
     return {

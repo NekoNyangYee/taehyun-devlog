@@ -78,7 +78,7 @@ export default function MyInfoContent() {
   return (
     <motion.section
       {...contentReveal}
-      className="flex w-full flex-col px-4 py-8 dark:bg-zinc-950 md:py-10"
+      className="flex w-full flex-col px-4 py-8 md:py-10"
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <ProfileBanner bannerUrl={currentBanner} onEditClick={openModal} />

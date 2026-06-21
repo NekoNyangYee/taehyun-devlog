@@ -1,15 +1,8 @@
 "use client";
 
-import { Upload, X, RotateCcw } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
+import { RotateCcw, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-/**
- * 배너 수정 모달 컴포넌트 (Presentational)
- * - 파일 선택 UI
- * - 미리보기
- * - 업로드/취소 버튼
- */
 interface BannerModalProps {
   isOpen: boolean;
   isAnimating: boolean;
@@ -31,16 +24,21 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`;
 };
 
-const getFilenameFromUrl = (url: string): string => {
+const getBannerMetadata = (url: string): { filename: string; bytes?: number } => {
   try {
-    const urlParts = url.split("/");
-    const filename = urlParts[urlParts.length - 1];
-    return filename.split("?")[0];
+    const parsedUrl = new URL(url, window.location.origin);
+    const filename = parsedUrl.searchParams.get("filename");
+    const bytes = Number(parsedUrl.searchParams.get("bytes"));
+
+    return {
+      filename: filename || "배너 이미지",
+      bytes: Number.isFinite(bytes) && bytes > 0 ? bytes : undefined,
+    };
   } catch {
-    return "배너 이미지";
+    return { filename: "배너 이미지" };
   }
 };
 
@@ -60,6 +58,7 @@ export function BannerModal({
   onDeleteBanner,
 }: BannerModalProps) {
   const [imageError, setImageError] = useState(false);
+  const [fetchedBytes, setFetchedBytes] = useState<number | null>(null);
 
   const displayBanner = previewUrl
     ? previewUrl
@@ -68,204 +67,176 @@ export function BannerModal({
       : currentBanner || "/default.png";
 
   const hasCustomBanner = currentBanner && currentBanner !== "/default.png";
+  const canSubmit = selectedFile || willDeleteBanner;
+  const currentBannerMeta = useMemo(
+    () => getBannerMetadata(currentBanner),
+    [currentBanner],
+  );
+  const currentBannerBytes = currentBannerMeta.bytes ?? fetchedBytes;
+
+  useEffect(() => {
+    if (!hasCustomBanner || currentBannerMeta.bytes) {
+      setFetchedBytes(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    fetch(currentBanner, { method: "HEAD" })
+      .then((response) => {
+        const length = response.headers.get("content-length");
+        const bytes = length ? Number(length) : NaN;
+        if (isMounted && Number.isFinite(bytes) && bytes > 0) {
+          setFetchedBytes(bytes);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setFetchedBytes(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentBanner, currentBannerMeta.bytes, hasCustomBanner]);
 
   return (
     <div
       onClick={onBackdropClick}
       style={{ willChange: isOpen ? "opacity" : "auto" }}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-all duration-300 ease-out ${
-        isOpen && isAnimating ? "opacity-100" : "opacity-0 pointer-events-none"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm transition-all duration-300 ease-out dark:bg-black/70 ${
+        isOpen && isAnimating ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{ willChange: isOpen ? "transform, opacity" : "auto" }}
-        className={`relative w-full max-w-2xl rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-6 shadow-xl transition-all duration-300 ease-out ${
+        className={`relative w-full max-w-2xl rounded-container border border-gray-200 bg-white p-6 text-gray-950 shadow-xl transition-all duration-300 ease-out dark:border-white/10 dark:bg-zinc-950 dark:text-gray-50 ${
           isOpen && isAnimating ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
       >
         <h2 className="mb-6 text-2xl font-semibold">프로필 배너 수정</h2>
+
         <div className="space-y-6">
-          {/* 미리보기 */}
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               배너 미리보기
             </label>
-            <div className="relative h-40 w-full overflow-hidden rounded-lg border border-gray-200 dark:border-white/10 bg-gray-100">
+            <div className="relative h-40 w-full overflow-hidden rounded-container border border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-900">
               {!imageError ? (
                 <img
                   src={displayBanner}
                   alt="배너 미리보기"
                   className="h-full w-full object-cover"
-                  onError={() => {
-                    console.error("배너 이미지 로드 실패:", displayBanner);
-                    setImageError(true);
-                  }}
+                  onError={() => setImageError(true)}
                   onLoad={() => setImageError(false)}
                 />
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center text-gray-500">
-                  <svg
-                    className="w-12 h-12 mb-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-sm">이미지를 불러올 수 없습니다</p>
-                  <p className="text-xs text-gray-400 mt-1">{displayBanner}</p>
+                <div className="flex h-full w-full flex-col items-center justify-center px-4 text-center text-metricsText">
+                  <Upload size={32} />
+                  <p className="mt-2 text-sm">이미지를 불러올 수 없습니다.</p>
+                  <p className="mt-1 max-w-full truncate text-xs">
+                    {displayBanner}
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* 파일 선택 */}
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               배너 이미지 선택
             </label>
 
             {!selectedFile ? (
-              <>
-                {hasCustomBanner && !willDeleteBanner ? (
-                  <>
-                    {/* 현재 배너 정보 */}
-                    <div className="flex items-center justify-between w-full p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="flex items-center justify-center w-12 h-12 flex-shrink-0 rounded-lg bg-black text-white">
-                          <svg
-                            className="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {getFilenameFromUrl(currentBanner)}
-                          </p>
-                          <p className="text-xs text-metricsText truncate">
-                            현재 배너 이미지
-                          </p>
-                        </div>
+              hasCustomBanner && !willDeleteBanner ? (
+                <>
+                  <div className="flex w-full items-center justify-between rounded-container border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-button bg-gray-950 text-white dark:bg-white dark:text-black">
+                        <Upload size={20} />
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                        <label
-                          htmlFor="bannerFile"
-                          className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 transition cursor-pointer"
-                          title="새 이미지 선택"
-                        >
-                          <Upload size={18} />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={onDeleteBanner}
-                          disabled={isUpdating}
-                          className="p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="선택 취소"
-                        >
-                          <X size={18} />
-                        </button>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-gray-950 dark:text-gray-50">
+                          {currentBannerMeta.filename}
+                        </p>
+                        <p className="truncate text-xs text-metricsText">
+                          {currentBannerBytes
+                            ? `현재 배너 이미지 · ${formatFileSize(currentBannerBytes)}`
+                            : "현재 배너 이미지"}
+                        </p>
                       </div>
                     </div>
-                    <input
-                      id="bannerFile"
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                      onChange={onFileSelect}
-                      disabled={isUpdating}
-                      className="hidden"
-                    />
-                  </>
-                ) : (
-                  <>
-                    {/* 파일 업로드 UI */}
-                    <div className="flex flex-col gap-2">
+                    <div className="ml-3 flex shrink-0 items-center gap-2">
                       <label
                         htmlFor="bannerFile"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                        className="rounded-button bg-gray-950 p-2 text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                        title="새 이미지 선택"
                       >
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <svg
-                            className="w-10 h-10 mb-3 text-metricsText"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                            />
-                          </svg>
-                          <p className="mb-2 text-sm text-gray-700">
-                            <span className="font-semibold">
-                              클릭하여 파일 선택
-                            </span>
-                          </p>
-                          <p className="text-xs text-metricsText">
-                            JPG, PNG, GIF, WEBP (최대 5MB)
-                          </p>
-                        </div>
+                        <Upload size={18} />
                       </label>
+                      <button
+                        type="button"
+                        onClick={onDeleteBanner}
+                        disabled={isUpdating}
+                        className="rounded-button border border-gray-200 bg-white p-2 text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950 dark:text-gray-200 dark:hover:bg-white/10"
+                        title="배너 삭제"
+                      >
+                        <X size={18} />
+                      </button>
                     </div>
-                    <input
-                      id="bannerFile"
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                      onChange={onFileSelect}
-                      disabled={isUpdating}
-                      className="hidden"
-                    />
-                  </>
-                )}
-              </>
-            ) : (
-              /* 선택된 파일 정보 */
-              <div className="flex items-center justify-between w-full p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="flex items-center justify-center w-12 h-12 flex-shrink-0 rounded-lg bg-black text-white">
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
                   </div>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                  <input
+                    id="bannerFile"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={onFileSelect}
+                    disabled={isUpdating}
+                    className="hidden"
+                  />
+                </>
+              ) : (
+                <>
+                  <label
+                    htmlFor="bannerFile"
+                    className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-container border-2 border-dashed border-gray-200 bg-gray-50 text-center transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                  >
+                    <Upload size={32} className="mb-3 text-metricsText" />
+                    <p className="text-sm text-gray-700 dark:text-gray-200">
+                      <span className="font-semibold">클릭하여 파일 선택</span>
+                    </p>
+                    <p className="mt-1 text-xs text-metricsText">
+                      JPG, PNG, GIF, WEBP (최대 5MB)
+                    </p>
+                  </label>
+                  <input
+                    id="bannerFile"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={onFileSelect}
+                    disabled={isUpdating}
+                    className="hidden"
+                  />
+                </>
+              )
+            ) : (
+              <div className="flex w-full items-center justify-between rounded-container border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-button bg-gray-950 text-white dark:bg-white dark:text-black">
+                    <Upload size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-950 dark:text-gray-50">
                       {selectedFile.name}
                     </p>
-                    <p className="text-xs text-metricsText truncate">
+                    <p className="truncate text-xs text-metricsText">
                       {formatFileSize(selectedFile.size)}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                <div className="ml-3 flex shrink-0 items-center gap-2">
                   <label
                     htmlFor="bannerFileReselect"
-                    className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 transition cursor-pointer"
+                    className="rounded-button bg-gray-950 p-2 text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
                     title="다시 선택"
                   >
                     <Upload size={18} />
@@ -282,7 +253,7 @@ export function BannerModal({
                     type="button"
                     onClick={onDeleteBanner}
                     disabled={isUpdating}
-                    className="p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-button border border-gray-200 bg-white p-2 text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950 dark:text-gray-200 dark:hover:bg-white/10"
                     title="선택 취소"
                   >
                     <X size={18} />
@@ -292,12 +263,11 @@ export function BannerModal({
             )}
           </div>
 
-          {/* 버튼 */}
-          <div className="flex justify-end gap-3 items-center">
+          <div className="flex items-center justify-end gap-3">
             {willDeleteBanner && hasCustomBanner && (
               <button
                 onClick={onRestoreBanner}
-                className="mr-auto flex items-center gap-2 text-sm text-metricsText hover:text-gray-900 transition underline underline-offset-4"
+                className="mr-auto flex items-center gap-2 text-sm text-metricsText underline underline-offset-4 transition hover:text-gray-950 dark:hover:text-gray-50"
               >
                 <RotateCcw size={16} />
                 기존 배너 복원
@@ -306,18 +276,14 @@ export function BannerModal({
             <button
               onClick={onCancel}
               disabled={isUpdating}
-              className={`rounded-button border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 ${
-                isUpdating ? "cursor-not-allowed opacity-50" : ""
-              }`}
+              className="rounded-button border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-zinc-950 dark:text-gray-200 dark:hover:bg-white/10"
             >
               취소
             </button>
             <button
               onClick={onUpdate}
-              disabled={(!selectedFile && !willDeleteBanner) || isUpdating}
-              className={`rounded-button bg-black px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 ${
-                isUpdating ? "cursor-not-allowed opacity-50" : ""
-              }`}
+              disabled={!canSubmit || isUpdating}
+              className="rounded-button bg-gray-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:disabled:bg-white/20 dark:disabled:text-gray-500"
             >
               {isUpdating ? "변경 중..." : "배너 변경"}
             </button>
