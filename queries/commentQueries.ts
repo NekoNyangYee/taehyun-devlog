@@ -5,8 +5,15 @@ import {
   CommentUpdatePayload,
 } from "@components/types/comment";
 
-export const commentsQueryKey = (postIds?: number[] | string) =>
-  ["comments", Array.isArray(postIds) ? postIds.join(",") : postIds] as const;
+export const commentsQueryKey = (
+  postIds?: number[] | string,
+  includePrivate = false
+) =>
+  [
+    "comments",
+    Array.isArray(postIds) ? postIds.join(",") : postIds,
+    includePrivate ? "all" : "public",
+  ] as const;
 
 export const recentCommentsQueryKey = (limit: number) =>
   ["comments", "recent", limit] as const;
@@ -18,7 +25,7 @@ export const fetchRecentCommentsQueryFn = async (
   const { data, error } = await supabase
     .from("comments")
     .select("*")
-    .eq("status", true)
+    .eq("status", false)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -30,13 +37,20 @@ export const fetchRecentCommentsQueryFn = async (
 };
 
 export const fetchCommentsQueryFn = async (
-  postIds: number[]
+  postIds: number[],
+  options: { includePrivate?: boolean } = {}
 ): Promise<CommentRow[]> => {
-  const { data, error } = await supabase
+  let query = supabase
     .from("comments")
     .select("*")
     .in("post_id", postIds)
     .order("created_at", { ascending: true });
+
+  if (!options.includePrivate) {
+    query = query.eq("status", false);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(`🚨 댓글 불러오기 실패: ${error.message}`);

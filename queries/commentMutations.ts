@@ -32,6 +32,7 @@ export const useAddComment = (postIds?: number[]) => {
     },
     onSuccess: () => {
       // 댓글 목록 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["comments"] });
       if (postIds) {
         queryClient.invalidateQueries({
           queryKey: commentsQueryKey(postIds),
@@ -49,6 +50,7 @@ export const useDeleteComment = (postIds?: number[]) => {
     mutationFn: deleteCommentMutationFn,
     onSuccess: () => {
       // 댓글 목록 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["comments"] });
       if (postIds) {
         queryClient.invalidateQueries({
           queryKey: commentsQueryKey(postIds),
@@ -66,6 +68,7 @@ export const useUpdateComment = (postIds?: number[]) => {
     mutationFn: updateCommentMutationFn,
     onSuccess: () => {
       // 댓글 목록 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["comments"] });
       if (postIds) {
         queryClient.invalidateQueries({
           queryKey: commentsQueryKey(postIds),

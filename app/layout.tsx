@@ -98,7 +98,7 @@ export default function RootLayout({
         {/* 테마 FOUC 방지 인라인 스크립트 */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="relative isolate flex flex-col h-screen">
+      <body className="relative isolate flex min-h-screen flex-col">
         {/*
          * 전역 Aurora 배경 (Aceternity / shadcn.io 샘플)
          * AuroraBackground 컴포넌트의 className으로 base 스타일(h-[100vh], bg-zinc-50/bg-zinc-900, relative)을 모두 덮어쓴다:

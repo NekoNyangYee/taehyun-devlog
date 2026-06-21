@@ -1,32 +1,33 @@
 import { PencilIcon } from "lucide-react";
+import Image from "next/image";
 
-/**
- * 프로필 배너 컴포넌트 (Presentational)
- * - 배너 이미지 표시
- * - 수정 버튼
- */
 interface ProfileBannerProps {
-    bannerUrl: string;
-    onEditClick: () => void;
+  bannerUrl: string;
+  onEditClick: () => void;
 }
 
 export function ProfileBanner({ bannerUrl, onEditClick }: ProfileBannerProps) {
-    return (
-        <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 w-full overflow-hidden">
-            <div
-                className="absolute h-full inset-0 transform bg-cover bg-center"
-                style={{
-                    backgroundImage: `url(${bannerUrl || "/default.png"})`,
-                }}
-            />
-            <div className="absolute inset-0 bg-white/25" />
-            <button
-                onClick={onEditClick}
-                className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-button border border-white/50 bg-black/50 px-3 py-2 text-sm text-white backdrop-blur-sm transition hover:bg-black/70"
-            >
-                <PencilIcon size={16} />
-                배너 수정
-            </button>
-        </div>
-    );
+  const src = bannerUrl || "/default.png";
+
+  return (
+    <div className="relative h-44 w-full overflow-hidden rounded-container bg-gray-100 sm:h-52 md:h-60 dark:bg-zinc-900">
+      <Image
+        src={src}
+        alt="프로필 배경 이미지"
+        fill
+        priority
+        quality={75}
+        sizes="(max-width: 768px) 100vw, 1200px"
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/15" />
+      <button
+        onClick={onEditClick}
+        className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-2 rounded-button bg-black/55 px-3 py-2 text-sm text-white shadow-sm backdrop-blur-sm transition hover:bg-black/75"
+      >
+        <PencilIcon size={15} />
+        배경 이미지 편집
+      </button>
+    </div>
+  );
 }

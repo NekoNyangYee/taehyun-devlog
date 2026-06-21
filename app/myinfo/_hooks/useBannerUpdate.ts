@@ -86,8 +86,6 @@ export function useBannerUpdate() {
                 setWillDeleteBanner(false);
                 closeModal();
             }
-            // 프로필 업데이트 후 다시 불러오기 (UI 즉시 반영)
-            window.location.reload();
         } catch (error) {
             console.error("배너 업데이트 실패:", error);
             alert("배너 업데이트에 실패했습니다. 다시 시도해주세요.");

@@ -51,7 +51,7 @@ export function RecentComments({
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-60px" }}
-      className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-5"
+      className="min-w-0 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-5"
     >
       <h3 className="mb-4 text-base font-bold text-gray-900 dark:text-gray-100">
         최신 댓글
@@ -68,8 +68,8 @@ export function RecentComments({
             : undefined;
 
           const body = (
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 flex flex-col gap-1.5">
+              <div className="flex min-w-0 items-center gap-2">
                 <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-zinc-700">
                   {comment.profile_image ? (
                     <Image
@@ -86,7 +86,7 @@ export function RecentComments({
                     </span>
                   )}
                 </span>
-                <span className="text-xs font-medium text-gray-800 dark:text-gray-100">
+                <span className="min-w-0 truncate text-xs font-medium text-gray-800 dark:text-gray-100">
                   {comment.author_name}
                 </span>
               </div>
@@ -108,7 +108,7 @@ export function RecentComments({
               className="border-b border-gray-100 dark:border-white/10 pb-4 last:border-b-0 last:pb-0"
             >
               {href ? (
-                <Link href={href} className="group block">
+                <Link href={href} className="group block min-w-0">
                   {body}
                 </Link>
               ) : (

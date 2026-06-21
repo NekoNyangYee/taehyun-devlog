@@ -16,6 +16,7 @@ import {
   Heart,
   LockIcon,
   MessageSquareXIcon,
+  PencilIcon,
   SendIcon,
   TagIcon,
 } from "lucide-react";
@@ -29,7 +30,7 @@ import { useUIStore } from "@components/store/postLoadingStore";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import NotFound from "@components/app/not-found";
 import { GotoTop } from "@components/components/GoToTop";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   fetchPostsQueryFn,
   postsQueryKey,
@@ -51,6 +52,7 @@ import {
 import {
   useAddComment,
   useDeleteComment,
+  useUpdateComment,
 } from "@components/queries/commentMutations";
 import {
   profileQueryKey,
@@ -59,6 +61,7 @@ import {
 import ImageViewer from "@components/components/ImageViewer";
 import MobileTOC from "@components/components/MobileTOC";
 import { useLoginModalStore } from "@components/store/loginModalStore";
+import { useCommentStore } from "@components/store/commentStore";
 import { motion } from "framer-motion";
 import { contentReveal } from "@components/components/motion/contentReveal";
 
@@ -205,9 +208,17 @@ export default function PostDetailClient() {
   const [activeHeadingId, setActiveHeadingId] = useState<string>("");
 
   const setPostLoading = useUIStore((state) => state.setPostLoading);
-  const queryClient = useQueryClient();
   const userId = session?.user?.id;
   const openLogin = useLoginModalStore((s) => s.open);
+  const {
+    editingCommentId,
+    editingContent,
+    editingStatus,
+    startEditingComment,
+    setEditingContent,
+    setEditingStatus,
+    cancelEditingComment,
+  } = useCommentStore();
 
   // ✅ TanStack Query로 데이터 가져오기
   const { data: posts = [] } = useQuery({
@@ -231,10 +242,12 @@ export default function PostDetailClient() {
   });
 
   const { data: comments = [] } = useQuery({
-    queryKey: commentsQueryKey([numericPostId]),
-    queryFn: () => fetchCommentsQueryFn([numericPostId]),
+    queryKey: commentsQueryKey([numericPostId], true),
+    queryFn: () =>
+      fetchCommentsQueryFn([numericPostId], { includePrivate: true }),
     enabled: hasValidPostId,
   });
+  const publicCommentCount = comments.filter((comment) => !comment.status).length;
 
   // ✅ 게시물 작성자 프로필 가져오기
   const { data: authorProfiles = [] } = useQuery({
@@ -250,6 +263,7 @@ export default function PostDetailClient() {
   const toggleLikeMutation = useToggleLike();
   const addCommentMutation = useAddComment([numericPostId]);
   const deleteCommentMutation = useDeleteComment([numericPostId]);
+  const updateCommentMutation = useUpdateComment([numericPostId]);
 
   const isHydratingPost = postDetailQuery.isLoading && !postDetailQuery.data;
 
@@ -494,6 +508,30 @@ export default function PostDetailClient() {
     }
   };
 
+  const handleStartEditComment = (targetComment: (typeof comments)[number]) => {
+    setReplyingTo(null);
+    startEditingComment(
+      Number(targetComment.id),
+      targetComment.content,
+      targetComment.status,
+    );
+  };
+
+  const handleUpdateComment = async (commentId: number) => {
+    if (editingContent.trim() === "") {
+      alert("댓글을 입력하세요.");
+      return;
+    }
+
+    await updateCommentMutation.mutateAsync({
+      id: commentId,
+      content: editingContent,
+      status: editingStatus,
+      updated_at: new Date().toISOString(),
+    });
+    cancelEditingComment();
+  };
+
   const canViewComment = (comment: (typeof comments)[number]) => {
     return (
       !comment.status || // 공개 댓글이거나
@@ -713,7 +751,7 @@ export default function PostDetailClient() {
       </Link>
       <div className="flex flex-col gap-4 py-4">
         <div className="flex justify-between items-center">
-          <span className="font-bold">{comments.length}개의 댓글</span>
+          <span className="font-bold">{publicCommentCount}개의 댓글</span>
         </div>
         <Textarea
           className="w-full min-h-40 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
@@ -811,7 +849,43 @@ export default function PostDetailClient() {
               )}
 
               <div className="flex flex-col">
-                {canViewComment(comment) ? (
+                {editingCommentId === comment.id ? (
+                  <div className="flex flex-col gap-2">
+                    <Textarea
+                      className="w-full min-h-28 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
+                      value={editingContent}
+                      onChange={(e) => setEditingContent(e.target.value)}
+                      maxLength={1000}
+                    />
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => setEditingStatus(!editingStatus)}
+                        className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                      >
+                        {editingStatus ? (
+                          <>
+                            <EyeOffIcon /> 비공개
+                          </>
+                        ) : (
+                          <>
+                            <EyeIcon /> 공개
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="ghost" onClick={cancelEditingComment}>
+                        취소
+                      </Button>
+                      <Button
+                        onClick={() => handleUpdateComment(Number(comment.id))}
+                        disabled={updateCommentMutation.isPending}
+                        className="bg-action text-action-foreground hover:bg-action-hover"
+                      >
+                        수정 완료
+                      </Button>
+                    </div>
+                  </div>
+                ) : canViewComment(comment) ? (
                   <p>{comment.content}</p>
                 ) : (
                   <div className="flex items-center gap-2 italic">
@@ -820,7 +894,7 @@ export default function PostDetailClient() {
                 )}
                 {session && (
                   <div className="flex gap-2 justify-start">
-                    {canViewComment(comment) && (
+                    {canViewComment(comment) && editingCommentId !== comment.id && (
                       <Button
                         variant="ghost"
                         className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
@@ -829,14 +903,24 @@ export default function PostDetailClient() {
                         {replyingTo === comment.id ? "답장 취소" : "답장하기"}
                       </Button>
                     )}
-                    {session?.user.id === comment.author_id && (
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
-                        onClick={() => deleteHandleComment(Number(comment.id))}
-                      >
-                        삭제하기
-                      </Button>
+                    {session?.user.id === comment.author_id && editingCommentId !== comment.id && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
+                          onClick={() => handleStartEditComment(comment)}
+                        >
+                          <PencilIcon size={14} />
+                          수정하기
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
+                          onClick={() => deleteHandleComment(Number(comment.id))}
+                        >
+                          삭제하기
+                        </Button>
+                      </>
                     )}
                   </div>
                 )}
@@ -929,7 +1013,43 @@ export default function PostDetailClient() {
                       )}
 
                       <div className="flex flex-col">
-                        {canViewComment(reply) ? (
+                        {editingCommentId === reply.id ? (
+                          <div className="flex flex-col gap-2">
+                            <Textarea
+                              className="w-full min-h-28 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              maxLength={1000}
+                            />
+                            <div className="flex flex-wrap gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                onClick={() => setEditingStatus(!editingStatus)}
+                                className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                              >
+                                {editingStatus ? (
+                                  <>
+                                    <EyeOffIcon /> 비공개
+                                  </>
+                                ) : (
+                                  <>
+                                    <EyeIcon /> 공개
+                                  </>
+                                )}
+                              </Button>
+                              <Button variant="ghost" onClick={cancelEditingComment}>
+                                취소
+                              </Button>
+                              <Button
+                                onClick={() => handleUpdateComment(Number(reply.id))}
+                                disabled={updateCommentMutation.isPending}
+                                className="bg-action text-action-foreground hover:bg-action-hover"
+                              >
+                                수정 완료
+                              </Button>
+                            </div>
+                          </div>
+                        ) : canViewComment(reply) ? (
                           <p>{reply.content}</p>
                         ) : (
                           <div className="flex items-center gap-2 italic">
@@ -938,14 +1058,24 @@ export default function PostDetailClient() {
                           </div>
                         )}
                         <div className="flex gap-2 justify-start">
-                          {session?.user?.id === reply.author_id && (
-                            <Button
-                              variant="ghost"
-                              className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
-                              onClick={() => deleteHandleComment(reply.id)}
-                            >
-                              삭제하기
-                            </Button>
+                          {session?.user?.id === reply.author_id && editingCommentId !== reply.id && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
+                                onClick={() => handleStartEditComment(reply)}
+                              >
+                                <PencilIcon size={14} />
+                                수정하기
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
+                                onClick={() => deleteHandleComment(reply.id)}
+                              >
+                                삭제하기
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>

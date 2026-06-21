@@ -39,7 +39,7 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-60px" }}
-      className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-5"
+      className="min-w-0 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-5"
     >
       <h3 className="mb-4 text-base font-bold text-gray-900 dark:text-gray-100">
         인기 있는 글
@@ -55,12 +55,12 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
             <motion.li key={post.id} variants={item}>
               <Link
                 href={`/posts/${categorySlug}/${post.id}`}
-                className="group flex items-start gap-3"
+                className="group flex min-w-0 items-start gap-3"
               >
                 <span className="shrink-0 text-lg font-bold leading-snug text-blue-500 dark:text-blue-400">
                   {i + 1}
                 </span>
-                <div className="flex flex-col gap-1">
+                <div className="min-w-0 flex flex-col gap-1">
                   <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-800 dark:text-gray-100 group-hover:text-gray-500 dark:group-hover:text-white transition-colors">
                     {post.title}
                   </p>

@@ -1,56 +1,49 @@
 import type { LucideIcon } from "lucide-react";
 
-/**
- * 계정 정보 섹션 컴포넌트 (Presentational)
- * - 로그인 수단, 세션 정보 등 표시
- */
 interface AccountInfoSectionProps {
-    lastSignIn: string;
-    accountDetails: Array<{
-        label: string;
-        value: string;
-        icon: LucideIcon;
-    }>;
+  accountDetails: Array<{
+    label: string;
+    value: string;
+    description: string;
+    icon: LucideIcon;
+  }>;
 }
 
-export function AccountInfoSection({
-    lastSignIn,
-    accountDetails,
-}: AccountInfoSectionProps) {
-    return (
-        <section className="rounded-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-4 md:p-6 shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-gray-200 dark:border-white/10 pb-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h2 className="text-xl font-semibold">계정 정보</h2>
-                    <p className="text-sm text-metricsText">
-                        로그인 및 세션 정보를 확인하세요.
-                    </p>
-                </div>
-                <span className="text-xs uppercase tracking-wide text-metricsText">
-                    {lastSignIn !== "-"
-                        ? `마지막 로그인 ${lastSignIn}`
-                        : "최근 로그인 정보 없음"}
-                </span>
-            </div>
+export function AccountInfoSection({ accountDetails }: AccountInfoSectionProps) {
+  return (
+    <section className="rounded-container border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-zinc-950">
+      <div className="border-b border-gray-200 pb-4 dark:border-white/10">
+        <h2 className="text-xl font-semibold text-gray-950 dark:text-gray-50">
+          프로필 정보
+        </h2>
+        <p className="mt-1 text-sm text-metricsText">
+          로그인, 세션, 계정 식별 정보를 한곳에서 확인합니다.
+        </p>
+      </div>
 
-            <div className="mt-4 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-                {accountDetails.map(({ label, value, icon: Icon }) => (
-                    <div
-                        key={label}
-                        className="flex items-start gap-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-3 md:px-4 md:py-4"
-                    >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black dark:bg-white dark:text-black text-white shadow-sm">
-                            <Icon size={18} />
-                        </span>
-                        <div className="text-left">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-metricsText">
-                                {label}
-                            </p>
-                            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">{value}</p>
-                        </div>
-                    </div>
-                ))}
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {accountDetails.map(({ label, value, description, icon: Icon }) => (
+          <div
+            key={label}
+            className="flex min-w-0 items-center gap-3 rounded-container border border-gray-200 bg-gray-50 px-4 py-4 dark:border-white/10 dark:bg-white/5"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-950 text-white dark:bg-white dark:text-black">
+              <Icon size={18} />
+            </span>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-xs font-medium text-metricsText">
+                {label}
+              </p>
+              <p className="truncate text-base font-semibold text-gray-950 dark:text-gray-50">
+                {value}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-metricsText">
+                {description}
+              </p>
             </div>
-        </section>
-    );
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }

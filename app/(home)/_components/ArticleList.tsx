@@ -47,7 +47,7 @@ export function ArticleList({
   isFetching = false,
 }: ArticleListProps) {
   return (
-    <section className="flex flex-col gap-2">
+    <section className="min-w-0 flex flex-col gap-2">
       <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
         전체 아티클
       </h2>
@@ -87,14 +87,14 @@ export function ArticleList({
               >
                 <Link
                   href={`/posts/${categorySlug}/${post.id}`}
-                  className="group flex items-start gap-4 py-6 sm:gap-6"
+                  className="group flex min-w-0 items-start gap-4 py-6 sm:gap-6"
                 >
-                  <div className="flex flex-1 flex-col gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                      <span className="max-w-full truncate rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
                         {categoryName}
                       </span>
-                      <span className="text-metricsText">
+                      <span className="min-w-0 truncate text-metricsText">
                         {post.author_name || "익명"}
                       </span>
                     </div>

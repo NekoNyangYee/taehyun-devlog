@@ -39,11 +39,6 @@ export function useMyInfoData() {
         queryFn: fetchCategoriesQueryFn,
     });
 
-    const { data: comments = [] } = useQuery({
-        queryKey: commentsQueryKey([]),
-        queryFn: () => fetchCommentsQueryFn([]),
-    });
-
     useEffect(() => {
         if (!session) {
             fetchSession();
@@ -66,6 +61,18 @@ export function useMyInfoData() {
                     new Date(a.created_at).getTime()
             );
     }, [posts, userId]);
+
+    const userPostIds = useMemo(
+        () => sortedUserPosts.map((post) => post.id),
+        [sortedUserPosts]
+    );
+
+    const { data: comments = [] } = useQuery({
+        queryKey: commentsQueryKey(userPostIds),
+        queryFn: () => fetchCommentsQueryFn(userPostIds),
+        enabled: userPostIds.length > 0,
+        staleTime: 1000 * 60 * 5,
+    });
 
     // 댓글 수 맵 (파생 상태)
     const commentCountMap = useMemo(() => {
