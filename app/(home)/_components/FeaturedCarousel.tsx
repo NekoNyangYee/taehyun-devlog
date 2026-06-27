@@ -68,9 +68,9 @@ export function FeaturedCarousel({
 
   useEffect(() => {
     if (featured.length <= 1) return;
-    const id = window.setInterval(() => paginate(1), SLIDE_INTERVAL_MS);
-    return () => window.clearInterval(id);
-  }, [featured.length, paginate]);
+    const id = window.setTimeout(() => paginate(1), SLIDE_INTERVAL_MS);
+    return () => window.clearTimeout(id);
+  }, [featured.length, index, paginate]);
 
   if (featured.length === 0) return null;
 
@@ -182,12 +182,25 @@ export function FeaturedCarousel({
                 type="button"
                 onClick={() => goTo(i)}
                 aria-label={`${i + 1}번째 게시물`}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-1.5 overflow-hidden rounded-full transition-all ${
                   i === index
-                    ? "w-6 bg-gray-900 dark:bg-gray-100"
+                    ? "w-8 bg-gray-200 dark:bg-zinc-700"
                     : "w-1.5 bg-gray-300 dark:bg-zinc-700 hover:bg-gray-400 dark:hover:bg-zinc-600"
                 }`}
-              />
+              >
+                {i === index && (
+                  <motion.span
+                    key={`${post.id}-${index}`}
+                    className="block h-full rounded-full bg-gray-900 dark:bg-gray-100"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{
+                      duration: SLIDE_INTERVAL_MS / 1000,
+                      ease: "linear",
+                    }}
+                  />
+                )}
+              </button>
             ))}
           </div>
         </div>

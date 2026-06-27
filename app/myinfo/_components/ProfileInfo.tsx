@@ -18,6 +18,7 @@ interface ProfileInfoProps {
   audience: string;
   isEditor: boolean;
   postCount: number;
+  publicProfileUrl: string;
 }
 
 export function ProfileInfo({
@@ -27,14 +28,15 @@ export function ProfileInfo({
   audience,
   isEditor,
   postCount,
+  publicProfileUrl,
 }: ProfileInfoProps) {
   const [shareUrl, setShareUrl] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
 
   useEffect(() => {
-    setShareUrl(window.location.href);
-  }, []);
+    setShareUrl(publicProfileUrl || window.location.href);
+  }, [publicProfileUrl]);
 
   const handleShare = async () => {
     const url = shareUrl || window.location.href;

@@ -10,6 +10,7 @@ import {
   ArrowRightCircle,
   BadgeCheck,
   CalendarRangeIcon,
+  CopyIcon,
   CornerDownRight,
   EyeIcon,
   EyeOffIcon,
@@ -18,7 +19,9 @@ import {
   MessageSquareXIcon,
   PencilIcon,
   SendIcon,
+  Share2Icon,
   TagIcon,
+  XIcon,
 } from "lucide-react";
 import PageLoading from "@components/components/loading/PageLoading";
 import { Button } from "@components/components/ui/button";
@@ -206,6 +209,9 @@ export default function PostDetailClient() {
     null,
   );
   const [activeHeadingId, setActiveHeadingId] = useState<string>("");
+  const [shareUrl, setShareUrl] = useState("");
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
 
   const setPostLoading = useUIStore((state) => state.setPostLoading);
   const userId = session?.user?.id;
@@ -341,6 +347,10 @@ export default function PostDetailClient() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post?.id, hasIncremented]);
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, [post?.id]);
 
   // 본문 내용이 바뀔 때만 목차 재계산 (좋아요로 인한 불필요한 재계산 방지)
   const postContents = post?.contents;
@@ -515,6 +525,35 @@ export default function PostDetailClient() {
       targetComment.content,
       targetComment.status,
     );
+  };
+
+  const handleShare = async () => {
+    if (!post) return;
+
+    const url = shareUrl || window.location.href;
+    const isPc = window.matchMedia("(pointer: fine)").matches;
+
+    if (!isPc && navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: `${post.title} 글을 확인해보세요.`,
+          url,
+        });
+        return;
+      } catch (error) {
+        if ((error as DOMException).name === "AbortError") return;
+      }
+    }
+
+    setIsShareModalOpen(true);
+  };
+
+  const handleCopyShareUrl = async () => {
+    const url = shareUrl || window.location.href;
+    await navigator.clipboard.writeText(url);
+    setCopyState("copied");
+    window.setTimeout(() => setCopyState("idle"), 1500);
   };
 
   const handleUpdateComment = async (commentId: number) => {
@@ -706,7 +745,7 @@ export default function PostDetailClient() {
           </Link>
         )}
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-2">
         <Button
           onClick={handleHeartClick}
           className={cn(
@@ -724,6 +763,14 @@ export default function PostDetailClient() {
             )}
           />
           {post?.like_count}
+        </Button>
+        <Button
+          onClick={handleShare}
+          variant="outline"
+          className="flex items-center gap-1 rounded-button border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/15 dark:bg-zinc-900 dark:text-gray-200 dark:hover:bg-zinc-800"
+        >
+          <Share2Icon size={20} />
+          공유
         </Button>
       </div>
       <Link href="/profile">
@@ -1099,6 +1146,47 @@ export default function PostDetailClient() {
         </div>
       </div>
       <GotoTop />
+      {isShareModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+          onClick={() => setIsShareModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-container border border-gray-200 bg-white p-5 shadow-xl dark:border-white/10 dark:bg-zinc-950"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-semibold text-gray-950 dark:text-gray-50">
+                게시물 공유
+              </h2>
+              <button
+                onClick={() => setIsShareModalOpen(false)}
+                className="rounded-full p-1.5 text-metricsText transition hover:bg-gray-100 dark:hover:bg-white/10"
+                aria-label="닫기"
+              >
+                <XIcon size={18} />
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-metricsText">
+              아래 링크를 복사해서 게시물을 공유할 수 있습니다.
+            </p>
+            <div className="mt-4 flex min-w-0 items-center gap-2 rounded-container border border-gray-200 bg-gray-50 p-2 dark:border-white/10 dark:bg-white/5">
+              <input
+                readOnly
+                value={shareUrl}
+                className="min-w-0 flex-1 bg-transparent px-2 text-sm outline-none"
+              />
+              <button
+                onClick={handleCopyShareUrl}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-button bg-gray-950 px-3 py-2 text-sm text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+              >
+                <CopyIcon size={14} />
+                {copyState === "copied" ? "복사됨" : "복사"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <ImageViewer
         images={postImages}
         selectedIndex={selectedImageIndex}

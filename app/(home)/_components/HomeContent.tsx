@@ -39,7 +39,7 @@ export default function HomeContent() {
   return (
     <motion.div
       {...contentReveal}
-      className="w-full max-w-[calc(100vw-2rem)] flex flex-col gap-12 md:gap-16 p-container lg:max-w-[80rem] mx-auto box-border"
+      className="w-full max-w-[calc(100vw-2rem)] flex flex-col gap-12 md:gap-16 py-container lg:max-w-[80rem] mx-auto box-border"
     >
       <FeaturedCarousel
         posts={featured}

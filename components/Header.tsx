@@ -91,7 +91,8 @@ export default function Header() {
 
   const isActive = (path: string) =>
     currentPath === path ||
-    (path === "/posts" && currentPath.startsWith("/posts"));
+    (path === "/posts" && currentPath.startsWith("/posts")) ||
+    (path === "/myinfo" && currentPath.startsWith("/users/"));
 
   if (currentPath === "/login") return null;
 

@@ -74,6 +74,10 @@ export default function MyInfoContent() {
 
   const isEditor = profiles.some((p) => p.role === "edit");
   const currentBanner = profiles[0]?.profile_banner || "/default.png";
+  const publicProfileUrl =
+    typeof window !== "undefined" && session?.user?.id
+      ? `${window.location.origin}/users/${session.user.id}`
+      : "";
 
   return (
     <motion.section
@@ -90,6 +94,7 @@ export default function MyInfoContent() {
           audience={profile.audience}
           isEditor={isEditor}
           postCount={userPosts.length}
+          publicProfileUrl={publicProfileUrl}
         />
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">

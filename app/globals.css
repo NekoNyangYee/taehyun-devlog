@@ -299,14 +299,13 @@ body {
   color: hsl(var(--foreground));
 }
 
-/* 다크모드 토글 시에만 색상 전환을 부드럽게.
- * 전체 자손에 적용하면 렌더 비용이 매우 커서 렉이 걸리므로 html/body만 대상으로 한다.
- * 자식 요소의 색 전환은 각자의 transition-colors / transition-* 유틸리티에 위임. */
+/* 테마 전환은 레이아웃 루트에서만 가볍게 처리한다.
+ * 자식 전체에 transition을 강제하면 paint 비용이 커지므로 html/body 배경과 기본 글자색만 전환한다. */
 html.theme-transitioning,
 html.theme-transitioning body {
   transition:
-    background-color 300ms ease,
-    color 300ms ease;
+    background-color 220ms ease,
+    color 220ms ease;
 }
 
 .mask-blob {

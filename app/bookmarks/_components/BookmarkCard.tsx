@@ -62,6 +62,7 @@ export function BookmarkCard({
               onClick={onBookmarkToggle}
               className="relative z-10 pointer-events-auto"
               type="button"
+              aria-label="북마크 해제"
             >
               <BookmarkIcon
                 size={18}

@@ -39,11 +39,12 @@ const applyThemeClass = (resolved: ResolvedTheme, withTransition = false) => {
     root.classList.add("theme-transitioning");
     window.setTimeout(() => {
       root.classList.remove("theme-transitioning");
-    }, 450);
+    }, 260);
   }
 
   if (resolved === "dark") root.classList.add("dark");
   else root.classList.remove("dark");
+  root.style.colorScheme = resolved;
 };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

@@ -57,7 +57,8 @@ export default function MobileNavBar({
 
   const isActive = (path: string) =>
     currentPath === path ||
-    (path === "/posts" && currentPath.startsWith("/posts"))
+    (path === "/posts" && currentPath.startsWith("/posts")) ||
+    (path === "/myinfo" && currentPath.startsWith("/users/"))
       ? "bg-black text-white font-semibold dark:bg-zinc-800 dark:text-white"
       : "bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10";
 
