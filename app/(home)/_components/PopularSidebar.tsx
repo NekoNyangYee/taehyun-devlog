@@ -54,7 +54,7 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
           return (
             <motion.li key={post.id} variants={item}>
               <Link
-                href={`/posts/${categorySlug}/${post.id}`}
+                href={`/posts/${categorySlug}/${post.slug}`}
                 className="group flex min-w-0 items-start gap-3"
               >
                 <span className="shrink-0 text-lg font-bold leading-snug text-blue-500 dark:text-blue-400">

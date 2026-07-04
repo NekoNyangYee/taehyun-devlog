@@ -5,7 +5,6 @@ import {
   addBookmarkMutationFn,
   removeBookmarkMutationFn,
   postsQueryKey,
-  postDetailQueryKey,
   bookmarkQueryKey,
 } from "./postQueries";
 
@@ -18,7 +17,7 @@ export const useIncrementViewCount = () => {
     onSuccess: (_, postId) => {
       // 게시물 상세 캐시 무효화
       queryClient.invalidateQueries({
-        queryKey: postDetailQueryKey(postId),
+        queryKey: ["posts", "detail"],
       });
       // 전체 게시물 목록 캐시 무효화
       queryClient.invalidateQueries({
@@ -37,7 +36,7 @@ export const useToggleLike = () => {
     onSuccess: (data) => {
       // 게시물 상세 캐시 무효화
       queryClient.invalidateQueries({
-        queryKey: postDetailQueryKey(data.id),
+        queryKey: ["posts", "detail"],
       });
       // 전체 게시물 목록 캐시 무효화
       queryClient.invalidateQueries({

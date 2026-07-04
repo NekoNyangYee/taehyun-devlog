@@ -64,7 +64,7 @@ export function RecentComments({
             : undefined;
           const categorySlug = lowerURL(category?.name || "");
           const href = post
-            ? `/posts/${categorySlug}/${post.id}`
+            ? `/posts/${categorySlug}/${post.slug}`
             : undefined;
 
           const body = (

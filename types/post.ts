@@ -1,5 +1,6 @@
 export interface PostState {
   id: number;
+  slug: string;
   title: string;
   contents: string;
   author_id: string;

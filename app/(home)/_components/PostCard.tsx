@@ -31,7 +31,7 @@ export function PostCard({
 
     return (
         <Link
-            href={`/posts/${categorySlug}/${post.id}`}
+            href={`/posts/${categorySlug}/${post.slug}`}
             className="min-w-[300px] max-w-[300px]"
         >
             <article className="group h-full flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-gray-300 dark:hover:border-white/20 relative">

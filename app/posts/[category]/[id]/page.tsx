@@ -12,28 +12,44 @@ interface PageProps {
 import { cache } from "react";
 import { PostState } from "@components/types/post";
 
+const getPostSlugCandidates = (slug: string) => {
+  const candidates = new Set([slug]);
+
+  try {
+    candidates.add(decodeURIComponent(slug));
+  } catch {
+    /* keep original slug */
+  }
+
+  return Array.from(candidates).filter(Boolean);
+};
+
 // 게시물 정보 가져오기 (Server Side) - Request Memoization 적용
 const getPost = cache(async (id: string, minimal = false) => {
-  const postId = Number(id);
-  if (!Number.isFinite(postId)) return null;
+  const slugCandidates = getPostSlugCandidates(id);
+  if (slugCandidates.length === 0) return null;
 
   if (minimal) {
     // 메타데이터용 최소 필드만 가져오기
     const { data, error } = await supabase
       .from("posts")
-      .select("id, title, category_id")
-      .eq("id", postId)
-      .single();
+      .select("id, slug, title, category_id")
+      .in("slug", slugCandidates)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (error || !data) return null;
-    return data as { id: number; title: string; category_id: number };
+    return data as { id: number; slug: string; title: string; category_id: number };
   } else {
     // 전체 필드 가져오기
     const { data, error } = await supabase
       .from("posts")
       .select("*")
-      .eq("id", postId)
-      .single();
+      .in("slug", slugCandidates)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (error || !data) return null;
     return data;
@@ -79,7 +95,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = `${post.title} - ${categoryData?.name || ''} 카테고리의 게시물입니다.`;
 
   const baseUrl = "https://taehyun-devlog.vercel.app";
-  const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${id}`;
+  const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
 
   return {
     title: `${post.title} | TaeHyun's Devlog`,

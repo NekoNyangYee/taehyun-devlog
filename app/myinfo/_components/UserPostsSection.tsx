@@ -76,7 +76,7 @@ export function UserPostsSection({
           return (
             <Link
               key={post.id}
-              href={`/posts/${categorySlug}/${post.id}`}
+              href={`/posts/${categorySlug}/${post.slug}`}
               className="group min-w-0"
             >
               <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-container border border-gray-200 bg-white transition hover:border-gray-300 hover:shadow-md dark:border-white/10 dark:bg-zinc-950 dark:hover:border-white/20">
