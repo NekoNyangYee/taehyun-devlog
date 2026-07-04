@@ -183,7 +183,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
     return (
       <Link
         key={`${variant}-${post.id}`}
-        href={`/posts/${getCategoryName(post)}/${post.id}`}
+        href={`/posts/${getCategoryName(post)}/${post.slug}`}
         className="group flex min-h-20 items-center gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
         onClick={handleClose}
       >
@@ -218,7 +218,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
     return (
       <Link
         key={`comment-${comment.id}`}
-        href={`/posts/${getCategoryName(post)}/${post.id}`}
+        href={`/posts/${getCategoryName(post)}/${post.slug}`}
         className="group flex min-h-20 items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
         onClick={handleClose}
       >

@@ -1,20 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname } from "next/navigation";
-import { ReactNode, useContext, useRef } from "react";
-
-function FrozenRouter({ children }: { children: ReactNode }) {
-  const context = useContext(LayoutRouterContext);
-  const frozen = useRef(context).current;
-
-  return (
-    <LayoutRouterContext.Provider value={frozen}>
-      {children}
-    </LayoutRouterContext.Provider>
-  );
-}
+import { ReactNode } from "react";
 
 // /posts 그리고 /posts/[category] (상세 페이지 제외)
 // 같은 transitionKey를 공유 → 카테고리 전환은 페이지-레벨 애니메이션 없이 통과
@@ -40,8 +28,7 @@ export default function PageTransition({ children }: { children: ReactNode }) {
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className="w-full"
         >
-          {/* FrozenRouter는 pathname별로 key → 카테고리 변경 시에도 콘텐츠 정상 업데이트 */}
-          <FrozenRouter key={pathname}>{children}</FrozenRouter>
+          {children}
         </motion.div>
       </AnimatePresence>
     </div>

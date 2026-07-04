@@ -86,7 +86,7 @@ export function ArticleList({
                 className="border-b border-gray-100 dark:border-white/10"
               >
                 <Link
-                  href={`/posts/${categorySlug}/${post.id}`}
+                  href={`/posts/${categorySlug}/${post.slug}`}
                   className="group flex min-w-0 items-start gap-4 py-6 sm:gap-6"
                 >
                   <div className="flex min-w-0 flex-1 flex-col gap-2">

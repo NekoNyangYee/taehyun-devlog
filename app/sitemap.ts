@@ -49,6 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .from("posts")
         .select(`
             id, 
+            slug,
             updated_at, 
             created_at, 
             categories (
@@ -60,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     type SitemapPost = {
         id: number;
+        slug: string;
         updated_at: string | null;
         created_at: string;
         categories: { name: string } | { name: string }[] | null;
@@ -75,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             const categoryName = rawCategory?.name || "uncategorized";
 
             return {
-                url: `${baseUrl}/posts/${encodeURIComponent(categoryName)}/${post.id}`,
+                url: `${baseUrl}/posts/${encodeURIComponent(categoryName)}/${post.slug}`,
                 lastModified: new Date(post.updated_at || post.created_at),
                 changeFrequency: "weekly" as const,
                 priority: 0.8,

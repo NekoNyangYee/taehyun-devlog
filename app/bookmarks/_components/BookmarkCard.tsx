@@ -36,7 +36,7 @@ export function BookmarkCard({
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg dark:hover:border-white/20">
       <Link
-        href={`/posts/${encodeURIComponent(categorySlug)}/${post.id}`}
+        href={`/posts/${encodeURIComponent(categorySlug)}/${post.slug}`}
         className="flex flex-col h-full"
       >
         <div className="relative h-40 w-full bg-gray-100 dark:bg-zinc-800">

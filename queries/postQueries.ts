@@ -7,13 +7,13 @@ import {
 
 /** 목록/카드에 필요한 게시물 컬럼 (본문 contents 제외) */
 const POST_LIST_COLUMNS =
-  "id, title, author_id, author_name, visibility, created_at, updated_at, view_count, like_count, category_id, liked_by_user";
+  "id, slug, title, author_id, author_name, visibility, created_at, updated_at, view_count, like_count, category_id, liked_by_user";
 
 export const postsQueryKey = ["posts"] as const;
 export const bookmarkQueryKey = (userId?: string) =>
   ["bookmarks", userId] as const;
-export const postDetailQueryKey = (postId: number | string) =>
-  ["posts", "detail", Number(postId)] as const;
+export const postDetailQueryKey = (postSlug: number | string) =>
+  ["posts", "detail", String(postSlug)] as const;
 
 export const fetchPostsQueryFn = async (): Promise<
   PostStateWithoutContents[]
@@ -149,20 +149,34 @@ export const fetchBookmarksQueryFn = async (
   return (data ?? []).map((b) => b.post_id);
 };
 
-export const fetchPostByIdQueryFn = async (
-  postId: number
-): Promise<PostState> => {
-  const postIdNum = Number(postId);
+const getPostSlugCandidates = (postSlug: string) => {
+  const candidates = new Set([postSlug]);
 
-  if (!Number.isFinite(postIdNum)) {
+  try {
+    candidates.add(decodeURIComponent(postSlug));
+  } catch {
+    /* keep original slug */
+  }
+
+  return Array.from(candidates).filter(Boolean);
+};
+
+export const fetchPostByIdQueryFn = async (
+  postSlug: string
+): Promise<PostState> => {
+  const slugCandidates = getPostSlugCandidates(postSlug);
+
+  if (slugCandidates.length === 0) {
     throw new Error("유효하지 않은 게시물 ID입니다.");
   }
 
   const { data, error } = await supabase
     .from("posts")
     .select("*")
-    .eq("id", postIdNum)
-    .single();
+    .in("slug", slugCandidates)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     throw new Error(`게시물 상세 불러오기 에러: ${error.message}`);

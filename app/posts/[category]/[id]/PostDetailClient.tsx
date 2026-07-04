@@ -237,21 +237,25 @@ export default function PostDetailClient() {
     queryFn: fetchCategoriesQueryFn,
   });
 
-  const resolvedPostId = Array.isArray(id) ? id[0] : id;
-  const numericPostId = Number(resolvedPostId);
-  const hasValidPostId = Number.isFinite(numericPostId);
+  const resolvedPostSlug = Array.isArray(id) ? id[0] : id;
+  const hasValidPostSlug =
+    typeof resolvedPostSlug === "string" && resolvedPostSlug.length > 0;
 
   const postDetailQuery = useQuery({
-    queryKey: postDetailQueryKey(numericPostId),
-    queryFn: () => fetchPostByIdQueryFn(numericPostId),
-    enabled: hasValidPostId,
+    queryKey: postDetailQueryKey(resolvedPostSlug ?? ""),
+    queryFn: () => fetchPostByIdQueryFn(resolvedPostSlug ?? ""),
+    enabled: hasValidPostSlug,
   });
 
+  const currentPostId = postDetailQuery.data?.id;
+  const currentPostIds =
+    typeof currentPostId === "number" ? [currentPostId] : undefined;
+
   const { data: comments = [] } = useQuery({
-    queryKey: commentsQueryKey([numericPostId], true),
+    queryKey: commentsQueryKey(currentPostIds, true),
     queryFn: () =>
-      fetchCommentsQueryFn([numericPostId], { includePrivate: true }),
-    enabled: hasValidPostId,
+      fetchCommentsQueryFn(currentPostIds ?? [], { includePrivate: true }),
+    enabled: !!currentPostIds,
   });
   const publicCommentCount = comments.filter((comment) => !comment.status).length;
 
@@ -267,9 +271,9 @@ export default function PostDetailClient() {
   // ✅ Mutation hooks
   const viewCountMutation = useIncrementViewCount();
   const toggleLikeMutation = useToggleLike();
-  const addCommentMutation = useAddComment([numericPostId]);
-  const deleteCommentMutation = useDeleteComment([numericPostId]);
-  const updateCommentMutation = useUpdateComment([numericPostId]);
+  const addCommentMutation = useAddComment(currentPostIds);
+  const deleteCommentMutation = useDeleteComment(currentPostIds);
+  const updateCommentMutation = useUpdateComment(currentPostIds);
 
   const isHydratingPost = postDetailQuery.isLoading && !postDetailQuery.data;
 
@@ -292,10 +296,10 @@ export default function PostDetailClient() {
   }, [postDetailQuery.data]);
 
   // ✅ URL 카테고리와 실제 게시물 카테고리 검증 (불일치 시 올바른 URL로 replace)
-  // 주의: 게시물 전환 중 race condition 방지 위해 post.id === numericPostId 일 때만 검증
+  // 주의: 게시물 전환 중 race condition 방지 위해 post.slug === resolvedPostSlug 일 때만 검증
   useEffect(() => {
     if (!post || categories.length === 0 || !urlCategory) return;
-    if (post.id !== numericPostId) return; // 이전 게시물 데이터로 잘못 검증되는 것 방지
+    if (post.slug !== resolvedPostSlug) return; // 이전 게시물 데이터로 잘못 검증되는 것 방지
 
     const postCategory = categories.find(
       (cat) => cat.id === post.category_id,
@@ -321,9 +325,9 @@ export default function PostDetailClient() {
         actual: postCategory.name,
       });
       const correctSlug = encodeURIComponent(lowerURL(postCategory.name));
-      router.replace(`/posts/${correctSlug}/${post.id}`);
+      router.replace(`/posts/${correctSlug}/${post.slug}`);
     }
-  }, [post, categories, urlCategory, router, numericPostId]);
+  }, [post, categories, urlCategory, router, resolvedPostSlug]);
 
   useEffect(() => {
     setPostLoading(isHydratingPost);
@@ -709,7 +713,7 @@ export default function PostDetailClient() {
                 categories.find((cat) => cat.id === previousPage.category_id)
                   ?.name || lowerURL(category?.name || ""),
               ),
-            )}/${previousPage.id}`}
+            )}/${previousPage.slug}`}
             className="bg-gray-50 dark:bg-zinc-900 p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300 dark:border-white/10"
           >
             <div className="flex gap-4 items-center justify-between">
@@ -730,7 +734,7 @@ export default function PostDetailClient() {
                 categories.find((cat) => cat.id === nextPage.category_id)
                   ?.name || lowerURL(category?.name || ""),
               ),
-            )}/${nextPage.id}`}
+            )}/${nextPage.slug}`}
             className="bg-gray-50 dark:bg-zinc-900 p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300 dark:border-white/10"
           >
             <div className="flex gap-4 items-center justify-between">

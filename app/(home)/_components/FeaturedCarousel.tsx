@@ -97,7 +97,7 @@ export function FeaturedCarousel({
             transition={{ duration: 0.5, ease: easeOut }}
           >
             <Link
-              href={`/posts/${categorySlug}/${post.id}`}
+              href={`/posts/${categorySlug}/${post.slug}`}
               className="group grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center"
             >
               {/* 좌측: 텍스트 */}
