@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowRight, BookOpenText, EyeIcon, HeartIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -36,12 +35,7 @@ export function IntroSection() {
   }, [posts]);
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="relative w-full overflow-hidden rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm shadow-sm"
-    >
+    <section className="relative w-full overflow-hidden rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm shadow-sm">
       <div className="grid gap-8 px-6 py-10 md:grid-cols-[1.4fr_1fr] md:gap-12 md:px-10 md:py-14">
         {/* Left — 인사 + 태그 + CTA */}
         <div className="flex flex-col gap-6">
@@ -159,7 +153,7 @@ export function IntroSection() {
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
 

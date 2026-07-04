@@ -5,7 +5,6 @@ import Image from "next/image";
 import GitHubCalendar from "react-github-calendar";
 import dayjs from "dayjs";
 import { motion } from "framer-motion";
-import { contentReveal } from "@components/components/motion/contentReveal";
 
 export default function ProfileDetailPage() {
   const [profile] = useState({
@@ -53,7 +52,6 @@ export default function ProfileDetailPage() {
 
   return (
     <motion.div
-      {...contentReveal}
       className="w-full h-full flex flex-col gap-6 bg-background z-0 -mt-[65px]"
     >
       <div className="relative w-full h-[500px] bg-center bg-cover bg-no-repeat bg-[url('/profile.webp')]">

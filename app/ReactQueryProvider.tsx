@@ -41,7 +41,8 @@ export function ReactQueryProvider({ children }: PropsWithChildren) {
         persister,
         maxAge: 1000 * 60 * 60 * 24, // 24시간
         dehydrateOptions: {
-          shouldDehydrateQuery: (query) => query.state.status === "success",
+          shouldDehydrateQuery: (query) =>
+            query.state.status === "success" && query.queryKey[0] !== "posts",
         },
       }}
     >

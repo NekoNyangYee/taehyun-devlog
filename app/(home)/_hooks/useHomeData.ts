@@ -19,10 +19,10 @@ import {
     fetchCategoryCountsQueryFn,
 } from "@components/queries/categoryQueries";
 import {
-    commentsQueryKey,
-    fetchCommentsQueryFn,
     recentCommentsQueryKey,
     fetchRecentCommentsQueryFn,
+    commentCountsQueryKey,
+    fetchCommentCountsQueryFn,
 } from "@components/queries/commentQueries";
 import { PostStateWithoutContents } from "@components/types/post";
 
@@ -77,8 +77,8 @@ export function useHomeData(page: number, pageSize: number) {
         [posts, featured]
     );
     const { data: comments = [] } = useQuery({
-        queryKey: commentsQueryKey(visiblePostIds),
-        queryFn: () => fetchCommentsQueryFn(visiblePostIds),
+        queryKey: commentCountsQueryKey(visiblePostIds),
+        queryFn: () => fetchCommentCountsQueryFn(visiblePostIds),
         enabled: visiblePostIds.length > 0,
     });
 

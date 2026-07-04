@@ -14,8 +14,8 @@ import {
     fetchCategoriesQueryFn,
 } from "@components/queries/categoryQueries";
 import {
-    commentsQueryKey,
-    fetchCommentsQueryFn,
+    commentCountsQueryKey,
+    fetchCommentCountsQueryFn,
 } from "@components/queries/commentQueries";
 
 /**
@@ -68,8 +68,8 @@ export function useMyInfoData() {
     );
 
     const { data: comments = [] } = useQuery({
-        queryKey: commentsQueryKey(userPostIds),
-        queryFn: () => fetchCommentsQueryFn(userPostIds),
+        queryKey: commentCountsQueryKey(userPostIds),
+        queryFn: () => fetchCommentCountsQueryFn(userPostIds),
         enabled: userPostIds.length > 0,
         staleTime: 1000 * 60 * 5,
     });

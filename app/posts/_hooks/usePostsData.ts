@@ -14,8 +14,8 @@ import {
     fetchCategoriesQueryFn,
 } from "@components/queries/categoryQueries";
 import {
-    commentsQueryKey,
-    fetchCommentsQueryFn,
+    commentCountsQueryKey,
+    fetchCommentCountsQueryFn,
 } from "@components/queries/commentQueries";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
@@ -36,6 +36,9 @@ export function usePostsData(
         queryKey: postsQueryKey,
         queryFn: fetchPostsQueryFn,
         initialData: initialPosts,
+        staleTime: 0,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
     });
 
     const { data: categories = [] } = useQuery({
@@ -53,8 +56,8 @@ export function usePostsData(
     const postIds = useMemo(() => posts.map((post) => post.id), [posts]);
 
     const { data: comments = [] } = useQuery({
-        queryKey: commentsQueryKey(postIds),
-        queryFn: () => fetchCommentsQueryFn(postIds),
+        queryKey: commentCountsQueryKey(postIds),
+        queryFn: () => fetchCommentCountsQueryFn(postIds),
         enabled: postIds.length > 0,
     });
 

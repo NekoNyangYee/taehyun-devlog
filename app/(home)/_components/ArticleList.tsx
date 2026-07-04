@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,36 +9,16 @@ import {
 } from "lucide-react";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
-import { CommentRow } from "@components/types/comment";
+import { CommentCountRow } from "@components/queries/commentQueries";
 import { lowerURL } from "@components/lib/util/lowerURL";
 
 interface ArticleListProps {
   posts: PostStateWithoutContents[];
   categories: Category[];
-  comments: CommentRow[];
-  /** 페이지 전환 패칭 중 — 목록을 살짝 흐리게 처리 */
+  comments: CommentCountRow[];
   isFetching?: boolean;
 }
 
-const easeOut: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-const listContainer: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
-  },
-};
-
-const listItem: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: easeOut } },
-};
-
-/**
- * 전체 아티클 목록 (토스테크 메인 칼럼 스타일)
- * - 좌측 텍스트(카테고리·작성자·제목·메트릭) + 우측 썸네일의 가로 행
- */
 export function ArticleList({
   posts,
   categories,
@@ -57,14 +36,8 @@ export function ArticleList({
           <p className="text-metricsText">게시물이 없습니다.</p>
         </div>
       ) : (
-        <motion.ul
-          // 페이지가 바뀌면 새 항목 stagger를 다시 재생 (whileInView+once는
-          // 페이지네이션으로 교체되는 항목이 hidden(opacity:0)에 멈춰 안 보이는 문제가 있음)
-          key={posts.map((p) => p.id).join("-")}
-          variants={listContainer}
-          initial="hidden"
-          animate="show"
-          className={`flex flex-col list-none p-0 m-0 transition-opacity duration-200 ${
+        <ul
+          className={`flex flex-col list-none p-0 m-0 ${
             isFetching ? "opacity-50" : "opacity-100"
           }`}
         >
@@ -80,9 +53,8 @@ export function ArticleList({
             ).length;
 
             return (
-              <motion.li
+              <li
                 key={post.id}
-                variants={listItem}
                 className="border-b border-gray-100 dark:border-white/10"
               >
                 <Link
@@ -99,7 +71,7 @@ export function ArticleList({
                       </span>
                     </div>
 
-                    <h3 className="line-clamp-2 text-lg sm:text-xl font-semibold leading-snug text-gray-900 dark:text-gray-100 group-hover:text-gray-600 dark:group-hover:text-white transition-colors">
+                    <h3 className="line-clamp-2 text-lg sm:text-xl font-semibold leading-snug text-gray-900 dark:text-gray-100 group-hover:text-gray-600 dark:group-hover:text-white">
                       {post.title}
                     </h3>
 
@@ -126,16 +98,16 @@ export function ArticleList({
                         alt={post.title}
                         fill
                         quality={60}
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="object-cover"
                         sizes="(max-width: 640px) 112px, 176px"
                       />
                     </div>
                   )}
                 </Link>
-              </motion.li>
+              </li>
             );
           })}
-        </motion.ul>
+        </ul>
       )}
     </section>
   );

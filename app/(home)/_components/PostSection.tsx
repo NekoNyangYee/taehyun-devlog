@@ -5,12 +5,11 @@ import { ScrollControls } from "./ScrollControls";
 import { useHorizontalScroll } from "../_hooks/useHorizontalScroll";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
-import { CommentRow } from "@components/types/comment";
+import { CommentCountRow } from "@components/queries/commentQueries";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { motion, type Variants } from "framer-motion";
 
 interface PostSectionProps {
   title: string;
@@ -19,39 +18,10 @@ interface PostSectionProps {
   iconColor?: string;
   posts: PostStateWithoutContents[];
   categories: Category[];
-  comments: CommentRow[];
+  comments: CommentCountRow[];
   variant?: "default" | "popular";
   showViewAll?: boolean;
 }
-
-const easeOut: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-const headerVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: easeOut },
-  },
-};
-
-const cardContainer: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-};
-
-const cardItem: Variants = {
-  hidden: { opacity: 0, y: 30, scale: 0.96 },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.5, ease: easeOut },
-  },
-};
 
 export function PostSection({
   title,
@@ -68,16 +38,8 @@ export function PostSection({
     useHorizontalScroll();
 
   return (
-    <motion.section
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-80px" }}
-      className="flex flex-col gap-6"
-    >
-      <motion.div
-        variants={headerVariants}
-        className="flex items-end justify-between gap-4"
-      >
+    <section className="flex flex-col gap-6">
+      <div className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h2 className="flex gap-3 text-2xl md:text-3xl font-bold items-center text-gray-900 dark:text-gray-100">
             <span
@@ -103,21 +65,17 @@ export function PostSection({
             />
           </Link>
         )}
-      </motion.div>
+      </div>
 
       {posts.length === 0 ? (
-        <motion.div
-          variants={headerVariants}
-          className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/15 bg-white dark:bg-zinc-900"
-        >
+        <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/15 bg-white dark:bg-zinc-900">
           <p className="text-lg font-semibold text-metricsText">
             게시물이 없습니다.
           </p>
-        </motion.div>
+        </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <motion.div
-            variants={cardContainer}
+          <div
             ref={scrollRef}
             onScroll={checkScroll}
             className="overflow-x-auto scroll-smooth scrollbar-hide"
@@ -135,7 +93,7 @@ export function PostSection({
                 ).length;
 
                 return (
-                  <motion.div key={post.id} variants={cardItem}>
+                  <div key={post.id}>
                     <PostCard
                       post={post}
                       categoryName={categoryName}
@@ -144,11 +102,11 @@ export function PostSection({
                       commentCount={commentCount}
                       variant={variant}
                     />
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
 
           <ScrollControls
             canScrollLeft={canScrollLeft}
@@ -158,6 +116,6 @@ export function PostSection({
           />
         </div>
       )}
-    </motion.section>
+    </section>
   );
 }

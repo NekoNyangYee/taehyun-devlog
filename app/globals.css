@@ -154,6 +154,51 @@ blockquote {
   border-color: hsl(var(--border));
 }
 
+.post-content pre {
+  background: #0d1117 !important;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 10px;
+}
+
+.post-content pre code,
+.post-content pre code.hljs {
+  background: #0d1117 !important;
+  color: #c9d1d9 !important;
+}
+
+.post-content pre code .hljs-keyword,
+.post-content pre code .hljs-selector-tag {
+  color: #ff7b72 !important;
+}
+
+.post-content pre code .hljs-title,
+.post-content pre code .hljs-title.function_,
+.post-content pre code .hljs-function,
+.post-content pre code .hljs-attr {
+  color: #d2a8ff !important;
+}
+
+.post-content pre code .hljs-string,
+.post-content pre code .hljs-template-string {
+  color: #a5d6ff !important;
+}
+
+.post-content pre code .hljs-number,
+.post-content pre code .hljs-literal {
+  color: #79c0ff !important;
+}
+
+.post-content pre code .hljs-built_in,
+.post-content pre code .hljs-variable,
+.post-content pre code .hljs-params {
+  color: #ffa657 !important;
+}
+
+.post-content pre code .hljs-comment,
+.post-content pre code .hljs-quote {
+  color: #8b949e !important;
+}
+
 :root {
   /* ============================================================
    * 시맨틱 컬러 팔레트 (라이트 모드)

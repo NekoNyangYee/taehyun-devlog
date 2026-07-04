@@ -1,9 +1,8 @@
 "use client";
 
-import { LockIcon } from "lucide-react";
 import { useLoginModalStore } from "@components/store/loginModalStore";
 import { motion } from "framer-motion";
-import { contentReveal } from "@components/components/motion/contentReveal";
+import { LoginRequiredState } from "@components/components/LoginRequiredState";
 import { ProfileBanner } from "./ProfileBanner";
 import { ProfileInfo } from "./ProfileInfo";
 import { AccountInfoSection } from "./AccountInfoSection";
@@ -53,22 +52,11 @@ export default function MyInfoContent() {
 
   if (!profile) {
     return (
-      <motion.section
-        {...contentReveal}
-        className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-4 px-4 text-center"
-      >
-        <LockIcon size={48} className="text-metricsText" />
-        <p className="text-lg font-semibold">로그인이 필요합니다.</p>
-        <p className="text-sm text-metricsText">
-          내 정보 페이지는 로그인 후 이용할 수 있습니다.
-        </p>
-        <button
-          onClick={openLogin}
-          className="rounded-button bg-action px-6 py-3 text-action-foreground transition-colors hover:bg-action-hover"
-        >
-          로그인하러 가기
-        </button>
-      </motion.section>
+      <LoginRequiredState
+        description="내 정보 페이지는 로그인 후 이용할 수 있습니다."
+        actionLabel="로그인하러 가기"
+        onLoginClick={openLogin}
+      />
     );
   }
 
@@ -81,7 +69,6 @@ export default function MyInfoContent() {
 
   return (
     <motion.section
-      {...contentReveal}
       className="flex w-full flex-col px-4 py-8 md:py-10"
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
@@ -142,8 +129,7 @@ export default function MyInfoContent() {
                 활동 요약
               </h2>
               <p className="mt-2 text-sm text-metricsText">
-                작성한 게시글과 공개 댓글 기준으로 블로그 활동을 확인할 수
-                있습니다.
+                작성한 게시글과 공개 댓글 기준으로 블로그 활동을 확인할 수 있습니다.
               </p>
               <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
                 <div className="rounded-container bg-gray-50 px-3 py-4 dark:bg-white/5">

@@ -66,7 +66,6 @@ import MobileTOC from "@components/components/MobileTOC";
 import { useLoginModalStore } from "@components/store/loginModalStore";
 import { useCommentStore } from "@components/store/commentStore";
 import { motion } from "framer-motion";
-import { contentReveal } from "@components/components/motion/contentReveal";
 
 interface Heading {
   id: string;
@@ -257,7 +256,6 @@ export default function PostDetailClient() {
       fetchCommentsQueryFn(currentPostIds ?? [], { includePrivate: true }),
     enabled: !!currentPostIds,
   });
-  const publicCommentCount = comments.filter((comment) => !comment.status).length;
 
   // ✅ 게시물 작성자 프로필 가져오기
   const { data: authorProfiles = [] } = useQuery({
@@ -582,6 +580,7 @@ export default function PostDetailClient() {
       post?.author_id === session?.user?.id // 게시글 작성자일 경우
     );
   };
+  const totalCommentCount = comments.length;
 
   const handleSubmitSubCommment = async (parentId: number) => {
     if (replyContent.trim() === "") {
@@ -622,7 +621,6 @@ export default function PostDetailClient() {
 
   return (
     <motion.div
-      {...contentReveal}
       className="relative flex-1 min-w-0 w-full"
     >
       {/* 제목 / 카테고리 / 메타 정보 */}
@@ -802,7 +800,7 @@ export default function PostDetailClient() {
       </Link>
       <div className="flex flex-col gap-4 py-4">
         <div className="flex justify-between items-center">
-          <span className="font-bold">{publicCommentCount}개의 댓글</span>
+          <span className="font-bold">{totalCommentCount}개의 댓글</span>
         </div>
         <Textarea
           className="w-full min-h-40 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"

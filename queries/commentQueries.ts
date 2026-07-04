@@ -5,6 +5,8 @@ import {
   CommentUpdatePayload,
 } from "@components/types/comment";
 
+export type CommentCountRow = Pick<CommentRow, "id" | "post_id">;
+
 export const commentsQueryKey = (
   postIds?: number[] | string,
   includePrivate = false
@@ -18,14 +20,22 @@ export const commentsQueryKey = (
 export const recentCommentsQueryKey = (limit: number) =>
   ["comments", "recent", limit] as const;
 
+export const commentCountsQueryKey = (postIds?: number[]) =>
+  [
+    "comments",
+    "counts",
+    Array.isArray(postIds) ? postIds.join(",") : postIds,
+  ] as const;
+
 /** 최신 댓글 사이드바용 — 승인된 댓글 최신순 (limit개) */
 export const fetchRecentCommentsQueryFn = async (
   limit = 5
 ): Promise<CommentRow[]> => {
   const { data, error } = await supabase
     .from("comments")
-    .select("*")
+    .select("*, posts!inner(visibility)")
     .eq("status", false)
+    .eq("posts.visibility", "public")
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -54,6 +64,21 @@ export const fetchCommentsQueryFn = async (
 
   if (error) {
     throw new Error(`🚨 댓글 불러오기 실패: ${error.message}`);
+  }
+
+  return data ?? [];
+};
+
+export const fetchCommentCountsQueryFn = async (
+  postIds: number[]
+): Promise<CommentCountRow[]> => {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id, post_id")
+    .in("post_id", postIds);
+
+  if (error) {
+    throw new Error(`댓글 개수 불러오기 실패: ${error.message}`);
   }
 
   return data ?? [];
