@@ -33,14 +33,20 @@ const getPost = cache(async (id: string, minimal = false) => {
     // 메타데이터용 최소 필드만 가져오기
     const { data, error } = await supabase
       .from("posts")
-      .select("id, slug, title, category_id")
+      .select("id, slug, title, category_id, updated_at")
       .in("slug", slugCandidates)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (error || !data) return null;
-    return data as { id: number; slug: string; title: string; category_id: number };
+    return data as {
+      id: number;
+      slug: string;
+      title: string;
+      category_id: number;
+      updated_at: string | null;
+    };
   } else {
     // 전체 필드 가져오기
     const { data, error } = await supabase
@@ -93,7 +99,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const baseUrl = "https://taehyun-devlog.vercel.app";
   const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
-  const ogImage = `${postUrl}/opengraph-image`;
+  const ogImageVersion = post.updated_at ?? post.slug;
+  const ogImage = `${postUrl}/opengraph-image?v=${encodeURIComponent(ogImageVersion)}`;
 
   return {
     title: `${post.title} | TaeHyun's Devlog`,

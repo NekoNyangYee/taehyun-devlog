@@ -65,13 +65,19 @@ const toSatoriCompatibleImageUrl = (url?: string | null) => {
   return absoluteUrl;
 };
 
-const getOgFont = async () => {
-  const fallbackResponse = await fetch(`${baseUrl}/fonts/malgunbd.ttf`);
+const getOgFont = async (origin: string) => {
+  const fallbackResponse = await fetch(`${origin}/fonts/malgunbd.ttf`);
+  const contentType = fallbackResponse.headers.get("content-type") ?? "";
+
+  if (!fallbackResponse.ok || contentType.includes("text/html")) {
+    throw new Error("OG font asset could not be loaded.");
+  }
+
   return fallbackResponse.arrayBuffer();
 };
 
-const getThumbnailLogoSrc = async () => {
-  const response = await fetch(`${baseUrl}/thumbnail-logo.svg`);
+const getThumbnailLogoSrc = async (origin: string) => {
+  const response = await fetch(`${origin}/thumbnail-logo.svg`);
   const svg = await response.text();
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 };
@@ -160,11 +166,12 @@ const TagIcon = () => (
   </svg>
 );
 
-export async function GET(_request: Request, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { id } = await params;
+  const assetOrigin = new URL(request.url).origin;
   const [fontData, logoSrc, post] = await Promise.all([
-    getOgFont(),
-    getThumbnailLogoSrc(),
+    getOgFont(assetOrigin),
+    getThumbnailLogoSrc(assetOrigin),
     fetchPostBySlug(id),
   ]);
 
@@ -320,18 +327,23 @@ export async function GET(_request: Request, { params }: RouteContext) {
         </div>
       </div>
     ),
-    fontData
-      ? {
-          ...size,
-          fonts: [
-            {
-              name: "Pretendard",
-              data: fontData,
-              weight: 900,
-              style: "normal",
-            },
-          ],
-        }
-      : size,
+    {
+      ...size,
+      headers: {
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+      ...(fontData
+        ? {
+            fonts: [
+              {
+                name: "Pretendard",
+                data: fontData,
+                weight: 900,
+                style: "normal",
+              },
+            ],
+          }
+        : {}),
+    },
   );
 }
