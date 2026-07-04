@@ -88,14 +88,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const categoryData = await getCategory(post.category_id);
 
-  // 카테고리 썸네일을 OG 이미지로 사용 (본문 파싱 제거로 성능 향상)
-  const ogImage = categoryData?.thumbnail || "/profile.jpg";
-
   // description은 제목 기반으로 생성 (본문이 없으므로)
   const description = `${post.title} - ${categoryData?.name || ''} 카테고리의 게시물입니다.`;
 
   const baseUrl = "https://taehyun-devlog.vercel.app";
   const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
+  const ogImage = `${postUrl}/opengraph-image`;
 
   return {
     title: `${post.title} | TaeHyun's Devlog`,

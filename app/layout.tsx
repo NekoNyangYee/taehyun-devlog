@@ -17,6 +17,7 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://taehyun-devlog.vercel.app"),
   title: "TaeHyun's Devlog",
   description:
     "프론트엔드 개발자 김태현의 기술 블로그입니다. 개발, 공부, 프로젝트, 일상 등 다양한 이야기를 공유합니다.",
