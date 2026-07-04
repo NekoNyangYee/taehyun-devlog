@@ -1,4 +1,5 @@
-import { ImageResponse } from "next/og";
+import { Resvg } from "@resvg/resvg-js";
+import satori from "satori";
 
 export const runtime = "nodejs";
 
@@ -187,100 +188,99 @@ export async function GET(request: Request, { params }: RouteContext) {
       }).format(new Date(post.created_at))
     : "";
 
-  return new ImageResponse(
-    (
+  const svg = await satori(
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        position: "relative",
+        overflow: "hidden",
+        backgroundColor: "#020617",
+        color: "#ffffff",
+        fontFamily: "Pretendard, Arial, sans-serif",
+      }}
+    >
+      <img
+        src={thumbnailUrl}
+        alt=""
+        width={1200}
+        height={630}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
+      />
       <div
         style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
           width: "100%",
           height: "100%",
           display: "flex",
+          backgroundColor: "#000000",
+          opacity: 0.45,
+        }}
+      />
+
+      <div
+        style={{
           position: "relative",
-          overflow: "hidden",
-          backgroundColor: "#020617",
-          color: "#ffffff",
-          fontFamily: "Pretendard, Arial, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          padding: "54px 72px 66px",
         }}
       >
-        <img
-          src={thumbnailUrl}
-          alt=""
-          width={1200}
-          height={630}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
         <div
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            backgroundColor: "#000000",
-            opacity: 0.45,
-          }}
-        />
-
-        <div
-          style={{
-            position: "relative",
             display: "flex",
             flexDirection: "column",
-            width: "100%",
-            height: "100%",
-            padding: "54px 72px 66px",
+            maxWidth: 760,
           }}
         >
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              maxWidth: 760,
+              fontSize: 54,
+              fontWeight: 900,
+              lineHeight: 1.06,
+              letterSpacing: 0,
+              color: "#ffffff",
+              textShadow: "0 8px 32px rgba(0,0,0,0.58)",
+              textWrap: "balance",
+              whiteSpace: "normal",
+              wordBreak: "keep-all",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 54,
-                fontWeight: 900,
-                lineHeight: 1.06,
-                letterSpacing: 0,
-                color: "#ffffff",
-                textShadow: "0 8px 32px rgba(0,0,0,0.58)",
-                textWrap: "balance",
-                whiteSpace: "normal",
-                wordBreak: "keep-all",
-              }}
-            >
-              {title}
-            </div>
+            {title}
           </div>
+        </div>
 
-          <div
-            style={{
-              position: "absolute",
-              left: 72,
-              bottom: 58,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: 12,
-              color: "#f8fafc",
-              fontSize: 22,
-              fontWeight: 600,
-              lineHeight: 1.2,
-              textShadow: "0 4px 18px rgba(0,0,0,0.45)",
-            }}
-          >
-            {date ? (
-              <div
+        <div
+          style={{
+            position: "absolute",
+            left: 72,
+            bottom: 58,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 12,
+            color: "#f8fafc",
+            fontSize: 22,
+            fontWeight: 600,
+            lineHeight: 1.2,
+            textShadow: "0 4px 18px rgba(0,0,0,0.45)",
+          }}
+        >
+          {date ? (
+            <div
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -288,62 +288,63 @@ export async function GET(request: Request, { params }: RouteContext) {
               }}
             >
               <CalendarIcon />
-                <span>{date}</span>
-              </div>
-            ) : null}
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <TagIcon />
-              <span>{categoryName}</span>
+              <span>{date}</span>
             </div>
-          </div>
-
+          ) : null}
           <div
             style={{
-              position: "absolute",
-              right: 72,
-              bottom: 58,
               display: "flex",
+              alignItems: "center",
+              gap: 10,
             }}
           >
-            <img
-              src={logoSrc}
-              alt=""
-              width={64}
-              height={68}
-              style={{
-                width: 64,
-                height: 68,
-                objectFit: "contain",
-              }}
-            />
+            <TagIcon />
+            <span>{categoryName}</span>
           </div>
         </div>
+
+        <div
+          style={{
+            position: "absolute",
+            right: 72,
+            bottom: 58,
+            display: "flex",
+          }}
+        >
+          <img
+            src={logoSrc}
+            alt=""
+            width={64}
+            height={68}
+            style={{
+              width: 64,
+              height: 68,
+              objectFit: "contain",
+            }}
+          />
+        </div>
       </div>
-    ),
+    </div>,
     {
       ...size,
-      headers: {
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-      ...(fontData
-        ? {
-            fonts: [
-              {
-                name: "Pretendard",
-                data: fontData,
-                weight: 900,
-                style: "normal",
-              },
-            ],
-          }
-        : {}),
+      fonts: [
+        {
+          name: "Pretendard",
+          data: fontData,
+          weight: 900,
+          style: "normal",
+        },
+      ],
     },
   );
+
+  const png = new Resvg(svg).render().asPng();
+  const pngBlob = new Blob([new Uint8Array(png)], { type: "image/png" });
+
+  return new Response(pngBlob, {
+    headers: {
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Content-Type": "image/png",
+    },
+  });
 }

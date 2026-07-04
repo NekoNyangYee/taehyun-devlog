@@ -12,6 +12,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ["@resvg/resvg-js"],
 
   compiler: {
     removeConsole:
