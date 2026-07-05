@@ -30,9 +30,11 @@ export default function HomeContent() {
   } = useHomeData(page, PAGE_SIZE);
 
   const handlePageChange = useCallback((next: number) => {
+    if (next === page) return;
+
     setPage(next);
-    listTopRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
-  }, []);
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [page]);
 
   return (
     <div className="w-full max-w-[calc(100vw-2rem)] flex flex-col gap-12 md:gap-16 py-container lg:max-w-[80rem] mx-auto box-border">
