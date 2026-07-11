@@ -1,5 +1,6 @@
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
+import { SITE_URL } from "@components/lib/siteUrl";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,7 @@ type CategoryData = {
   thumbnail: string | null;
 };
 
-const baseUrl = "https://taehyun-devlog.vercel.app";
+const baseUrl = SITE_URL;
 
 const getPostSlugCandidates = (slug: string) => {
   const candidates = new Set([slug]);

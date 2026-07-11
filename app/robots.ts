@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { SITE_URL } from "@components/lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {
     return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: "/",
             disallow: ["/admin/", "/private/"], // 필요한 경우 수정
         },
-        sitemap: "https://taehyun-devlog.vercel.app/sitemap.xml",
+        sitemap: `${SITE_URL}/sitemap.xml`,
     };
 }

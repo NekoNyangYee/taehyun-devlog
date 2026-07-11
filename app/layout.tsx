@@ -9,6 +9,7 @@ import { AuroraBackground } from "@components/components/ui/aurora";
 import { ThemeProvider } from "@components/components/ThemeProvider";
 import Script from "next/script";
 import { ReactQueryProvider } from "./ReactQueryProvider";
+import { SITE_URL } from "@components/lib/siteUrl";
 
 // FOUC 방지: body 파싱 전에 html에 dark 클래스 + color-scheme 적용
 // color-scheme은 CSS 파싱 전에 브라우저가 사용하는 기본 캔버스/스크롤바 색상까지 맞춰주어 깜빡임 최소화
@@ -17,7 +18,7 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://taehyun-devlog.vercel.app"),
+  metadataBase: new URL(SITE_URL),
   title: "TaeHyun's Devlog",
   description:
     "프론트엔드 개발자 김태현의 기술 블로그입니다. 개발, 공부, 프로젝트, 일상 등 다양한 이야기를 공유합니다.",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "TaeHyun's Devlog",
     description: "프론트엔드 개발자 김태현의 기술 블로그입니다.",
-    url: "https://taehyun-devlog.vercel.app", // 실제 도메인으로 변경 필요
+    url: SITE_URL,
     siteName: "TaeHyun's Devlog",
     images: [
       {

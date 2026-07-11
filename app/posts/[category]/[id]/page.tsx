@@ -11,6 +11,7 @@ interface PageProps {
 
 import { cache } from "react";
 import { PostState } from "@components/types/post";
+import { SITE_URL } from "@components/lib/siteUrl";
 
 const getPostSlugCandidates = (slug: string) => {
   const candidates = new Set([slug]);
@@ -97,7 +98,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // description은 제목 기반으로 생성 (본문이 없으므로)
   const description = `${post.title} - ${categoryData?.name || ''} 카테고리의 게시물입니다.`;
 
-  const baseUrl = "https://taehyun-devlog.vercel.app";
+  const baseUrl = SITE_URL;
   const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
   const ogImageVersion = post.updated_at ?? post.slug;
   const ogImage = `${postUrl}/opengraph-image?v=${encodeURIComponent(ogImageVersion)}`;

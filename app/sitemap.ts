@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { SITE_URL } from "@components/lib/siteUrl";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 서버 사이드 전용 Supabase 클라이언트 생성
@@ -8,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    const baseUrl = "https://taehyun-devlog.vercel.app";
+    const baseUrl = SITE_URL;
 
     // 정적 페이지들
     const staticPages: MetadataRoute.Sitemap = [
