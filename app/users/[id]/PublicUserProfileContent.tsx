@@ -67,9 +67,9 @@ export default function PublicUserProfileContent() {
   return (
     <motion.section
       {...contentReveal}
-      className="flex w-full flex-col px-4 py-8 md:py-10"
+      className="flex w-full flex-col py-8 md:py-10"
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+      <div className="flex w-full flex-col gap-4">
         <div className="relative h-56 w-full overflow-hidden rounded-container bg-gray-100 dark:bg-zinc-900 md:h-64">
           <Image
             src={profile.profile_banner || "/default.png"}

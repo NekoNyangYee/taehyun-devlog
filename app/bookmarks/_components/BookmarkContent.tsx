@@ -116,7 +116,7 @@ export default function BookmarkContent() {
   }
 
   return (
-    <div className="p-container w-full flex flex-col flex-1 gap-4">
+    <div className="flex w-full flex-1 flex-col gap-4 py-container">
       <h2 className="text-2xl font-bold">북마크</h2>
 
       <div className="flex justify-between items-center gap-4">

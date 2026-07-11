@@ -37,7 +37,7 @@ export default function HomeContent() {
   }, [page]);
 
   return (
-    <div className="w-full max-w-[calc(100vw-2rem)] flex flex-col gap-12 md:gap-16 py-container lg:max-w-[80rem] mx-auto box-border">
+    <div className="flex w-full flex-col gap-12 py-container md:gap-16">
       <FeaturedCarousel
         posts={featured}
         categories={categories}

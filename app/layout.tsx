@@ -119,11 +119,11 @@ export default function RootLayout({
         <ThemeProvider>
           <ReactQueryProvider>
             <Header />
-            <div className="flex flex-1 max-w-[90rem] box-border mx-auto w-full pt-[65px]">
+            <main className="site-container flex flex-1 box-border pt-[65px]">
               <Suspense fallback={<PageLoading />}>
                 <PageTransition>{children}</PageTransition>
               </Suspense>
-            </div>
+            </main>
             <Footer />
           </ReactQueryProvider>
         </ThemeProvider>

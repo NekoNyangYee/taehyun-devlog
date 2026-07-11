@@ -624,7 +624,7 @@ export default function PostDetailClient() {
       className="relative flex-1 min-w-0 w-full"
     >
       {/* 제목 / 카테고리 / 메타 정보 */}
-      <div className="w-full max-w-[1200px] mx-auto px-4 pt-10 pb-6 flex flex-col gap-4">
+      <div className="flex w-full flex-col gap-4 pb-6 pt-10">
         <Link
           href={`/posts/${encodeURIComponent(category?.name || "")}`}
           className="inline-flex items-center gap-2 self-start rounded-full bg-gray-900 text-white px-3 py-1 text-sm"
@@ -655,7 +655,7 @@ export default function PostDetailClient() {
             activeId={activeHeadingId}
             onScrollTo={scrollToHeading}
           />
-          <div className="break-words whitespace-pre-wrap w-full max-w-[1200px] mx-auto px-4 pt-12 pb-4">
+          <div className="w-full break-words whitespace-pre-wrap pb-4 pt-12">
       <div className="flex flex-col-reverse lg:flex-row gap-6">
         <article className="flex-1 min-w-0">
           <RenderedContent
@@ -667,12 +667,12 @@ export default function PostDetailClient() {
         {headingGroups.length > 0 && (
           <aside className="hidden lg:flex flex-col gap-2 lg:w-[300px] lg:sticky top-20 self-start w-full">
             <h3 className="text-lg font-semibold m-0">목차</h3>
-            <nav className="flex flex-col gap-4 border-l border-gray-200 dark:border-white/15 pl-4">
+            <nav className="flex flex-col border-l border-gray-200 pl-4 dark:border-white/15">
               {headingGroups.map((group, index) => (
-                <div key={group.h2.id} className="flex flex-col gap-2">
+                <div key={group.h2.id} className="flex flex-col">
                   <button
                     onClick={() => scrollToHeading(group.h2.id)}
-                    className={`text-sm font-bold cursor-pointer hover:underline text-left rounded px-2 py-1 transition-colors ${
+                    className={`cursor-pointer rounded px-3 py-2.5 text-left text-sm font-bold transition-colors hover:underline ${
                       activeHeadingId === group.h2.id
                         ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
                         : ""
@@ -681,12 +681,12 @@ export default function PostDetailClient() {
                     {`${index + 1}. ${group.h2.text}`}
                   </button>
                   {group.h3.length > 0 && (
-                    <div className="ml-2 flex flex-col gap-4">
+                    <div className="ml-2 flex flex-col">
                       {group.h3.map((subHeading) => (
                         <button
                           key={subHeading.id}
                           onClick={() => scrollToHeading(subHeading.id)}
-                          className={`text-xs cursor-pointer hover:underline text-left rounded px-2 py-1 transition-colors ${
+                          className={`cursor-pointer rounded px-3 py-2.5 text-left text-xs transition-colors hover:underline ${
                             activeHeadingId === subHeading.id
                               ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
                               : "text-gray-600 dark:text-gray-400"

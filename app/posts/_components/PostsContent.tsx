@@ -36,7 +36,7 @@ export default function PostsContent({
   const { toggleBookmark } = useBookmarkToggle(userId);
 
   return (
-    <div className="p-container w-full flex flex-col flex-1 gap-4">
+    <div className="flex w-full flex-1 flex-col gap-4 py-container">
       <h2 className="text-2xl font-bold">게시물</h2>
 
       <div className="flex justify-between items-center gap-4">

@@ -106,7 +106,7 @@ export default function Header() {
         }`}
       >
         <div
-          className={`max-w-[90rem] mx-auto flex justify-between items-center gap-4 px-4 lg:px-8 h-[65px] ${
+          className={`site-container flex h-[65px] items-center justify-between gap-4 ${
             isScrolled ? "" : "pointer-events-auto"
           }`}
         >
