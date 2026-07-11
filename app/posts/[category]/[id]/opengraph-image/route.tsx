@@ -1,4 +1,4 @@
-import { Resvg } from "@resvg/resvg-js";
+import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import satori from "satori";
 import { SITE_URL } from "@components/lib/siteUrl";
 
@@ -7,6 +7,17 @@ export const runtime = "nodejs";
 const size = {
   width: 1200,
   height: 630,
+};
+
+let resvgWasmReady: Promise<void> | null = null;
+
+const ensureResvgWasm = (requestUrl: string) => {
+  if (!resvgWasmReady) {
+    const wasmUrl = new URL("/resvg.wasm", requestUrl);
+    resvgWasmReady = initWasm(fetch(wasmUrl));
+  }
+
+  return resvgWasmReady;
 };
 
 interface RouteContext {
@@ -169,6 +180,8 @@ const TagIcon = () => (
 );
 
 export async function GET(request: Request, { params }: RouteContext) {
+  await ensureResvgWasm(request.url);
+
   const { id } = await params;
   const assetOrigin = new URL(request.url).origin;
   const [fontData, logoSrc, post] = await Promise.all([
