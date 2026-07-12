@@ -893,9 +893,10 @@ export default function PostDetailClient() {
           />
         </article>
         {headingGroups.length > 0 && (
-          <aside className="hidden lg:flex flex-col gap-2 lg:w-[300px] lg:sticky top-20 self-start w-full">
-            <h3 className="text-lg font-semibold m-0">목차</h3>
-            <nav className="flex flex-col border-l border-gray-200 pl-4 dark:border-white/15">
+          <aside className="hidden h-[calc(100vh-6rem)] lg:flex lg:w-[300px] lg:sticky top-20 self-start w-full flex-col justify-between">
+            <div className="min-h-0 overflow-y-auto">
+              <h3 className="text-lg font-semibold m-0">목차</h3>
+              <nav className="mt-2 flex flex-col border-l border-gray-200 pl-4 dark:border-white/15">
               {headingGroups.map((group, index) => (
                 <div key={group.h2.id} className="flex flex-col">
                   <button
@@ -927,7 +928,9 @@ export default function PostDetailClient() {
                   )}
                 </div>
               ))}
-            </nav>
+              </nav>
+            </div>
+            <GotoTop variant="toc" />
           </aside>
         )}
       </div>
@@ -1375,7 +1378,6 @@ export default function PostDetailClient() {
           </div>
         </div>
       </div>
-      <GotoTop />
       {isShareModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"

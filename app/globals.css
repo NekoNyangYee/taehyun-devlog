@@ -6,7 +6,7 @@
 
 @layer components {
   .site-container {
-    @apply mx-auto w-full max-w-[90rem] px-4 lg:px-8;
+    @apply mx-auto w-full max-w-[77.5rem] px-4 lg:px-8;
   }
 }
 
@@ -40,6 +40,12 @@ pre code.hljs {
 }
 
 /* 게시물 본문 내 이미지 기본 스타일 (센터 정렬 + 반응형) */
+.post-content {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .post-content img {
   display: block;
   margin: 20px auto;
@@ -166,6 +172,10 @@ blockquote {
   --code-border: #dbe3ec;
   --code-text: #243044;
   --code-muted: #64748b;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   margin: 1.75rem 0;
   overflow: hidden;
   border: 1px solid var(--code-border);
@@ -185,6 +195,9 @@ blockquote {
 
 .post-content .code-block-toolbar {
   display: flex;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 2.75rem;
   align-items: center;
   justify-content: space-between;
@@ -278,6 +291,12 @@ blockquote {
 }
 
 .post-content .code-block pre {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -289,7 +308,9 @@ blockquote {
 .post-content .code-block pre code,
 .post-content .code-block pre code.hljs {
   display: block;
-  min-width: max-content;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
   padding: 1.2rem 1.25rem;
   border-radius: 0;
   background: var(--code-bg) !important;
@@ -368,7 +389,7 @@ blockquote {
 
 @media (max-width: 640px) {
   .post-content .code-block {
-    margin: 1.35rem -0.25rem;
+    margin: 1.35rem 0;
     border-radius: 12px;
   }
 

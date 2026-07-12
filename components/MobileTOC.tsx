@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@components/components/ui/accordion";
 import { useEffect, useState } from "react";
+import { GotoTop } from "@components/components/GoToTop";
 
 interface Heading {
   id: string;
@@ -60,12 +61,13 @@ export default function MobileTOC({
           : "opacity-0 -translate-y-2 pointer-events-none"
       }`}
     >
-      <div className="mx-auto max-w-[600px] bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-gray-200 dark:border-white/10 overflow-hidden">
+      <div className="mx-auto flex max-w-[600px] items-start gap-2">
         <Accordion
           type="single"
           collapsible
           value={openValue}
           onValueChange={setOpenValue}
+          className="min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/10 dark:bg-zinc-900"
         >
           <AccordionItem value="toc" className="border-none">
             <AccordionTrigger className="px-4 py-3 hover:no-underline">
@@ -112,6 +114,7 @@ export default function MobileTOC({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        <GotoTop variant="mobile" />
       </div>
     </div>
   );
