@@ -93,10 +93,6 @@ export default function RootLayout({
         />
 
         {/* ✅ Highlight.js CSS (테마) */}
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
-        />
         {/* 테마 FOUC 방지 인라인 스크립트 */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
@@ -132,11 +128,6 @@ export default function RootLayout({
           src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
           strategy="afterInteractive"
         />
-        <Script id="hljs-init" strategy="afterInteractive">{`
-          if (typeof window !== 'undefined' && window.hljs) {
-            window.hljs.highlightAll();
-          }
-        `}</Script>
       </body>
     </html>
   );

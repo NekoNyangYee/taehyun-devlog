@@ -78,6 +78,139 @@ interface HeadingGroup {
   h3: Heading[];
 }
 
+const JETBRAINS_FILE_ICON_BASE =
+  "https://intellij-icons.jetbrains.design/icons/AllIcons/fileTypes";
+const DEVICON_BASE = "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons";
+
+const codeLanguageAliases: Record<string, string> = {
+  javascript: "js",
+  typescript: "ts",
+  py: "python",
+  rb: "ruby",
+  rs: "rust",
+  golang: "go",
+  kt: "kotlin",
+  cs: "csharp",
+  "c++": "cpp",
+  sh: "bash",
+  shell: "bash",
+  zsh: "bash",
+  yml: "yaml",
+  md: "markdown",
+};
+
+const codeExtensionLanguages: Record<string, string> = {
+  js: "js",
+  jsx: "jsx",
+  mjs: "js",
+  cjs: "js",
+  ts: "ts",
+  tsx: "tsx",
+  py: "python",
+  java: "java",
+  kt: "kotlin",
+  kts: "kotlin",
+  go: "go",
+  rs: "rust",
+  c: "c",
+  h: "c",
+  cc: "cpp",
+  cpp: "cpp",
+  cxx: "cpp",
+  cs: "csharp",
+  php: "php",
+  rb: "ruby",
+  swift: "swift",
+  html: "html",
+  css: "css",
+  scss: "scss",
+  vue: "vue",
+  svelte: "svelte",
+  sh: "bash",
+  bash: "bash",
+  zsh: "bash",
+  ps1: "powershell",
+  sql: "sql",
+  json: "json",
+  yaml: "yaml",
+  yml: "yaml",
+  md: "markdown",
+  xml: "xml",
+};
+
+const jetbrainsIconNames: Record<string, string> = {
+  js: "javaScript",
+  jsx: "javaScript",
+  java: "java",
+  html: "html",
+  css: "css",
+  scss: "css",
+  bash: "shell",
+  powershell: "microsoftWindows",
+  json: "json",
+  yaml: "yaml",
+  markdown: "text",
+  xml: "xml",
+};
+
+const deviconNames: Record<string, string> = {
+  js: "javascript",
+  ts: "typescript",
+  jsx: "react",
+  tsx: "react",
+  python: "python",
+  java: "java",
+  kotlin: "kotlin",
+  go: "go",
+  rust: "rust",
+  c: "c",
+  cpp: "cplusplus",
+  csharp: "csharp",
+  php: "php",
+  ruby: "ruby",
+  swift: "swift",
+  html: "html5",
+  css: "css3",
+  scss: "sass",
+  vue: "vuejs",
+  svelte: "svelte",
+  bash: "bash",
+  powershell: "powershell",
+  sql: "azuresqldatabase",
+  json: "json",
+  yaml: "yaml",
+  markdown: "markdown",
+  xml: "xml",
+};
+
+function normalizeCodeLanguage(language?: string) {
+  const normalized = language?.trim().toLowerCase() || "text";
+  return codeLanguageAliases[normalized] || normalized;
+}
+
+function getLanguageFromTitle(title?: string) {
+  const extension = title?.match(/\.([a-z0-9+#]+)$/i)?.[1].toLowerCase();
+  return extension ? codeExtensionLanguages[extension] : undefined;
+}
+
+function getDeviconUrl(language: string) {
+  const name = deviconNames[language];
+  return name ? `${DEVICON_BASE}/${name}/${name}-original.svg` : undefined;
+}
+
+const highlightLanguageNames: Record<string, string> = {
+  js: "javascript",
+  jsx: "javascript",
+  ts: "typescript",
+  tsx: "typescript",
+  text: "plaintext",
+};
+
+const copyButtonContent =
+  '<svg aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"></path></svg><span>복사</span>';
+const copiedButtonContent =
+  '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg><span>복사됨</span>';
+
 /** 본문에서 h2, h3 태그에 고유 id를 부여하고 목차 데이터를 반환 (순수 함수) */
 function extractHeadings(htmlContent: string) {
   const parser = new DOMParser();
@@ -148,6 +281,73 @@ function RenderedContent({
       el.style.margin = "1rem 0";
     });
 
+    // DB의 코드 블록 메타데이터를 화면 전용 UI로 변환한다.
+    ref.current.querySelectorAll("pre").forEach((pre) => {
+      if (pre.parentElement?.classList.contains("code-block")) return;
+
+      const code = pre.querySelector(":scope > code");
+      if (!code) return;
+
+      const languageClass = Array.from(code.classList).find((className) =>
+        /^(?:language|lang)-/.test(className),
+      );
+      const classLanguage = languageClass?.replace(/^(?:language|lang)-/, "");
+      const title = pre.dataset.title || pre.dataset.filename;
+      const language = normalizeCodeLanguage(
+        pre.dataset.language || classLanguage || getLanguageFromTitle(title),
+      );
+      const headerLabel = title || pre.dataset.language || (language === "text" ? "CODE" : language.toUpperCase());
+
+      if (!languageClass) {
+        code.classList.add(`language-${highlightLanguageNames[language] || language}`);
+      }
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block";
+      wrapper.dataset.codeBlockEnhanced = "true";
+
+      const toolbar = document.createElement("div");
+      toolbar.className = "code-block-toolbar";
+
+      const label = document.createElement("span");
+      label.className = "code-block-language";
+      label.title = headerLabel;
+
+      const jetbrainsIconName = jetbrainsIconNames[language];
+      const deviconUrl = getDeviconUrl(language);
+      const primaryIconUrl = jetbrainsIconName
+        ? `${JETBRAINS_FILE_ICON_BASE}/${jetbrainsIconName}_dark.svg`
+        : deviconUrl;
+
+      if (primaryIconUrl) {
+        const icon = document.createElement("img");
+        icon.className = "code-block-language-icon";
+        icon.src = primaryIconUrl;
+        icon.alt = "";
+        icon.setAttribute("aria-hidden", "true");
+        icon.addEventListener("error", () => {
+          if (deviconUrl && icon.src !== deviconUrl) {
+            icon.src = deviconUrl;
+          } else {
+            icon.remove();
+          }
+        });
+        label.append(icon);
+      }
+      label.append(document.createTextNode(headerLabel));
+
+      const copyButton = document.createElement("button");
+      copyButton.type = "button";
+      copyButton.className = "code-block-copy";
+      copyButton.dataset.codeCopy = "";
+      copyButton.setAttribute("aria-label", `${headerLabel} 코드 복사`);
+      copyButton.innerHTML = copyButtonContent;
+
+      toolbar.append(label, copyButton);
+      pre.before(wrapper);
+      wrapper.append(toolbar, pre);
+    });
+
     // 하이라이트
     let attempts = 0;
     const maxAttempts = 10;
@@ -155,7 +355,10 @@ function RenderedContent({
       const hljs = window.hljs;
       if (hljs) {
         ref.current?.querySelectorAll("pre code").forEach((el) => {
-          hljs.highlightElement(el as HTMLElement);
+          const codeElement = el as HTMLElement;
+          if (codeElement.dataset.highlighted !== "yes") {
+            hljs.highlightElement(codeElement);
+          }
         });
       } else if (++attempts < maxAttempts) {
         setTimeout(tryHighlight, 150);
@@ -166,8 +369,33 @@ function RenderedContent({
 
   // 이벤트 위임: 컨테이너 onClick으로 이미지 클릭 감지
   const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    async (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
+      const copyButton = target.closest<HTMLButtonElement>("[data-code-copy]");
+
+      if (copyButton) {
+        const code = copyButton
+          .closest(".code-block")
+          ?.querySelector("pre code")?.textContent;
+        if (code == null) return;
+
+        try {
+          await navigator.clipboard.writeText(code);
+          copyButton.classList.add("is-copied");
+          copyButton.setAttribute("aria-label", "복사 완료");
+          copyButton.innerHTML = copiedButtonContent;
+
+          window.setTimeout(() => {
+            copyButton.classList.remove("is-copied");
+            copyButton.setAttribute("aria-label", "코드 복사");
+            copyButton.innerHTML = copyButtonContent;
+          }, 1500);
+        } catch (error) {
+          console.error("코드를 복사하지 못했습니다.", error);
+        }
+        return;
+      }
+
       const img = target.closest("img") as HTMLImageElement | null;
       if (!img || !ref.current) return;
       const images = Array.from(ref.current.querySelectorAll("img"));
