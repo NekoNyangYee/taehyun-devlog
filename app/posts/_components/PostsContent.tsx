@@ -1,7 +1,9 @@
 "use client";
 
-import CategoryButtons from "@components/components/CategoryButtons";
-import { PostGridCard } from "./PostGridCard";
+import { useMemo } from "react";
+import { CategoryFilterPanel } from "@components/components/CategoryFilterPanel";
+import { PostListItem } from "@components/components/PostListItem";
+import { PageTitlePanel } from "@components/components/PageTitlePanel";
 import { SortSelect } from "./SortSelect";
 import { usePostsData } from "../_hooks/usePostsData";
 import { usePostsFilter } from "../_hooks/usePostsFilter";
@@ -22,7 +24,7 @@ export default function PostsContent({
 }: PostsContentProps) {
   const isClient = useIsClient();
 
-  const { posts, categories, comments, bookmarks, userId, session } =
+  const { posts, categories, bookmarks, userId, session } =
     usePostsData(initialPosts, initialCategories);
 
   const {
@@ -34,22 +36,56 @@ export default function PostsContent({
   } = usePostsFilter(posts, categories);
 
   const { toggleBookmark } = useBookmarkToggle(userId);
+  const selectedCategoryId = useMemo(
+    () =>
+      categories.find(
+        (category) =>
+          lowerURL(category.name) === selectedCategory?.toLowerCase(),
+      )?.id,
+    [categories, selectedCategory],
+  );
+  const categoryOptions = useMemo(
+    () =>
+      categories.map((category) => ({
+        value: String(category.id),
+        label: category.name,
+        count: posts.filter((post) => post.category_id === category.id).length,
+      })),
+    [categories, posts],
+  );
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-4 py-container">
-      <h2 className="text-2xl font-bold">게시물</h2>
+    <div className="my-6 flex w-full flex-1 flex-col border border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 md:my-8">
+      <PageTitlePanel
+        title="Posts"
+      />
 
-      <div className="flex justify-between items-center gap-4">
-        <CategoryButtons
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
+      <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-zinc-900">
+        <CategoryFilterPanel
+          options={categoryOptions}
+          selectedValue={
+            selectedCategoryId === undefined
+              ? "all"
+              : String(selectedCategoryId)
+          }
+          totalCount={posts.length}
+          onChange={(value) => {
+            if (value === "all") {
+              setSelectedCategory(null);
+              return;
+            }
+            const category = categories.find(
+              (item) => String(item.id) === value,
+            );
+            setSelectedCategory(category?.name || null);
+          }}
         />
         <SortSelect value={sortOrder} onChange={setSortOrder} />
       </div>
 
-      <div className="w-full">
+      <section>
         {filteredAndSortedPosts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
+          <div>
             {filteredAndSortedPosts.map((post) => {
               const category = categories.find(
                 (cat) => cat.id === post.category_id,
@@ -58,35 +94,30 @@ export default function PostsContent({
               const categoryName = category?.name || "미분류";
               const categorySlug = lowerURL(category?.name || "");
               const isBookmarked = bookmarks.includes(post.id);
-              const commentCount = comments.filter(
-                (comment) => comment.post_id === post.id,
-              ).length;
-
               return (
-                <PostGridCard
+                <PostListItem
                   key={post.id}
                   post={post}
                   categoryName={categoryName}
                   categorySlug={categorySlug}
                   thumbnailUrl={thumbnailUrl}
-                  commentCount={commentCount}
                   isBookmarked={isBookmarked}
                   showBookmark={isClient && !!session}
-                  onBookmarkToggle={(e) =>
-                    toggleBookmark(post.id, isBookmarked, e)
+                  onBookmarkToggle={(event) =>
+                    toggleBookmark(post.id, isBookmarked, event)
                   }
                 />
               );
             })}
           </div>
         ) : (
-          <div className="w-full h-[386px] flex items-center justify-center border border-gray-200 dark:border-white/10 rounded-container">
-            <p className="text-gray-500 dark:text-gray-400 text-center">
+          <div className="flex h-72 w-full items-center justify-center">
+            <p className="text-center text-gray-500 dark:text-gray-400">
               해당 카테고리에 게시물이 없습니다.
             </p>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

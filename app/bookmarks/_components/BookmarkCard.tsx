@@ -8,6 +8,7 @@ import {
 import { formatDate } from "@components/lib/util/dayjs";
 import { cn } from "@components/lib/utils";
 import { PostStateWithoutContents } from "@components/types/post";
+import { CategoryLabel } from "@components/components/CategoryLabel";
 
 /**
  * 북마크 카드 컴포넌트 (Presentational)
@@ -55,9 +56,7 @@ export function BookmarkCard({
 
         <div className="flex flex-1 flex-col gap-3 p-5">
           <div className="flex items-center justify-between">
-            <span className="rounded-full bg-gray-100 dark:bg-white/10 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
-              {categoryName}
-            </span>
+            <CategoryLabel name={categoryName} />
             <button
               onClick={onBookmarkToggle}
               className="relative z-10 pointer-events-auto"
@@ -76,9 +75,6 @@ export function BookmarkCard({
           <h3 className="truncate text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100">
             {post.title}
           </h3>
-          <p className="text-sm text-metricsText">
-            by {post.author_name || "익명"}
-          </p>
           <p className="text-sm text-metricsText">
             {formatDate(post.created_at)}
           </p>

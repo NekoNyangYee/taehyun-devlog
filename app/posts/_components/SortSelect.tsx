@@ -19,14 +19,14 @@ interface SortSelectProps {
 export function SortSelect({ value, onChange }: SortSelectProps) {
     return (
         <Select value={value} onValueChange={onChange}>
-            <SelectTrigger className="w-[100px]">
+            <SelectTrigger className="h-12 w-36 rounded-none border-0 border-l border-gray-200 bg-transparent dark:border-white/10">
                 <SelectValue placeholder="정렬" />
             </SelectTrigger>
-            <SelectContent className={cn("w-auto bg-white dark:bg-zinc-900 dark:border-white/10")}>
+            <SelectContent className={cn("w-auto rounded-none bg-white dark:bg-zinc-900 dark:border-white/10")}>
                 <SelectItem value="new-sort">최신순</SelectItem>
                 <SelectItem value="old-sort">오래된순</SelectItem>
-                <SelectItem value="max-view-sort">조회수 높은순</SelectItem>
-                <SelectItem value="min-view-sort">조회수 낮은순</SelectItem>
+                <SelectItem value="max-view-sort">조회 많은순</SelectItem>
+                <SelectItem value="min-view-sort">조회 적은순</SelectItem>
             </SelectContent>
         </Select>
     );

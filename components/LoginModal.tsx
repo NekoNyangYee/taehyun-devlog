@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
+import Image from "next/image";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import LoginPageLogoIcon from "./icons/LoginPageLogoIcon";
 import { SocialLoginButton } from "./SocialLoginButton";
 import { useLogin } from "@components/lib/hooks/useLogin";
 import { useLoginModalStore } from "@components/store/loginModalStore";
@@ -68,53 +68,64 @@ export default function LoginModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-[440px] rounded-3xl bg-white dark:bg-zinc-900 p-6 md:p-8 shadow-2xl"
+            className="relative max-h-[calc(100vh-2rem)] w-full max-w-[760px] overflow-y-auto border border-gray-200 bg-white shadow-2xl scrollbar-hide dark:border-white/10 dark:bg-zinc-950"
           >
-            <button
-              onClick={close}
-              aria-label="닫기"
-              className="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
-            >
-              <XIcon size={20} />
-            </button>
+            <div className="flex h-12 items-center justify-between border-b border-gray-200 bg-gray-50 pl-5 dark:border-white/10 dark:bg-zinc-900">
+              <span className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-600 dark:text-gray-300">
+                Blog Login
+              </span>
+              <button
+                onClick={close}
+                aria-label="닫기"
+                className="flex h-12 w-12 items-center justify-center border-l border-gray-200 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:border-white/10 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+              >
+                <XIcon size={19} />
+              </button>
+            </div>
 
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center gap-3 text-center pt-2">
-                <LoginPageLogoIcon />
-                <div className="space-y-2">
-                  <h1 className="text-2xl font-semibold text-slate-900 dark:text-gray-100">
-                    블로그 로그인
-                  </h1>
-                  <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                    로그인하여 게시글에 공감과 댓글을 남겨보세요.
+            <div className="grid md:grid-cols-[0.9fr_1.1fr]">
+              <section className="relative min-h-56 overflow-hidden border-b border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-900 md:min-h-[360px] md:border-b-0 md:border-r">
+                <Image
+                  src="/login-banner.png"
+                  alt=""
+                  fill
+                  priority
+                  quality={80}
+                  sizes="(max-width: 767px) 100vw, 340px"
+                  className="object-cover"
+                />
+              </section>
+
+              <section className="flex min-h-[360px] flex-col justify-center p-6 sm:p-8 md:p-10">
+                <div>
+                  <p className="font-mono text-xs font-semibold tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                    TaeHyun&apos;s Devlog
                   </p>
+                  <h1 className="mt-3 text-2xl font-semibold leading-snug text-gray-950 dark:text-gray-50">
+                    개발의 과정과 배움을
+                    <br />
+                    함께 기록하는 공간
+                  </h1>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-                <span className="text-xs font-medium tracking-wide text-slate-400 dark:text-slate-500">
-                  간편 로그인
-                </span>
-                <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-              </div>
+                <div className="mt-8 flex flex-col gap-2">
+                  <SocialLoginButton
+                    provider="google"
+                    onClick={() => handleSocialLogin("google")}
+                    disabled={isLoading}
+                  />
+                  <SocialLoginButton
+                    provider="kakao"
+                    onClick={() => handleSocialLogin("kakao")}
+                    disabled={isLoading}
+                  />
+                </div>
 
-              <div className="flex flex-col gap-2.5">
-                <SocialLoginButton
-                  provider="google"
-                  onClick={() => handleSocialLogin("google")}
-                  disabled={isLoading}
-                />
-                <SocialLoginButton
-                  provider="kakao"
-                  onClick={() => handleSocialLogin("kakao")}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <p className="text-center text-xs leading-relaxed text-slate-400 dark:text-slate-500">
-                로그인하면 댓글 작성, 북마크 등 개인화 기능을 사용할 수 있어요.
-              </p>
+                <p className="mt-5 text-xs leading-relaxed text-gray-400 dark:text-gray-500">
+                  로그인하면 댓글 작성, 북마크 등 개인화 기능을 사용할 수
+                  있어요.
+                </p>
+              </section>
             </div>
           </motion.div>
         </motion.div>

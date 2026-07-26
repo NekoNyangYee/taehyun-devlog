@@ -70,7 +70,7 @@ export function GotoTop({ variant = "fixed" }: { variant?: GotoTopVariant }) {
       disabled={isDisabled}
       className={
         variant === "toc"
-          ? `mt-3 flex w-full shrink-0 items-center justify-between border-0 border-t border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 transition-all duration-300 hover:bg-gray-100 disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10 ${
+          ? `flex w-full shrink-0 items-center justify-between border-0 px-3 py-3 text-sm font-semibold text-gray-700 transition-all duration-300 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-white/10 ${
               currentHeight
                 ? "translate-y-0 opacity-100"
                 : "pointer-events-none translate-y-2 opacity-0"

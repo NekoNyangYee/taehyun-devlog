@@ -21,6 +21,7 @@ import {
   SendIcon,
   Share2Icon,
   TagIcon,
+  Trash2Icon,
   XIcon,
 } from "lucide-react";
 import PageLoading from "@components/components/loading/PageLoading";
@@ -428,6 +429,8 @@ export default function PostDetailClient() {
   const [isAdmin] = useState<boolean>(false);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState<string>("");
+  const [isReplyMentionVisible, setIsReplyMentionVisible] =
+    useState<boolean>(false);
   const [isStatus, setIsStatus] = useState<boolean>(true);
   const [isReplyStatus, setIsReplyStatus] = useState<boolean>(true);
   const [isNotFound, setIsNotFound] = useState<boolean>(false);
@@ -750,6 +753,7 @@ export default function PostDetailClient() {
 
   const handleStartEditComment = (targetComment: (typeof comments)[number]) => {
     setReplyingTo(null);
+    setIsReplyMentionVisible(false);
     startEditingComment(
       Number(targetComment.id),
       targetComment.content,
@@ -820,6 +824,13 @@ export default function PostDetailClient() {
 
     const author_name: string =
       session?.user?.user_metadata?.full_name || "익명";
+    const mentionTarget = comments.find(
+      (item) => Number(item.id) === replyingTo,
+    );
+    const submittedContent =
+      mentionTarget && isReplyMentionVisible
+        ? `@[${mentionTarget.author_name.replaceAll("]", "")}] ${replyContent}`
+        : replyContent;
 
     await addCommentMutation.mutateAsync({
       author_id: session?.user.id,
@@ -827,17 +838,106 @@ export default function PostDetailClient() {
       profile_image: session?.user.user_metadata.avatar_url ?? "",
       parent_id: parentId,
       post_id: post?.id,
-      content: replyContent,
+      content: submittedContent,
       status: !isReplyStatus,
     });
 
     setReplyContent("");
     setReplyingTo(null);
+    setIsReplyMentionVisible(false);
   };
 
-  const toggleReply = (commentId: number) => {
-    setReplyingTo((prev) => (prev === commentId ? null : commentId));
+  const replyTarget = comments.find(
+    (item) => Number(item.id) === replyingTo,
+  );
+
+  const renderCommentContent = (content: string) => {
+    const mentionMatch = content.match(/^@\[([^\]]+)\]\s*/);
+
+    if (!mentionMatch) {
+      return <p>{content}</p>;
+    }
+
+    const body = content.slice(mentionMatch[0].length);
+
+    return (
+      <p className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex shrink-0 items-center border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:border-white/15 dark:bg-zinc-800 dark:text-gray-200">
+          @{mentionMatch[1]}
+        </span>
+        {body && <span className="min-w-0 whitespace-pre-wrap">{body}</span>}
+      </p>
+    );
   };
+
+  const renderReplyComposer = (parentId: number) => (
+    <div className="overflow-hidden border-y border-l border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950">
+      <div className="flex min-h-40 items-start gap-2 bg-white p-container dark:bg-zinc-900">
+        {replyTarget && isReplyMentionVisible && (
+          <button
+            type="button"
+            onClick={() => setIsReplyMentionVisible(false)}
+            className="inline-flex shrink-0 items-center gap-1 border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:border-white/15 dark:bg-zinc-800 dark:text-gray-200"
+            aria-label="답글 태그 삭제"
+          >
+            @{replyTarget.author_name}
+            <XIcon size={12} />
+          </button>
+        )}
+        <Textarea
+          className="min-h-32 min-w-0 flex-1 resize-none rounded-none border-none bg-transparent p-0 dark:bg-transparent dark:text-gray-100"
+          placeholder="답글을 입력하세요"
+          value={replyContent}
+          onChange={(e) => setReplyContent(e.target.value)}
+          onKeyDown={(event) => {
+            if (
+              event.key === "Backspace" &&
+              replyContent.length === 0 &&
+              isReplyMentionVisible
+            ) {
+              event.preventDefault();
+              setIsReplyMentionVisible(false);
+            }
+          }}
+        />
+      </div>
+      <div className="flex justify-end border-t border-gray-200 dark:border-white/10">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setReplyingTo(null);
+            setReplyContent("");
+            setIsReplyMentionVisible(false);
+          }}
+          className="rounded-none border-l border-gray-200 dark:border-white/10"
+        >
+          취소
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setIsReplyStatus((prev) => !prev)}
+          className="rounded-none border-y-0 border-l border-r-0 border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
+        >
+          {isReplyStatus ? (
+            <>
+              <EyeIcon /> 공개
+            </>
+          ) : (
+            <>
+              <EyeOffIcon /> 비공개
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={() => handleSubmitSubCommment(parentId)}
+          className="flex items-center gap-2 rounded-none border-l border-gray-200 bg-action text-action-foreground hover:bg-action-hover dark:border-white/10"
+        >
+          <SendIcon size={20} />
+          등록
+        </Button>
+      </div>
+    </div>
+  );
 
   if (loading || isHydratingPost) {
     return <PageLoading />;
@@ -849,18 +949,24 @@ export default function PostDetailClient() {
 
   return (
     <motion.div
-      className="relative flex-1 min-w-0 w-full"
+      className="relative my-6 flex min-w-0 w-full flex-1 flex-col border border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 md:my-8"
     >
+      <div className="flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-4 dark:border-white/10 dark:bg-zinc-900 sm:px-5">
+        <span className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-600 dark:text-gray-300">
+          Post Detail
+        </span>
+      </div>
+
       {/* 제목 / 카테고리 / 메타 정보 */}
-      <div className="flex w-full flex-col gap-4 pb-6 pt-10">
+      <div className="flex w-full flex-col gap-4 border-b border-gray-200 px-5 py-8 dark:border-white/10 md:px-8 md:py-10">
         <Link
           href={`/posts/${encodeURIComponent(category?.name || "")}`}
-          className="inline-flex items-center gap-2 self-start rounded-full bg-gray-900 text-white px-3 py-1 text-sm"
+          className="inline-flex items-center gap-2 self-start text-sm text-gray-600 transition-colors hover:text-gray-950 dark:text-gray-300 dark:hover:text-white"
         >
           <TagIcon size={14} />
           {postCategory(post.category_id)}
         </Link>
-        <h1 className="text-3xl md:text-4xl font-bold leading-tight text-gray-900 dark:text-gray-100">
+        <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-gray-100 md:text-4xl">
           {post.title}
         </h1>
         <div className="flex flex-wrap items-center gap-4 text-sm text-metricsText">
@@ -883,9 +989,9 @@ export default function PostDetailClient() {
             activeId={activeHeadingId}
             onScrollTo={scrollToHeading}
           />
-          <div className="w-full break-words whitespace-pre-wrap pb-4 pt-12">
-      <div className="flex flex-col-reverse lg:flex-row gap-6">
-        <article className="flex-1 min-w-0">
+          <div className="w-full break-words whitespace-pre-wrap">
+      <div className="flex flex-col-reverse lg:flex-row">
+        <article className="min-w-0 flex-1 px-5 py-8 md:px-8 lg:px-10 lg:py-10">
           <RenderedContent
             html={updatedContent || post?.contents || ""}
             onImagesExtracted={setPostImages}
@@ -893,15 +999,17 @@ export default function PostDetailClient() {
           />
         </article>
         {headingGroups.length > 0 && (
-          <aside className="hidden h-[calc(100vh-6rem)] lg:flex lg:w-[300px] lg:sticky top-20 self-start w-full flex-col justify-between">
-            <div className="min-h-0 overflow-y-auto">
-              <h3 className="text-lg font-semibold m-0">목차</h3>
-              <nav className="mt-2 flex flex-col border-l border-gray-200 pl-4 dark:border-white/15">
+          <aside className="hidden h-[calc(100vh-65px)] w-full self-start border-y border-l border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 lg:sticky lg:top-[65px] lg:flex lg:w-[320px] lg:flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-5 font-mono text-sm font-semibold tracking-[0.08em] text-gray-600 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-300">
+                Table of Contents
+              </div>
+              <nav className="flex flex-col">
               {headingGroups.map((group, index) => (
                 <div key={group.h2.id} className="flex flex-col">
                   <button
                     onClick={() => scrollToHeading(group.h2.id)}
-                    className={`cursor-pointer rounded px-3 py-2.5 text-left text-sm font-bold transition-colors hover:underline ${
+                    className={`cursor-pointer px-3 py-2.5 text-left text-sm font-bold transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${
                       activeHeadingId === group.h2.id
                         ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
                         : ""
@@ -915,7 +1023,7 @@ export default function PostDetailClient() {
                         <button
                           key={subHeading.id}
                           onClick={() => scrollToHeading(subHeading.id)}
-                          className={`cursor-pointer rounded px-3 py-2.5 text-left text-xs transition-colors hover:underline ${
+                          className={`cursor-pointer px-3 py-2.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${
                             activeHeadingId === subHeading.id
                               ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
                               : "text-gray-600 dark:text-gray-400"
@@ -930,11 +1038,13 @@ export default function PostDetailClient() {
               ))}
               </nav>
             </div>
-            <GotoTop variant="toc" />
+            <div className="shrink-0 border-t border-gray-200 dark:border-white/10">
+              <GotoTop variant="toc" />
+            </div>
           </aside>
         )}
       </div>
-      <div className="flex flex-col md:flex-row gap-4 w-full my-4">
+      <div className="flex w-full flex-col divide-y divide-gray-200 border-t border-gray-200 dark:divide-white/10 dark:border-white/10 md:grid md:grid-cols-2 md:divide-y-0">
         {previousPage && (
           <Link
             href={`/posts/${encodeURIComponent(
@@ -943,7 +1053,7 @@ export default function PostDetailClient() {
                   ?.name || lowerURL(category?.name || ""),
               ),
             )}/${previousPage.slug}`}
-            className="bg-gray-50 dark:bg-zinc-900 p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300 dark:border-white/10"
+            className="min-w-0 bg-gray-50 px-5 py-4 dark:bg-zinc-900 md:col-start-1 md:border-r md:border-gray-200 md:dark:border-white/10"
           >
             <div className="flex gap-4 items-center justify-between">
               <ArrowLeftCircle size={34} className="text-gray-500" />
@@ -964,7 +1074,7 @@ export default function PostDetailClient() {
                   ?.name || lowerURL(category?.name || ""),
               ),
             )}/${nextPage.slug}`}
-            className="bg-gray-50 dark:bg-zinc-900 p-container rounded-container flex-1 w-full max-w-full md:max-w-[50%] border border-gray-300 dark:border-white/10"
+            className="min-w-0 bg-gray-50 px-5 py-4 dark:bg-zinc-900 md:col-start-2"
           >
             <div className="flex gap-4 items-center justify-between">
               <div className="flex flex-col">
@@ -978,7 +1088,7 @@ export default function PostDetailClient() {
           </Link>
         )}
       </div>
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-2 border-t border-gray-200 px-5 py-5 dark:border-white/10 md:px-8">
         <Button
           onClick={handleHeartClick}
           className={cn(
@@ -1007,7 +1117,7 @@ export default function PostDetailClient() {
         </Button>
       </div>
       <Link href="/profile">
-        <div className="flex items-center justify-between gap-4 py-6 border-t border-gray-200 dark:border-white/10 mt-4 hover:cursor-pointer">
+        <div className="flex items-center justify-between gap-4 border-t border-gray-200 px-5 py-6 hover:cursor-pointer dark:border-white/10 md:px-8">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-full overflow-hidden shadow-md flex-shrink-0">
               <Image
@@ -1029,12 +1139,47 @@ export default function PostDetailClient() {
           </div>
         </div>
       </Link>
-      <div className="flex flex-col gap-4 py-4">
-        <div className="flex justify-between items-center">
+      <div className="border-y border-gray-200 dark:border-white/10">
+        <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 pl-5 dark:border-white/10 dark:bg-zinc-900">
           <span className="font-bold">{totalCommentCount}개의 댓글</span>
+          <div className="flex h-12 shrink-0 items-stretch">
+            {session ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsStatus((prev) => !prev)}
+                  className="h-12 rounded-none border-0 border-l border-gray-200 bg-gray-100 px-4 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
+                >
+                  {isStatus ? (
+                    <>
+                      <EyeIcon /> 공개
+                    </>
+                  ) : (
+                    <>
+                      <EyeOffIcon /> 비공개
+                    </>
+                  )}
+                </Button>
+                <Button
+                  className="h-12 rounded-none border-0 border-l border-gray-200 bg-action px-4 text-action-foreground hover:bg-action-hover dark:border-white/10"
+                  onClick={handleSubmitReply}
+                >
+                  <SendIcon size={20} />
+                  등록
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={openLogin}
+                className="h-12 rounded-none border-0 border-l border-gray-200 bg-action px-4 text-action-foreground hover:bg-action-hover dark:border-white/10"
+              >
+                로그인 하러 가기
+              </Button>
+            )}
+          </div>
         </div>
         <Textarea
-          className="w-full min-h-40 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
+          className="min-h-40 w-full resize-none rounded-none border-0 bg-white p-container dark:bg-zinc-900 dark:text-gray-100"
           placeholder={
             session
               ? "댓글을 입력하세요. (최대 1000자)"
@@ -1049,41 +1194,6 @@ export default function PostDetailClient() {
           disabled={!session}
           maxLength={1000}
         />
-        <div className="flex gap-2 justify-end">
-          {session ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setIsStatus((prev) => !prev)}
-                className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
-              >
-                {isStatus ? (
-                  <>
-                    <EyeIcon /> 공개
-                  </>
-                ) : (
-                  <>
-                    <EyeOffIcon /> 비공개
-                  </>
-                )}
-              </Button>
-              <Button
-                className="flex gap-2 w-auto p-button bg-action text-action-foreground hover:bg-action-hover rounded-button"
-                onClick={handleSubmitReply}
-              >
-                <SendIcon size={20} />
-                등록
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={openLogin}
-              className="bg-action text-action-foreground hover:bg-action-hover rounded-button"
-            >
-              로그인 하러 가기
-            </Button>
-          )}
-        </div>
       </div>
       {comments.length > 0 ? (
         comments
@@ -1091,57 +1201,109 @@ export default function PostDetailClient() {
           .map((comment) => (
             <div
               key={comment.id}
-              className="flex flex-col gap-2 border-b border-gray-200 dark:border-white/10 py-container last:border-b-0"
+              className={cn(
+                "flex flex-col border-b border-gray-200 dark:border-white/10",
+                session &&
+                  canViewComment(comment) &&
+                  editingCommentId !== comment.id &&
+                  "cursor-pointer",
+              )}
+              onClick={(event) => {
+                const target = event.target as HTMLElement;
+
+                if (
+                  !session ||
+                  !canViewComment(comment) ||
+                  editingCommentId === comment.id ||
+                  target.closest("button, a, textarea, input")
+                ) {
+                  return;
+                }
+
+                setReplyingTo(Number(comment.id));
+                setIsReplyMentionVisible(true);
+              }}
             >
               {canViewComment(comment) && (
-                <div className="flex items-center gap-4">
-                  <div className="object-cover w-10 h-10 rounded-button overflow-hidden">
-                    <Image
-                      src={
-                        comment.profile_image
-                          ? decodeURIComponent(comment.profile_image)
-                          : "/default.png"
-                      }
-                      alt="profile"
-                      width={40}
-                      height={40}
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1">
-                      <span
-                        className={`flex items-center gap-2 font-semibold ${
-                          comment.author_id === post?.author_id
-                            ? "font-normal text-[12px] bg-black dark:bg-white dark:text-black rounded-full text-white px-2 py-1"
-                            : ""
-                        }`}
-                      >
-                        {comment.author_name}
-                      </span>
-                      {comment.status && <LockIcon size={16} />}
+                <div className="flex items-start justify-between gap-4 px-5 pt-5 md:px-8 md:pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="object-cover w-10 h-10 rounded-button overflow-hidden">
+                      <Image
+                        src={
+                          comment.profile_image
+                            ? decodeURIComponent(comment.profile_image)
+                            : "/default.png"
+                        }
+                        alt="profile"
+                        width={40}
+                        height={40}
+                        className="object-cover"
+                      />
                     </div>
-                    <span className="text-[14px] text-metricsText">
-                      {formatDate(comment.created_at)}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`flex items-center gap-2 font-semibold ${
+                            comment.author_id === post?.author_id
+                              ? "font-normal text-[12px] bg-black dark:bg-white dark:text-black rounded-full text-white px-2 py-1"
+                              : ""
+                          }`}
+                        >
+                          {comment.author_name}
+                        </span>
+                        {comment.status && <LockIcon size={16} />}
+                      </div>
+                      <span className="text-[14px] text-metricsText">
+                        {formatDate(comment.created_at)}
+                      </span>
+                    </div>
                   </div>
+                  {session?.user.id === comment.author_id &&
+                    editingCommentId !== comment.id && (
+                      <div className="flex shrink-0 items-start gap-2">
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
+                          onClick={() => handleStartEditComment(comment)}
+                        >
+                          <PencilIcon size={14} />
+                          수정
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
+                          onClick={() =>
+                            deleteHandleComment(Number(comment.id))
+                          }
+                        >
+                          <Trash2Icon size={14} />
+                          삭제
+                        </Button>
+                      </div>
+                    )}
                 </div>
               )}
 
-              <div className="flex flex-col">
+              <div
+                className={cn(
+                  "flex min-w-0 flex-col px-5 pb-5 md:px-8 md:pb-6",
+                  canViewComment(comment) &&
+                    "pl-[76px] md:pl-[88px]",
+                )}
+              >
                 {editingCommentId === comment.id ? (
-                  <div className="flex flex-col gap-2">
+                  <div className="overflow-hidden border border-gray-200 dark:border-white/10">
                     <Textarea
-                      className="w-full min-h-28 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
+                      className="w-full min-h-28 resize-none rounded-none border-0 bg-white p-container dark:bg-zinc-900 dark:text-gray-100"
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
                       maxLength={1000}
                     />
-                    <div className="flex flex-wrap gap-2 justify-end">
+                    <div className="flex flex-wrap justify-end border-t border-gray-200 dark:border-white/10">
                       <Button
                         variant="outline"
                         onClick={() => setEditingStatus(!editingStatus)}
-                        className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
+                        className="rounded-none border-y-0 border-l border-r-0 border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
                       >
                         {editingStatus ? (
                           <>
@@ -1153,160 +1315,157 @@ export default function PostDetailClient() {
                           </>
                         )}
                       </Button>
-                      <Button variant="ghost" onClick={cancelEditingComment}>
+                      <Button
+                        variant="ghost"
+                        className="rounded-none border-l border-gray-200 dark:border-white/10"
+                        onClick={cancelEditingComment}
+                      >
                         취소
                       </Button>
                       <Button
                         onClick={() => handleUpdateComment(Number(comment.id))}
                         disabled={updateCommentMutation.isPending}
-                        className="bg-action text-action-foreground hover:bg-action-hover"
+                        className="rounded-none border-l border-gray-200 bg-action text-action-foreground hover:bg-action-hover dark:border-white/10"
                       >
-                        수정 완료
+                        저장
                       </Button>
                     </div>
                   </div>
                 ) : canViewComment(comment) ? (
-                  <p>{comment.content}</p>
+                  renderCommentContent(comment.content)
                 ) : (
                   <div className="flex items-center gap-2 italic">
                     비공개 댓글입니다
                   </div>
                 )}
-                {session && (
-                  <div className="flex gap-2 justify-start">
-                    {canViewComment(comment) && editingCommentId !== comment.id && (
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
-                        onClick={() => toggleReply(Number(comment.id))}
-                      >
-                        {replyingTo === comment.id ? "답장 취소" : "답장하기"}
-                      </Button>
-                    )}
-                    {session?.user.id === comment.author_id && editingCommentId !== comment.id && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
-                          onClick={() => handleStartEditComment(comment)}
-                        >
-                          <PencilIcon size={14} />
-                          수정하기
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
-                          onClick={() => deleteHandleComment(Number(comment.id))}
-                        >
-                          삭제하기
-                        </Button>
-                      </>
-                    )}
+              </div>
+              <div className="ml-5 md:ml-8">
+                {replyingTo === comment.id && (
+                  <div className="pb-4 pl-8">
+                    {renderReplyComposer(Number(comment.id))}
                   </div>
                 )}
-              </div>
-              {replyingTo === comment.id && (
-                <div className="flex flex-col border-l rounded-container border border-gray-200 dark:border-white/10 overflow-hidden">
-                  <Textarea
-                    className="w-full min-h-40 resize-none p-container border-none rounded-none bg-white dark:bg-zinc-900 dark:text-gray-100"
-                    placeholder="답글을 입력하세요"
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                  />
-                  <div className="flex gap-2 justify-end p-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsReplyStatus((prev) => !prev)}
-                      className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
-                    >
-                      {isReplyStatus ? (
-                        <>
-                          <EyeIcon /> 공개
-                        </>
-                      ) : (
-                        <>
-                          <EyeOffIcon /> 비공개
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        handleSubmitSubCommment(Number(comment.id))
-                      }
-                      className="flex items-center gap-2 bg-action text-action-foreground hover:bg-action-hover"
-                    >
-                      <SendIcon size={20} />
-                      등록
-                    </Button>
-                  </div>
-                </div>
-              )}
 
-              {/* 대댓글 렌더링 */}
-              <div>
+                {/* 대댓글 렌더링 */}
                 {comments
                   .filter((reply) => reply.parent_id === comment.id)
-                  .map((reply) => (
+                  .map((reply, replyIndex) => (
                     <div
                       key={reply.id}
-                      className="flex flex-col gap-2 p-container border-b border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 last:border-b-0"
+                      className={cn(
+                        "relative pl-8",
+                        session &&
+                          canViewComment(reply) &&
+                          editingCommentId !== reply.id &&
+                          "cursor-pointer",
+                      )}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        const target = event.target as HTMLElement;
+
+                        if (
+                          !session ||
+                          !canViewComment(reply) ||
+                          editingCommentId === reply.id ||
+                          target.closest("button, a, textarea, input")
+                        ) {
+                          return;
+                        }
+
+                        setReplyingTo(Number(reply.id));
+                        setIsReplyMentionVisible(true);
+                      }}
                     >
+                      <div
+                        className={cn(
+                          "flex flex-col gap-2 border-l border-b border-gray-200 p-4 dark:border-white/10",
+                          replyIndex === 0 && "border-t",
+                        )}
+                      >
                       {canViewComment(reply) && (
-                        <div className="flex items-center gap-4">
-                          <div className="object-cover w-10 h-10 rounded-button overflow-hidden">
-                            <Image
-                              src={
-                                reply.profile_image
-                                  ? decodeURIComponent(reply.profile_image)
-                                  : "/default.png"
-                              }
-                              alt="profile"
-                              width={40}
-                              height={40}
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1">
-                              <span
-                                className={`flex items-center gap-2 font-semibold ${
-                                  reply.author_id === post?.author_id
-                                    ? "font-normal text-[12px] bg-black dark:bg-white dark:text-black rounded-full text-white px-2 py-1"
-                                    : ""
-                                }`}
-                              >
-                                {reply.author_name}
-                              </span>
-                              {isAdmin && (
-                                <BadgeCheck
-                                  size={22}
-                                  className="fill-[#0075ff] text-white rounded-full"
-                                />
-                              )}
-                              {reply.status && <LockIcon size={16} />}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="object-cover w-10 h-10 rounded-button overflow-hidden">
+                              <Image
+                                src={
+                                  reply.profile_image
+                                    ? decodeURIComponent(reply.profile_image)
+                                    : "/default.png"
+                                }
+                                alt="profile"
+                                width={40}
+                                height={40}
+                                className="object-cover"
+                              />
                             </div>
-                            <span className="text-[14px] text-metricsText">
-                              {formatDate(reply.created_at)}
-                            </span>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <span
+                                  className={`flex items-center gap-2 font-semibold ${
+                                    reply.author_id === post?.author_id
+                                      ? "font-normal text-[12px] bg-black dark:bg-white dark:text-black rounded-full text-white px-2 py-1"
+                                      : ""
+                                  }`}
+                                >
+                                  {reply.author_name}
+                                </span>
+                                {isAdmin && (
+                                  <BadgeCheck
+                                    size={22}
+                                    className="fill-[#0075ff] text-white rounded-full"
+                                  />
+                                )}
+                                {reply.status && <LockIcon size={16} />}
+                              </div>
+                              <span className="text-[14px] text-metricsText">
+                                {formatDate(reply.created_at)}
+                              </span>
+                            </div>
                           </div>
+                          {session?.user?.id === reply.author_id &&
+                            editingCommentId !== reply.id && (
+                              <div className="flex shrink-0 items-start gap-2">
+                                <Button
+                                  variant="ghost"
+                                  className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
+                                  onClick={() => handleStartEditComment(reply)}
+                                >
+                                  <PencilIcon size={14} />
+                                  수정
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
+                                  onClick={() => deleteHandleComment(reply.id)}
+                                >
+                                  <Trash2Icon size={14} />
+                                  삭제
+                                </Button>
+                              </div>
+                            )}
                         </div>
                       )}
 
-                      <div className="flex flex-col">
+                      <div
+                        className={cn(
+                          "flex min-w-0 flex-col",
+                          canViewComment(reply) && "ml-14",
+                        )}
+                      >
                         {editingCommentId === reply.id ? (
-                          <div className="flex flex-col gap-2">
-                            <Textarea
-                              className="w-full min-h-28 resize-none p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 dark:text-gray-100 rounded"
-                              value={editingContent}
-                              onChange={(e) => setEditingContent(e.target.value)}
-                              maxLength={1000}
-                            />
-                            <div className="flex flex-wrap gap-2 justify-end">
-                              <Button
-                                variant="outline"
-                                onClick={() => setEditingStatus(!editingStatus)}
-                                className="bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-zinc-700"
-                              >
+                            <div className="overflow-hidden border border-gray-200 dark:border-white/10">
+                              <Textarea
+                                className="w-full min-h-28 resize-none rounded-none border-0 bg-white p-container dark:bg-zinc-900 dark:text-gray-100"
+                                value={editingContent}
+                                onChange={(e) => setEditingContent(e.target.value)}
+                                maxLength={1000}
+                              />
+                              <div className="flex flex-wrap justify-end border-t border-gray-200 dark:border-white/10">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setEditingStatus(!editingStatus)}
+                                  className="rounded-none border-y-0 border-l border-r-0 border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
+                                >
                                 {editingStatus ? (
                                   <>
                                     <EyeOffIcon /> 비공개
@@ -1317,55 +1476,44 @@ export default function PostDetailClient() {
                                   </>
                                 )}
                               </Button>
-                              <Button variant="ghost" onClick={cancelEditingComment}>
+                              <Button
+                                variant="ghost"
+                                className="rounded-none border-l border-gray-200 dark:border-white/10"
+                                onClick={cancelEditingComment}
+                              >
                                 취소
                               </Button>
                               <Button
                                 onClick={() => handleUpdateComment(Number(reply.id))}
                                 disabled={updateCommentMutation.isPending}
-                                className="bg-action text-action-foreground hover:bg-action-hover"
+                                className="rounded-none border-l border-gray-200 bg-action text-action-foreground hover:bg-action-hover dark:border-white/10"
                               >
-                                수정 완료
+                                저장
                               </Button>
                             </div>
                           </div>
                         ) : canViewComment(reply) ? (
-                          <p>{reply.content}</p>
+                          renderCommentContent(reply.content)
                         ) : (
                           <div className="flex items-center gap-2 italic">
                             <CornerDownRight size={18} />
                             비공개 댓글입니다
                           </div>
                         )}
-                        <div className="flex gap-2 justify-start">
-                          {session?.user?.id === reply.author_id && editingCommentId !== reply.id && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-gray-900 dark:hover:text-gray-100"
-                                onClick={() => handleStartEditComment(reply)}
-                              >
-                                <PencilIcon size={14} />
-                                수정하기
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                className="p-0 h-auto text-metricsText hover:bg-transparent hover:text-red-600 dark:hover:text-red-400"
-                                onClick={() => deleteHandleComment(reply.id)}
-                              >
-                                삭제하기
-                              </Button>
-                            </>
-                          )}
-                        </div>
                       </div>
+                      </div>
+                      {replyingTo === reply.id && (
+                        <div className="-mt-px">
+                          {renderReplyComposer(Number(comment.id))}
+                        </div>
+                      )}
                     </div>
                   ))}
               </div>
             </div>
           ))
       ) : (
-        <div className="flex flex-col gap-2 p-container rounded-container border border-gray-200 dark:border-white/10 h-[300px] items-center justify-center">
+        <div className="flex h-[300px] flex-col items-center justify-center gap-2">
           <MessageSquareXIcon
             size={48}
             className="text-gray-500 items-center justify-center mx-auto"

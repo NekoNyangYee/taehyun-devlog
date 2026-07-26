@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { lowerURL } from "@components/lib/util/lowerURL";
+import { HomePanelHeader } from "./HomePanelHeader";
 
 interface PopularSidebarProps {
   posts: PostStateWithoutContents[];
@@ -14,11 +15,9 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="min-w-0 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-5">
-      <h3 className="mb-4 text-base font-bold text-gray-900 dark:text-gray-100">
-        인기 있는 글
-      </h3>
-      <ol className="flex flex-col gap-4 list-none p-0 m-0">
+    <section className="min-w-0 overflow-hidden bg-white dark:bg-zinc-950">
+      <HomePanelHeader title="Popular Posts" />
+      <ol className="m-0 flex list-none flex-col p-0">
         {posts.map((post, i) => {
           const category = categories.find(
             (cat) => cat.id === post.category_id,
@@ -26,21 +25,21 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
           const categorySlug = lowerURL(category?.name || "");
 
           return (
-            <li key={post.id}>
+            <li
+              key={post.id}
+              className="border-b border-gray-200 last:border-b-0 dark:border-white/10"
+            >
               <Link
                 href={`/posts/${categorySlug}/${post.slug}`}
-                className="group flex min-w-0 items-start gap-3"
+                className="group flex min-w-0 items-start gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03]"
               >
-                <span className="shrink-0 text-lg font-bold leading-snug text-blue-500 dark:text-blue-400">
-                  {i + 1}
+                <span className="shrink-0 font-mono text-sm font-bold leading-snug text-blue-600 dark:text-blue-400">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="min-w-0 flex flex-col gap-1">
                   <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-800 dark:text-gray-100 group-hover:text-gray-500 dark:group-hover:text-white">
                     {post.title}
                   </p>
-                  <span className="text-xs text-metricsText">
-                    {post.author_name || "익명"}
-                  </span>
                 </div>
               </Link>
             </li>

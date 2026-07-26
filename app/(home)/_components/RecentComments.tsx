@@ -7,6 +7,7 @@ import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { CommentRow } from "@components/types/comment";
 import { lowerURL } from "@components/lib/util/lowerURL";
+import { HomePanelHeader } from "./HomePanelHeader";
 
 interface RecentCommentsProps {
   comments: CommentRow[];
@@ -24,17 +25,15 @@ export function RecentComments({
   const recent = comments.slice(0, RECENT_COUNT);
 
   return (
-    <section className="min-w-0 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-5">
-      <h3 className="mb-4 text-base font-bold text-gray-900 dark:text-gray-100">
-        최신 댓글
-      </h3>
+    <section className="min-w-0 overflow-hidden border-t border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950">
+      <HomePanelHeader title="Recent Comments" />
 
       {recent.length === 0 ? (
-        <div className="flex min-h-24 items-center justify-center rounded-xl border border-dashed border-gray-200 px-4 text-center text-sm text-metricsText dark:border-white/10">
+        <div className="flex min-h-24 items-center justify-center px-4 text-center text-sm text-metricsText">
           아직 표시할 댓글이 없습니다.
         </div>
       ) : (
-        <ul className="flex flex-col gap-4 list-none p-0 m-0">
+        <ul className="m-0 flex list-none flex-col p-0">
           {recent.map((comment) => {
             const post = posts.find((p) => p.id === comment.post_id);
             const category = post
@@ -82,7 +81,7 @@ export function RecentComments({
             return (
               <li
                 key={comment.id}
-                className="border-b border-gray-100 dark:border-white/10 pb-4 last:border-b-0 last:pb-0"
+                className="border-b border-gray-200 px-4 py-3.5 last:border-b-0 dark:border-white/10"
               >
                 {href ? (
                   <Link href={href} className="group block min-w-0">

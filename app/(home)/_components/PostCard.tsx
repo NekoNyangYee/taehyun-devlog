@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EyeIcon, HeartIcon, MessageSquareTextIcon, Grid2X2Plus } from "lucide-react";
 import { formatDate } from "@components/lib/util/dayjs";
 import { PostStateWithoutContents } from "@components/types/post";
+import { CategoryLabel } from "@components/components/CategoryLabel";
 
 /**
  * 게시물 카드 컴포넌트 (Presentational)
@@ -61,21 +62,16 @@ export function PostCard({
 
                 <div className="flex flex-1 flex-col gap-3 p-5">
                     <div className="flex items-center justify-between gap-2">
-                        <span
-                            className={`rounded-full px-3 py-1 text-xs font-medium ${isPopular
-                                ? "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300"
-                                : "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300"
-                                }`}
-                        >
-                            {categoryName}
-                        </span>
+                        <CategoryLabel
+                            name={categoryName}
+                            className={isPopular ? "text-red-600 dark:text-red-300" : undefined}
+                        />
                     </div>
 
                     <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-white transition">
                         {post.title}
                     </h3>
 
-                    <p className="text-sm text-metricsText">by {post.author_name || "익명"}</p>
                     <p className="text-xs text-metricsText">{formatDate(post.created_at)}</p>
 
                     <div className="mt-auto flex items-center gap-4 pt-4 text-sm text-metricsText border-t border-gray-100 dark:border-white/10">

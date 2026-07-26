@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { Grid2X2Plus } from "lucide-react";
+import { TagIcon } from "lucide-react";
 import { Category } from "@components/types/category";
 import { lowerURL } from "@components/lib/util/lowerURL";
+import { HomePanelHeader } from "./HomePanelHeader";
 
 interface CategoryGridProps {
   categories: Category[];
@@ -13,22 +13,11 @@ interface CategoryGridProps {
 
 export function CategoryGrid({ categories, counts = {} }: CategoryGridProps) {
   return (
-    <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h2 className="flex gap-3 text-2xl md:text-3xl font-bold items-center text-gray-900 dark:text-gray-100">
-          <span className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300">
-            <Grid2X2Plus size={22} />
-          </span>
-          카테고리
-        </h2>
-        <p className="text-metricsText text-sm md:text-base pl-1">
-          주제별로 게시물을 탐색해보세요
-        </p>
-      </div>
+    <section className="overflow-hidden bg-white dark:bg-zinc-950">
+      <HomePanelHeader title="Categories" href="/posts" />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 gap-px bg-gray-200 dark:bg-white/10 sm:grid-cols-2 lg:grid-cols-5">
         {categories.map((category) => {
-          const imageUrl = category?.thumbnail;
           const categoryLink = lowerURL(category.name);
           const count = counts[category.id] ?? 0;
 
@@ -36,24 +25,12 @@ export function CategoryGrid({ categories, counts = {} }: CategoryGridProps) {
             <Link
               key={category.id}
               href={`/posts/${categoryLink}`}
-              className="group flex items-center gap-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-3 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5"
+              className="group flex min-h-16 items-center gap-3 bg-white px-4 py-3 transition-colors hover:bg-gray-50 dark:bg-zinc-950 dark:hover:bg-zinc-900"
             >
-              <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900">
-                {imageUrl ? (
-                  <Image
-                    src={imageUrl}
-                    alt={category.name}
-                    fill
-                    quality={50}
-                    className="object-cover"
-                    sizes="48px"
-                  />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center text-metricsText">
-                    <Grid2X2Plus size={20} />
-                  </span>
-                )}
-              </span>
+              <TagIcon
+                size={16}
+                className="shrink-0 text-gray-500 dark:text-gray-400"
+              />
               <span className="flex min-w-0 flex-col">
                 <span className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {category.name}

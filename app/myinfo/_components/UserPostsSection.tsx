@@ -10,6 +10,7 @@ import { formatDate } from "@components/lib/util/dayjs";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { lowerURL } from "@components/lib/util/lowerURL";
+import { CategoryLabel } from "@components/components/CategoryLabel";
 
 interface UserPostsSectionProps {
   posts: PostStateWithoutContents[];
@@ -98,9 +99,7 @@ export function UserPostsSection({
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-4">
                   <div className="flex min-w-0 items-center justify-between gap-2">
-                    <span className="min-w-0 truncate rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                      {categoryName}
-                    </span>
+                    <CategoryLabel name={categoryName} />
                     <BookmarkIcon
                       size={17}
                       className="shrink-0 text-yellow-500"

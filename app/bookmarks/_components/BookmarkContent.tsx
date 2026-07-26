@@ -2,23 +2,16 @@
 
 import { BookmarkCheckIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { BookmarkCard } from "./BookmarkCard";
 import { useBookmarkData } from "../_hooks/useBookmarkData";
 import { useBookmarkToggle } from "@components/app/posts/_hooks/useBookmarkToggle";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import { useLoginModalStore } from "@components/store/loginModalStore";
 import { useIsClient } from "@components/lib/hooks/useIsClient";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@components/components/ui/select";
-import { cn } from "@components/lib/utils";
 import { LoginRequiredState } from "@components/components/LoginRequiredState";
+import { CategoryFilterPanel } from "@components/components/CategoryFilterPanel";
+import { PostListItem } from "@components/components/PostListItem";
+import { SortSelect } from "@components/app/posts/_components/SortSelect";
+import { PageTitlePanel } from "@components/components/PageTitlePanel";
 
 export default function BookmarkContent() {
   const isClient = useIsClient();
@@ -28,7 +21,6 @@ export default function BookmarkContent() {
   const {
     bookmarkedPosts,
     categories,
-    comments,
     bookmarks,
     userId,
     session,
@@ -116,47 +108,28 @@ export default function BookmarkContent() {
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-4 py-container">
-      <h2 className="text-2xl font-bold">북마크</h2>
+    <div className="my-6 flex w-full flex-1 flex-col border border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 md:my-8">
+      <PageTitlePanel
+        title="Bookmarks"
+      />
 
-      <div className="flex justify-between items-center gap-4">
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="카테고리" />
-          </SelectTrigger>
-          <SelectContent
-            className={cn("w-auto bg-white dark:border-white/10 dark:bg-zinc-900")}
-          >
-            <SelectGroup>
-              <SelectLabel>카테고리</SelectLabel>
-              <SelectItem value="all">전체 ({bookmarkedPosts.length})</SelectItem>
-              {categoryOptions.map((category) => (
-                <SelectItem key={category.id} value={String(category.id)}>
-                  {category.name} ({category.count})
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        <Select value={sortOrder} onValueChange={setSortOrder}>
-          <SelectTrigger className="w-[100px]">
-            <SelectValue placeholder="정렬" />
-          </SelectTrigger>
-          <SelectContent
-            className={cn("w-auto bg-white dark:border-white/10 dark:bg-zinc-900")}
-          >
-            <SelectItem value="new-sort">최신순</SelectItem>
-            <SelectItem value="old-sort">오래된순</SelectItem>
-            <SelectItem value="max-view-sort">조회수 높은순</SelectItem>
-            <SelectItem value="min-view-sort">조회수 낮은순</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-zinc-900">
+        <CategoryFilterPanel
+          options={categoryOptions.map((category) => ({
+            value: String(category.id),
+            label: category.name,
+            count: category.count,
+          }))}
+          selectedValue={selectedCategory}
+          totalCount={bookmarkedPosts.length}
+          onChange={setSelectedCategory}
+        />
+        <SortSelect value={sortOrder} onChange={setSortOrder} />
       </div>
 
-      <div className="w-full">
+      <section>
         {filteredAndSortedPosts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
+          <div>
             {filteredAndSortedPosts.map((post) => {
               const category = categories.find(
                 (cat) => cat.id === post.category_id,
@@ -164,35 +137,30 @@ export default function BookmarkContent() {
               const categorySlug = lowerURL(category?.name || "unknown");
               const thumbnailUrl = category?.thumbnail;
               const isBookmarked = bookmarks.includes(post.id);
-              const commentCount = comments.filter(
-                (comment) => comment.post_id === post.id,
-              ).length;
-
               return (
-                <BookmarkCard
+                <PostListItem
                   key={post.id}
                   post={post}
                   categoryName={category?.name || "미분류"}
                   categorySlug={categorySlug}
                   thumbnailUrl={thumbnailUrl}
-                  commentCount={commentCount}
                   isBookmarked={isBookmarked}
-                  onBookmarkToggle={(e) => {
-                    e.preventDefault();
-                    toggleBookmark(post.id, isBookmarked, e);
-                  }}
+                  showBookmark
+                  onBookmarkToggle={(event) =>
+                    toggleBookmark(post.id, isBookmarked, event)
+                  }
                 />
               );
             })}
           </div>
         ) : (
-          <div className="w-full h-[386px] flex items-center justify-center border border-gray-200 dark:border-white/10 rounded-container">
-            <p className="text-gray-500 dark:text-gray-400 text-center">
+          <div className="flex h-72 w-full items-center justify-center">
+            <p className="text-center text-gray-500 dark:text-gray-400">
               선택한 카테고리에 저장된 게시물이 없습니다.
             </p>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -9,31 +9,30 @@ import LogoIcon from "./icons/LogoIcon";
 import {
   Grid2X2Icon,
   HandIcon,
-  HomeIcon,
+  LayoutDashboardIcon,
   LogInIcon,
-  LogOutIcon,
   PanelLeftOpen,
   StarIcon,
-  UserRoundCog,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import MobileNavBar from "./MobileNav";
 import ScrollProgressBar from "./ScrollProgressBar";
 import SearchBar from "./SearchBar";
 import LoginModal from "./LoginModal";
 import ThemeToggle from "./ThemeToggle";
+import HeaderProfileMenu from "./HeaderProfileMenu";
 import { usePathname, useRouter } from "next/navigation";
 
 type NavItem = {
   href: string;
   label: string;
-  icon: typeof HomeIcon;
+  icon: LucideIcon;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "홈", icon: HomeIcon },
+  { href: "/", label: "메인", icon: LayoutDashboardIcon },
   { href: "/posts", label: "게시물", icon: Grid2X2Icon },
   { href: "/bookmarks", label: "북마크", icon: StarIcon },
-  { href: "/myinfo", label: "내 정보", icon: UserRoundCog },
   { href: "/profile", label: "안녕하세요!", icon: HandIcon },
 ];
 
@@ -110,35 +109,37 @@ export default function Header() {
             isScrolled ? "" : "pointer-events-auto"
           }`}
         >
-          {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity dark:[&_svg_path]:fill-white dark:[&_svg_rect]:fill-white dark:[&_svg_path]:stroke-white"
-          >
-            <LogoIcon />
-          </Link>
+          <div className="flex items-center gap-4 min-w-0">
+            {/* Logo */}
+            <Link
+              href="/"
+              className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity dark:[&_svg_path]:fill-white dark:[&_svg_rect]:fill-white dark:[&_svg_path]:stroke-white"
+            >
+              <LogoIcon />
+            </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center max-w-xl">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    active
-                      ? "bg-zinc-800 text-white dark:bg-zinc-700 dark:text-white"
-                      : "text-gray-700 hover:bg-white/40 hover:backdrop-blur-md hover:text-black dark:text-gray-300 dark:hover:bg-white/10 dark:hover:backdrop-blur-md dark:hover:text-white"
-                  }`}
-                >
-                  <Icon size={16} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      active
+                        ? "bg-zinc-800 text-white dark:bg-zinc-700 dark:text-white"
+                        : "text-gray-700 hover:bg-white/40 hover:backdrop-blur-md hover:text-black dark:text-gray-300 dark:hover:bg-white/10 dark:hover:backdrop-blur-md dark:hover:text-white"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
           {/* Right cluster */}
           <div className="flex items-center gap-1 shrink-0">
@@ -146,17 +147,13 @@ export default function Header() {
             <ThemeToggle />
 
             {/* Session button (icon only) — 세션 hydration 완료 전까지는 자리만 차지하여 깜빡임 방지 */}
-            <div className="hidden lg:block w-9 h-9">
+            <div className="hidden lg:block min-w-9 h-9">
               {sessionHydrated &&
                 (session ? (
-                  <button
-                    onClick={handleLogout}
-                    aria-label="로그아웃"
-                    title="로그아웃"
-                    className="flex items-center justify-center w-9 h-9 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/15 transition-colors"
-                  >
-                    <LogOutIcon size={20} />
-                  </button>
+                  <HeaderProfileMenu
+                    session={session}
+                    onLogout={handleLogout}
+                  />
                 ) : (
                   <button
                     onClick={openLogin}

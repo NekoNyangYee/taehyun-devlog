@@ -11,6 +11,8 @@ import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { CommentCountRow } from "@components/queries/commentQueries";
 import { lowerURL } from "@components/lib/util/lowerURL";
+import { HomePanelHeader } from "./HomePanelHeader";
+import { CategoryLabel } from "@components/components/CategoryLabel";
 
 interface ArticleListProps {
   posts: PostStateWithoutContents[];
@@ -26,13 +28,11 @@ export function ArticleList({
   isFetching = false,
 }: ArticleListProps) {
   return (
-    <section className="min-w-0 flex flex-col gap-2">
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-        전체 아티클
-      </h2>
+    <section className="min-w-0 overflow-hidden bg-white dark:bg-zinc-950">
+      <HomePanelHeader title="Latest Posts" href="/posts" />
 
       {posts.length === 0 ? (
-        <div className="mt-4 flex h-48 items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-white/15">
+        <div className="flex h-48 items-center justify-center">
           <p className="text-metricsText">게시물이 없습니다.</p>
         </div>
       ) : (
@@ -55,20 +55,15 @@ export function ArticleList({
             return (
               <li
                 key={post.id}
-                className="border-b border-gray-100 dark:border-white/10"
+                className="border-b border-gray-200 last:border-b-0 dark:border-white/10"
               >
                 <Link
                   href={`/posts/${categorySlug}/${post.slug}`}
-                  className="group flex min-w-0 items-start gap-4 py-6 sm:gap-6"
+                  className="group flex min-w-0 items-stretch gap-4 px-4 py-4 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03] sm:gap-6 sm:px-5 sm:py-5"
                 >
-                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="max-w-full truncate rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                        {categoryName}
-                      </span>
-                      <span className="min-w-0 truncate text-metricsText">
-                        {post.author_name || "익명"}
-                      </span>
+                      <CategoryLabel name={categoryName} />
                     </div>
 
                     <h3 className="line-clamp-2 text-lg sm:text-xl font-semibold leading-snug text-gray-900 dark:text-gray-100 group-hover:text-gray-600 dark:group-hover:text-white">
@@ -92,7 +87,7 @@ export function ArticleList({
                   </div>
 
                   {thumbnailUrl && (
-                    <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl sm:h-28 sm:w-44">
+                    <div className="relative h-20 w-28 shrink-0 overflow-hidden border border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-900 sm:h-28 sm:w-44">
                       <Image
                         src={thumbnailUrl}
                         alt={post.title}

@@ -17,6 +17,8 @@ import { Category } from "@components/types/category";
 import { CommentCountRow } from "@components/queries/commentQueries";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import { formatDate } from "@components/lib/util/dayjs";
+import { HomePanelHeader } from "./HomePanelHeader";
+import { CategoryLabel } from "@components/components/CategoryLabel";
 
 interface FeaturedCarouselProps {
   posts: PostStateWithoutContents[];
@@ -110,10 +112,12 @@ export function FeaturedCarousel({
   return (
     <section
       aria-label="추천 게시물"
-      className="w-full"
+      className="w-full overflow-hidden bg-white dark:bg-zinc-950"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      <HomePanelHeader title="Featured Posts" />
+
       <div className="relative overflow-hidden">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.article
@@ -127,20 +131,17 @@ export function FeaturedCarousel({
           >
             <Link
               href={`/posts/${categorySlug}/${post.slug}`}
-              className="group grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12"
+              className="group grid grid-cols-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
             >
-              <div className="order-2 flex flex-col gap-4 lg:order-1">
-                <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
-                  {categoryName}
-                </span>
-                <h2 className="line-clamp-3 text-2xl font-bold leading-tight text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white md:text-3xl lg:text-4xl">
+              <div className="order-2 flex min-w-0 flex-col justify-center gap-4 px-5 py-7 sm:px-8 sm:py-10 lg:order-1 lg:min-h-[22rem] lg:px-10">
+                <CategoryLabel
+                  name={categoryName}
+                  className="text-blue-700 dark:text-blue-300"
+                />
+                <h2 className="line-clamp-2 text-2xl font-bold leading-tight text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white md:text-3xl lg:text-4xl">
                   {post.title}
                 </h2>
                 <div className="flex items-center gap-3 text-sm text-metricsText">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {post.author_name || "익명"}
-                  </span>
-                  <span className="h-1 w-1 rounded-full bg-gray-300 dark:bg-zinc-600" />
                   <span>{formatDate(post.created_at)}</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-metricsText">
@@ -159,7 +160,7 @@ export function FeaturedCarousel({
                 </div>
               </div>
 
-              <div className="relative order-1 h-52 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 md:h-64 lg:order-2 lg:h-80">
+              <div className="relative order-1 h-52 w-full overflow-hidden border-b border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-900 md:h-72 lg:order-2 lg:h-full lg:min-h-[22rem] lg:border-b-0 lg:border-l">
                 {thumbnailUrl ? (
                   <Image
                     src={thumbnailUrl}
@@ -182,13 +183,13 @@ export function FeaturedCarousel({
       </div>
 
       {featured.length > 1 && (
-        <div className="mt-6 flex items-center gap-4">
+        <div className="flex items-center gap-4 border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-zinc-900 sm:px-5">
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => paginate(-1)}
               aria-label="이전 게시물"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 dark:border-white/15 dark:text-gray-300 dark:hover:bg-white/10"
+              className="flex h-8 w-8 items-center justify-center border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 dark:border-white/15 dark:bg-zinc-950 dark:text-gray-300 dark:hover:bg-white/10"
             >
               <ChevronLeft size={18} />
             </button>
@@ -196,7 +197,7 @@ export function FeaturedCarousel({
               type="button"
               onClick={() => paginate(1)}
               aria-label="다음 게시물"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 dark:border-white/15 dark:text-gray-300 dark:hover:bg-white/10"
+              className="flex h-8 w-8 items-center justify-center border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 dark:border-white/15 dark:bg-zinc-950 dark:text-gray-300 dark:hover:bg-white/10"
             >
               <ChevronRight size={18} />
             </button>

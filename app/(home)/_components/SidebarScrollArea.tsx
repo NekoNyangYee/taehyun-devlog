@@ -48,7 +48,7 @@ export function SidebarScrollArea({ children }: SidebarScrollAreaProps) {
     <div className="relative min-w-0">
       <div
         ref={scrollRef}
-        className="min-w-0 flex flex-col gap-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-hide"
+        className="min-w-0 flex flex-col lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-hide"
       >
         {children}
       </div>

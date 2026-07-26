@@ -2,7 +2,7 @@
 
 import {
   Grid2X2Icon,
-  HomeIcon,
+  LayoutDashboardIcon,
   LogOutIcon,
   LogInIcon,
   HandIcon,
@@ -87,14 +87,14 @@ export default function MobileNavBar({
         </button>
         <div className="p-container w-full flex flex-col overflow-auto scrollbar-hide">
           <Link
-            href={"/"}
+            href="/"
             className={`flex gap-2 items-center p-button justify-start rounded-button w-full h-10 ${isActive(
               "/",
             )}`}
             onClick={handleClose}
           >
-            <HomeIcon size={18} />
-            <span className="truncate">홈</span>
+            <LayoutDashboardIcon size={18} />
+            <span className="truncate">메인</span>
           </Link>
           <Link
             href="/posts"
