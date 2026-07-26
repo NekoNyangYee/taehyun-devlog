@@ -1,10 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import GitHubCalendar from "react-github-calendar";
 import dayjs from "dayjs";
 import { motion } from "framer-motion";
+import {
+  BriefcaseBusinessIcon,
+  GithubIcon,
+  GraduationCapIcon,
+  MailIcon,
+} from "lucide-react";
+import { PageTitlePanel } from "@components/components/PageTitlePanel";
+
+const panelHeaderClass =
+  "flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-5 font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-200";
 
 export default function ProfileDetailPage() {
   const [profile] = useState({
@@ -26,7 +35,10 @@ export default function ProfileDetailPage() {
     ],
     education: [
       { school: "청석고등학교", period: "2018 ~ 2021 졸업" },
-      { school: "청주대학교 디지털보안학과", period: "2021. 3 ~ 현재 재학 중" },
+      {
+        school: "청주대학교 디지털보안학과",
+        period: "2021. 3 ~ 현재 재학 중",
+      },
     ],
     career: [
       {
@@ -41,123 +53,143 @@ export default function ProfileDetailPage() {
   });
 
   const transformData = (
-    contributions: { date: string; count: number; level: number }[]
-  ) => {
-    return contributions.map((activity) => ({
+    contributions: { date: string; count: number; level: number }[],
+  ) =>
+    contributions.map((activity) => ({
       date: dayjs(activity.date).format("YYYY-MM-DD"),
       count: activity.count,
       level: Math.min(4, Math.max(0, activity.level)) as 0 | 1 | 2 | 3 | 4,
     }));
-  };
 
   return (
-    <motion.div
-      className="w-full h-full flex flex-col gap-6 bg-background z-0 -mt-[65px]"
-    >
-      <div className="relative w-full h-[500px] bg-center bg-cover bg-no-repeat bg-[url('/profile.webp')]">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-zinc-950 z-10" />
-        <div className="relative z-20 w-full h-full flex items-end justify-start p-8">
-          <div className="text-gray-800 dark:text-gray-100 space-y-2">
-            <h1 className="text-4xl font-bold">{profile.name}</h1>
-            <p className="text-lg">{profile.description}</p>
-            <div className="flex flex-wrap gap-4 mt-2">
-              <a
-                href={`mailto:${profile.email}`}
-                className="px-4 py-2 border border-gray-800 dark:border-gray-300 rounded-md hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-black transition"
-              >
-                {profile.email}
-              </a>
-              <a
-                href={profile.github}
-                className="px-4 py-2 border border-gray-800 dark:border-gray-300 rounded-md hover:bg-gray-800 hover:text-white dark:hover:bg-white dark:hover:text-black transition"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+    <motion.div className="my-6 flex w-full flex-1 flex-col border border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 md:my-8">
+      <PageTitlePanel title="Profile" />
 
-      <div className="p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mx-4">
-        <h2 className="text-xl font-semibold mb-4">기술 스택</h2>
-        <div className="flex flex-wrap gap-2">
-          {profile.stacks.map((stack, index) => (
+      <section className="flex flex-col border-b border-gray-200 dark:border-white/10 md:flex-row">
+        <div className="flex min-w-0 flex-1 flex-col justify-center px-5 py-8 md:px-8 md:py-10">
+          <span className="font-mono text-sm tracking-[0.08em] text-metricsText">
+            About Me
+          </span>
+          <h1 className="mt-2 text-3xl font-bold text-gray-950 dark:text-gray-50">
+            {profile.name}
+          </h1>
+          <p className="mt-2 text-base text-gray-600 dark:text-gray-300">
+            {profile.description}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 border-t border-gray-200 dark:border-white/10 md:border-l md:border-t-0">
+          <a
+            href={`mailto:${profile.email}`}
+            aria-label={`이메일 보내기: ${profile.email}`}
+            title={profile.email}
+            className="flex min-h-16 flex-1 items-center justify-center border-r border-gray-200 px-7 text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white md:flex-none"
+          >
+            <MailIcon size={22} />
+          </a>
+          <a
+            href={profile.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub 프로필 열기"
+            title="GitHub"
+            className="flex min-h-16 flex-1 items-center justify-center px-7 text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white md:flex-none"
+          >
+            <GithubIcon size={22} />
+          </a>
+        </div>
+      </section>
+
+      <section className="border-b border-gray-200 dark:border-white/10">
+        <h2 className={panelHeaderClass}>Tech Stack</h2>
+        <div className="flex flex-wrap gap-2 p-5 md:p-6">
+          {profile.stacks.map((stack) => (
             <img
-              key={index}
+              key={stack.name}
               src={`https://img.shields.io/badge/${stack.name}-${stack.bgcolor}?style=for-the-badge&logo=${stack.name}&logoColor=${stack.logocolor}`}
               alt={stack.name}
-              className={`rounded-md`}
             />
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* GitHub Calendar */}
-      <div className="p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mx-4">
-        <h2 className="text-xl font-semibold">깃허브 컨트리뷰션</h2>
-        <div className="w-full flex flex-col items-center">
-          <div className="w-full overflow-x-auto">
-            <GitHubCalendar
-              username={profile.username}
-              transformData={transformData}
-              colorScheme="light"
-              theme={{
-                light: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-              }}
-              hideColorLegend
-              hideTotalCount={false}
-              hideMonthLabels={false}
-              showWeekdayLabels
-              labels={{
-                totalCount: `${profile?.name}님은 {{count}}번 잔디를 심었습니다! 🌱`,
-              }}
-            />
-          </div>
+      <section className="border-b border-gray-200 dark:border-white/10">
+        <h2 className={panelHeaderClass}>GitHub Contributions</h2>
+        <div className="overflow-x-auto p-5 md:p-6">
+          <GitHubCalendar
+            username={profile.username}
+            transformData={transformData}
+            colorScheme="light"
+            theme={{
+              light: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+            }}
+            hideColorLegend
+            hideTotalCount={false}
+            hideMonthLabels={false}
+            showWeekdayLabels
+            labels={{
+              totalCount: `${profile.name}님은 {{count}}번 잔디를 심었습니다. 🌱`,
+            }}
+          />
         </div>
-      </div>
+      </section>
 
-      {/* 학력 */}
-      <div className="flex max-md:flex-col gap-4 mx-4">
-        <div className="w-full p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mb-4">
-          <h2 className="text-xl font-semibold mb-4">학력</h2>
-          <div className="space-y-4">
-            {profile.education.map((edu, index) => (
+      <div className="grid md:grid-cols-2">
+        <section className="border-b border-gray-200 dark:border-white/10 md:border-b-0 md:border-r">
+          <h2 className={panelHeaderClass}>Education</h2>
+          <div>
+            {profile.education.map((education, index) => (
               <div
-                key={index}
-                className="flex items-start gap-4 p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-white/5"
+                key={education.school}
+                className="flex items-start gap-4 border-b border-gray-200 px-5 py-5 last:border-b-0 dark:border-white/10"
               >
-                <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 dark:bg-white dark:text-black text-white text-sm font-bold">
-                  {index + 1}
-                </span>
-                <div>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{edu.school}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{edu.period}</p>
+                <GraduationCapIcon
+                  size={20}
+                  className="mt-0.5 shrink-0 text-metricsText"
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-950 dark:text-gray-50">
+                    {education.school}
+                  </p>
+                  <p className="mt-1 text-sm text-metricsText">
+                    {education.period}
+                  </p>
                 </div>
+                <span className="ml-auto font-mono text-xs text-metricsText">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
               </div>
             ))}
           </div>
-        </div>
-        <div className="w-full p-container border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 rounded-container mb-4">
-          <h2 className="text-xl font-semibold mb-4">활동</h2>
-          <div className="space-y-4">
-            {profile.career.map((job, index) => (
+        </section>
+
+        <section>
+          <h2 className={panelHeaderClass}>Experience</h2>
+          <div>
+            {profile.career.map((career, index) => (
               <div
-                key={index}
-                className="flex items-start gap-4 p-4 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-white/5"
+                key={career.company}
+                className="flex items-start gap-4 border-b border-gray-200 px-5 py-5 last:border-b-0 dark:border-white/10"
               >
-                <span className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 dark:bg-white dark:text-black text-white text-sm font-bold">
-                  {index + 1}
-                </span>
-                <div>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{job.company}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{job.period}</p>
+                <BriefcaseBusinessIcon
+                  size={20}
+                  className="mt-0.5 shrink-0 text-metricsText"
+                />
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-950 dark:text-gray-50">
+                    {career.company}
+                  </p>
+                  <p className="mt-1 text-sm text-metricsText">
+                    {career.period}
+                  </p>
                 </div>
+                <span className="ml-auto font-mono text-xs text-metricsText">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </motion.div>
   );

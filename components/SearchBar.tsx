@@ -184,14 +184,14 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
       <Link
         key={`${variant}-${post.id}`}
         href={`/posts/${getCategoryName(post)}/${post.slug}`}
-        className="group flex min-h-20 items-center gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+        className="group flex min-h-20 items-center gap-4 border-b border-gray-200 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5"
         onClick={handleClose}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
             <span className="truncate">{category?.name || "미분류"}</span>
             {variant === "bookmark" && (
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-white/10 dark:text-gray-300">
+              <span className="border border-gray-200 bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
                 북마크
               </span>
             )}
@@ -204,7 +204,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
           <img
             src={category.thumbnail}
             alt=""
-            className="h-14 w-14 shrink-0 rounded-lg object-cover ring-1 ring-black/5 dark:ring-white/10"
+            className="h-14 w-14 shrink-0 border border-gray-200 object-cover dark:border-white/10"
           />
         )}
       </Link>
@@ -219,10 +219,10 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
       <Link
         key={`comment-${comment.id}`}
         href={`/posts/${getCategoryName(post)}/${post.slug}`}
-        className="group flex min-h-20 items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+        className="group flex min-h-20 items-start gap-3 border-b border-gray-200 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5"
         onClick={handleClose}
       >
-        <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300">
+        <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center border border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
           <MessageSquare size={18} />
         </div>
         <div className="min-w-0 flex-1">
@@ -255,20 +255,20 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
     if (count === 0) return null;
 
     return (
-      <section className="border-t border-gray-100 px-3 py-4 first:border-t-0 dark:border-white/10">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <h3 className="text-sm font-semibold text-gray-950 dark:text-gray-50">
+      <section className="border-t border-gray-200 first:border-t-0 dark:border-white/10">
+        <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 dark:border-white/10 dark:bg-zinc-900">
+          <h3 className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:text-gray-200">
             {title}
           </h3>
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {count}
           </span>
         </div>
-        <div className="space-y-1">{items.map(renderItem)}</div>
+        <div>{items.map(renderItem)}</div>
         {count > 5 && (
-          <div className="mt-3 px-1">
+          <div className="border-t border-gray-200 dark:border-white/10">
             <button
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:hover:bg-white/10"
+              className="w-full bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 dark:hover:bg-white/5"
               onClick={onToggle}
             >
               {showAll ? "접기" : `더보기 (${count - 5}개)`}
@@ -293,18 +293,31 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
         }`}
         onClick={handleClose}
       />
-      <div className="absolute left-1/2 top-[8vh] w-full max-w-2xl -translate-x-1/2 px-4">
+      <div className="absolute left-1/2 top-[65px] w-full max-w-2xl -translate-x-1/2 px-0 sm:px-4">
         <div
-          className={`flex max-h-[min(80vh,44rem)] flex-col overflow-hidden rounded-lg border border-white/70 bg-white shadow-2xl shadow-black/20 transition-all duration-300 dark:border-white/10 dark:bg-zinc-950 dark:shadow-black/50 ${
+          className={`flex max-h-[calc(100vh-65px)] flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl shadow-black/20 transition-all duration-300 dark:border-white/10 dark:bg-zinc-950 dark:shadow-black/50 ${
             isOpen
-              ? "translate-y-3 scale-100 opacity-100"
-              : "translate-y-0 scale-95 opacity-0"
+              ? "translate-y-0 opacity-100"
+              : "-translate-y-2 opacity-0"
           }`}
           role="dialog"
           aria-modal="true"
           aria-label="검색"
         >
-          <div className="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 px-4 dark:border-white/10">
+          <div className="flex min-h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 pl-5 dark:border-white/10 dark:bg-zinc-900">
+            <span className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:text-gray-200">
+              Search
+            </span>
+            <button
+              type="button"
+              className="flex h-12 w-12 shrink-0 items-center justify-center border-l border-gray-200 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-50"
+              onClick={handleClose}
+              aria-label="검색 닫기"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 px-4 dark:border-white/10">
             <Search size={20} className="shrink-0 text-gray-500 dark:text-gray-400" />
             <input
               type="text"
@@ -317,23 +330,15 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
                 if (event.target.value.length === 0) resetExpandedState();
               }}
             />
-            <button
-              type="button"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-50"
-              onClick={handleClose}
-              aria-label="검색 닫기"
-            >
-              <X size={18} />
-            </button>
           </div>
 
           <div
             id="search-results-container"
-            className="max-h-[calc(min(80vh,44rem)-4rem)] overflow-y-auto scrollbar-hide bg-white dark:bg-zinc-950"
+            className="min-h-0 flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-zinc-950"
           >
             {!hasKeyword && (
               <div className="flex min-h-48 flex-col items-center justify-center px-6 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300">
+                <div className="flex h-12 w-12 items-center justify-center border border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
                   <Search size={22} />
                 </div>
                 <p className="mt-4 text-sm font-semibold text-gray-950 dark:text-gray-50">
@@ -347,7 +352,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
 
             {hasKeyword && !hasResults && (
               <div className="flex min-h-48 flex-col items-center justify-center px-6 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300">
+                <div className="flex h-12 w-12 items-center justify-center border border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
                   <Search size={22} />
                 </div>
                 <p className="mt-4 text-sm font-semibold text-gray-950 dark:text-gray-50">
@@ -413,7 +418,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
         <button
           onClick={handleOpen}
           aria-label="검색"
-          className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-300 ${
+          className={`flex h-9 w-9 items-center justify-center transition-colors duration-300 ${
             isLight
               ? "text-white hover:bg-white/15"
               : "text-gray-700 hover:bg-white/40 hover:backdrop-blur-md dark:text-gray-200 dark:hover:bg-white/10 dark:hover:backdrop-blur-md"
