@@ -16,6 +16,8 @@ import {
   fetchPostsQueryFn,
   postsQueryKey,
 } from "@components/queries/postQueries";
+import PageLoading from "@components/components/loading/PageLoading";
+import { ROLE_PRESENTATION } from "@components/lib/roles";
 
 export default function PublicUserProfileContent() {
   const isClient = useIsClient();
@@ -35,14 +37,10 @@ export default function PublicUserProfileContent() {
 
   const profile = profiles[0];
   const userPosts = posts.filter((post) => post.author_id === profileId);
-  const isEditor = profile?.role === "edit";
+  const rolePresentation = ROLE_PRESENTATION[profile?.role ?? "none"];
 
   if (!isClient || isProfileLoading) {
-    return (
-      <section className="flex min-h-[60vh] w-full items-center justify-center">
-        <p className="text-metricsText">프로필을 불러오는 중입니다...</p>
-      </section>
-    );
+    return <PageLoading />;
   }
 
   if (!profile) {
@@ -116,7 +114,7 @@ export default function PublicUserProfileContent() {
                 <span>
                   권한{" "}
                   <strong className="font-semibold">
-                    {isEditor ? "Editor" : "Member"}
+                    {rolePresentation.summary}
                   </strong>
                 </span>
               </div>

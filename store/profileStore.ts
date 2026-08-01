@@ -1,5 +1,6 @@
 import { supabase } from "@components/lib/supabaseClient";
 import { create } from "zustand";
+import { AppRole, resolveHighestAppRole } from "@components/lib/roles";
 
 export interface Profile {
   id: string;
@@ -9,12 +10,14 @@ export interface Profile {
   profile_image: string;
   profile_banner: string;
   // RBAC: role은 user_roles 테이블에서 조회
-  role?: 'none' | 'read' | 'edit';
+  role?: AppRole;
 }
 
 interface ProfileProps {
   profiles: Profile[];
   isCached: boolean;
+  cachedUserId: string | null;
+  isLoading: boolean;
   fetchProfiles: (userId?: string) => Promise<void>;
   updateProfile: (profileData: Partial<Profile>) => Promise<void>;
   checkAdminStatus?: (userId: string) => Promise<boolean>;
@@ -24,13 +27,21 @@ interface ProfileProps {
 export const useProfileStore = create<ProfileProps>((set, get) => ({
   profiles: [],
   isCached: false,
+  cachedUserId: null,
+  isLoading: false,
   fetchProfiles: async (userId?: string) => {
     const state = get();
 
     // 캐시가 있으면 데이터베이스 호출 건너뛰기
-    if (state.isCached && state.profiles.length > 0) {
+    if (
+      state.isCached &&
+      state.profiles.length > 0 &&
+      state.cachedUserId === (userId ?? null)
+    ) {
       return;
     }
+
+    set({ isLoading: true });
 
     try {
       // 1. profiles 테이블에서 기본 정보 조회 (role 제외)
@@ -49,7 +60,7 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
 
       if (profilesError) {
         console.error("프로필 가져오기 에러:", profilesError);
-        set({ profiles: [] });
+        set({ profiles: [], isCached: false, cachedUserId: null });
         return;
       }
 
@@ -58,7 +69,7 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
       const profileIds = (profilesData ?? []).map((p) => p.id);
 
       if (profileIds.length === 0) {
-        set({ profiles: [], isCached: true });
+        set({ profiles: [], isCached: true, cachedUserId: userId ?? null });
         return;
       }
 
@@ -70,7 +81,11 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
       if (rolesError) {
         console.error("역할 가져오기 에러:", rolesError);
         // role 없이도 프로필은 반환
-        set({ profiles: profilesData ?? [], isCached: true });
+        set({
+          profiles: profilesData ?? [],
+          isCached: true,
+          cachedUserId: userId ?? null,
+        });
         return;
       }
 
@@ -82,32 +97,34 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
 
       // 3. profiles와 roles 데이터 병합
       const profilesWithRoles = (profilesData ?? []).map((profile) => {
-        const userRole = (rolesData as UserRoleRow[] | null)?.find(
+        const userRoles = (rolesData as UserRoleRow[] | null)?.filter(
           (r) => r.user_id === profile.id
-        );
-        const rolesRel = Array.isArray(userRole?.roles)
-          ? userRole?.roles[0]
-          : userRole?.roles;
-        const roleName = rolesRel?.name;
-
-        // role 매핑: 'editor' -> 'edit', 'viewer' -> 'read', 기타 -> 'none'
-        let role: 'none' | 'read' | 'edit' = 'none';
-        if (roleName === 'editor') {
-          role = 'edit';
-        } else if (roleName === 'viewer') {
-          role = 'read';
-        }
+        ) ?? [];
+        const roleNames = userRoles.flatMap((userRole) => {
+          const relations = Array.isArray(userRole.roles)
+            ? userRole.roles
+            : userRole.roles
+              ? [userRole.roles]
+              : [];
+          return relations.map((relation) => relation.name);
+        });
 
         return {
           ...profile,
-          role,
+          role: resolveHighestAppRole(roleNames),
         };
       });
 
-      set({ profiles: profilesWithRoles, isCached: true });
+      set({
+        profiles: profilesWithRoles,
+        isCached: true,
+        cachedUserId: userId ?? null,
+      });
     } catch (error) {
       console.error("프로필 조회 중 예외 발생:", error);
-      set({ profiles: [] });
+      set({ profiles: [], isCached: false, cachedUserId: null });
+    } finally {
+      set({ isLoading: false });
     }
   },
   updateProfile: async (profileData: Partial<Profile>) => {
@@ -120,7 +137,8 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
     }
 
     // role은 profiles 테이블에 없으므로 제거
-    const { role, ...profileUpdateData } = profileData;
+    const profileUpdateData: Partial<Profile> = { ...profileData };
+    delete profileUpdateData.role;
 
     const { error } = await supabase
       .from("profiles")
@@ -133,10 +151,10 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
     }
 
     // 업데이트 후 캐시 초기화하여 다음 fetch에서 최신 데이터 가져오기
-    set({ isCached: false });
+    set({ isCached: false, cachedUserId: null });
     await get().fetchProfiles(user.id);
   },
   clearCache: () => {
-    set({ isCached: false, profiles: [] });
+    set({ isCached: false, cachedUserId: null, profiles: [] });
   },
 }));

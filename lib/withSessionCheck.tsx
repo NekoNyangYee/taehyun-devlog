@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "@components/lib/supabaseClient";
 import { Session } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import PageLoading from "@components/components/loading/PageLoading";
 
 interface WithUserProps {
   user: {
@@ -50,7 +51,7 @@ const withSessionCheck = (
     }, [loading, session, router]);
 
     if (loading) {
-      return null;
+      return <PageLoading />;
     }
 
     if (!session || !session.user || !session.user.email) {

@@ -12,6 +12,7 @@ import { CategoryFilterPanel } from "@components/components/CategoryFilterPanel"
 import { PostListItem } from "@components/components/PostListItem";
 import { SortSelect } from "@components/app/posts/_components/SortSelect";
 import { PageTitlePanel } from "@components/components/PageTitlePanel";
+import PageLoading from "@components/components/loading/PageLoading";
 
 export default function BookmarkContent() {
   const isClient = useIsClient();
@@ -70,14 +71,7 @@ export default function BookmarkContent() {
   }, [bookmarkedPosts, selectedCategory, sortOrder]);
 
   if (!isClient || isLoading) {
-    return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4">
-        <div className="flex items-center gap-3 rounded-container border border-gray-200 bg-white px-5 py-4 text-sm text-metricsText shadow-sm dark:border-white/10 dark:bg-zinc-950">
-          <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-gray-900 animate-spin dark:border-zinc-700 dark:border-t-gray-100" />
-          북마크를 불러오는 중입니다.
-        </div>
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (!session) {

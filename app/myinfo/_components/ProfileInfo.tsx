@@ -9,14 +9,15 @@ import {
   XIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { ROLE_PRESENTATION, type AppRole } from "@components/lib/roles";
 
 interface ProfileInfoProps {
   avatar: string;
   name: string;
   email: string;
   audience: string;
-  isEditor: boolean;
+  role: AppRole;
   postCount: number;
   publicProfileUrl: string;
 }
@@ -26,17 +27,16 @@ export function ProfileInfo({
   name,
   email,
   audience,
-  isEditor,
+  role,
   postCount,
   publicProfileUrl,
 }: ProfileInfoProps) {
-  const [shareUrl, setShareUrl] = useState("");
+  const rolePresentation = ROLE_PRESENTATION[role];
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
-
-  useEffect(() => {
-    setShareUrl(publicProfileUrl || window.location.href);
-  }, [publicProfileUrl]);
+  const shareUrl =
+    publicProfileUrl ||
+    (typeof window !== "undefined" ? window.location.href : "");
 
   const handleShare = async () => {
     const url = shareUrl || window.location.href;
@@ -67,7 +67,7 @@ export function ProfileInfo({
 
   return (
     <>
-      <section className="rounded-container border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-zinc-950">
+      <section className="border-b border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-zinc-950 md:px-8 md:py-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-zinc-800">
@@ -80,7 +80,7 @@ export function ProfileInfo({
                 sizes="96px"
                 className="object-cover"
               />
-              {isEditor && (
+              {rolePresentation.canEdit && (
                 <div className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 shadow-sm">
                   <UserCheckIcon size={16} className="text-white" />
                 </div>
@@ -106,9 +106,11 @@ export function ProfileInfo({
               </div>
               <p className="mt-1 truncate text-sm text-metricsText">{email}</p>
               <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                {isEditor
-                  ? "블로그 콘텐츠를 작성하고 관리할 수 있는 계정입니다."
-                  : "개인 활동과 계정 정보를 확인할 수 있는 계정입니다."}
+                {role === "admin"
+                  ? "블로그 콘텐츠와 사용자 권한을 관리할 수 있는 계정입니다."
+                  : role === "edit"
+                    ? "블로그 콘텐츠를 작성하고 관리할 수 있는 계정입니다."
+                    : "개인 활동과 계정 정보를 확인할 수 있는 계정입니다."}
               </p>
 
               <div className="mt-4 flex flex-wrap gap-5 text-sm">
@@ -118,7 +120,7 @@ export function ProfileInfo({
                 <span>
                   권한{" "}
                   <strong className="font-semibold">
-                    {isEditor ? "Editor" : "Member"}
+                    {rolePresentation.summary}
                   </strong>
                 </span>
               </div>
@@ -127,7 +129,7 @@ export function ProfileInfo({
 
           <button
             onClick={handleShare}
-            className="inline-flex items-center justify-center gap-2 rounded-button bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:bg-gray-200 md:w-44 dark:bg-white/10 dark:text-gray-100 dark:hover:bg-white/15"
+            className="inline-flex h-10 items-center justify-center gap-2 border border-gray-200 bg-gray-50 px-4 text-sm font-medium text-gray-800 transition hover:bg-gray-100 md:w-44 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-100 dark:hover:bg-white/10"
           >
             <Share2Icon size={15} />
             프로필 공유

@@ -1,5 +1,6 @@
 import { supabase } from "@components/lib/supabaseClient";
 import { Profile } from "@components/store/profileStore";
+import { resolveHighestAppRole } from "@components/lib/roles";
 
 export const profileQueryKey = (userId?: string) =>
   userId ? ["profile", userId] : ["profiles"];
@@ -47,18 +48,21 @@ export const fetchProfileQueryFn = async (
   };
 
   return profiles.map((profile) => {
-    const userRole = (rolesData as UserRoleRow[] | null)?.find(
+    const userRoles = (rolesData as UserRoleRow[] | null)?.filter(
       (role) => role.user_id === profile.id
-    );
-    const roleRelation = Array.isArray(userRole?.roles)
-      ? userRole?.roles[0]
-      : userRole?.roles;
-    const roleName = roleRelation?.name;
+    ) ?? [];
+    const roleNames = userRoles.flatMap((userRole) => {
+      const relations = Array.isArray(userRole.roles)
+        ? userRole.roles
+        : userRole.roles
+          ? [userRole.roles]
+          : [];
+      return relations.map((relation) => relation.name);
+    });
 
     return {
       ...profile,
-      role:
-        roleName === "editor" ? "edit" : roleName === "viewer" ? "read" : "none",
+      role: resolveHighestAppRole(roleNames),
     };
   });
 };

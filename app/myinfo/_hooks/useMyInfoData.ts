@@ -13,10 +13,6 @@ import {
     categoriesQueryKey,
     fetchCategoriesQueryFn,
 } from "@components/queries/categoryQueries";
-import {
-    commentCountsQueryKey,
-    fetchCommentCountsQueryFn,
-} from "@components/queries/commentQueries";
 
 /**
  * MyInfo 페이지 데이터 관리 Hook
@@ -24,8 +20,14 @@ import {
  * - 사용자 게시물 및 댓글 조회
  */
 export function useMyInfoData() {
-    const { session, isLoading, fetchSession } = useSessionStore();
-    const { profiles, fetchProfiles } = useProfileStore();
+    const { session, isLoading: isSessionLoading, fetchSession } = useSessionStore();
+    const {
+        profiles,
+        fetchProfiles,
+        isCached: isProfileCached,
+        cachedUserId,
+        isLoading: isProfileLoading,
+    } = useProfileStore();
     const userId = session?.user?.id;
 
     // 서버 상태 조회
@@ -62,33 +64,14 @@ export function useMyInfoData() {
             );
     }, [posts, userId]);
 
-    const userPostIds = useMemo(
-        () => sortedUserPosts.map((post) => post.id),
-        [sortedUserPosts]
-    );
-
-    const { data: comments = [] } = useQuery({
-        queryKey: commentCountsQueryKey(userPostIds),
-        queryFn: () => fetchCommentCountsQueryFn(userPostIds),
-        enabled: userPostIds.length > 0,
-        staleTime: 1000 * 60 * 5,
-    });
-
-    // 댓글 수 맵 (파생 상태)
-    const commentCountMap = useMemo(() => {
-        const map = new Map<number, number>();
-        comments.forEach((comment) => {
-            map.set(comment.post_id, (map.get(comment.post_id) || 0) + 1);
-        });
-        return map;
-    }, [comments]);
-
     return {
         session,
-        isLoading,
+        isLoading:
+            isSessionLoading ||
+            (Boolean(userId) &&
+                (isProfileLoading || !isProfileCached || cachedUserId !== userId)),
         profiles,
         categories,
         userPosts: sortedUserPosts,
-        commentCountMap,
     };
 }
