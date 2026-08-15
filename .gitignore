@@ -35,13 +35,8 @@ yarn-error.log*
 
 # vercel
 .vercel
+!.env.example
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# OpenNext / Wrangler
-.open-next
-.wrangler
-.dev.vars*
-!.dev.vars.example

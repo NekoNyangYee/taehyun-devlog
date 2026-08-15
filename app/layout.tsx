@@ -125,7 +125,7 @@ export default function RootLayout({
           </ReactQueryProvider>
         </ThemeProvider>
         <Script
-          src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
+          src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"
           strategy="afterInteractive"
         />
       </body>
