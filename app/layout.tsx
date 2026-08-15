@@ -116,7 +116,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ReactQueryProvider>
             <Header />
-            <main className="site-container flex flex-1 box-border px-0 pt-[65px] sm:px-4 lg:px-8">
+            <main className="site-container box-border flex flex-1 pt-[65px]">
               <Suspense fallback={<PageLoading />}>
                 <PageTransition>{children}</PageTransition>
               </Suspense>

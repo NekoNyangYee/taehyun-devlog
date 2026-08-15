@@ -55,7 +55,7 @@ export function useHomeData(page: number, pageSize: number) {
         queryFn: () => fetchFeaturedPostsQueryFn(FEATURED_LIMIT),
     });
 
-    // 인기 있는 글 (조회수 상위)
+    // 인기 있는 글 (좋아요 상위)
     const { data: popularPosts = [] } = useQuery({
         queryKey: popularPostsQueryKey(POPULAR_LIMIT),
         queryFn: () => fetchPopularPostsQueryFn(POPULAR_LIMIT),

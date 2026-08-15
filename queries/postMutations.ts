@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  incrementViewCountMutationFn,
   toggleLikeMutationFn,
   addBookmarkMutationFn,
   removeBookmarkMutationFn,
@@ -8,32 +7,13 @@ import {
   bookmarkQueryKey,
 } from "./postQueries";
 
-// 조회수 증가 Mutation
-export const useIncrementViewCount = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: incrementViewCountMutationFn,
-    onSuccess: (_, postId) => {
-      // 게시물 상세 캐시 무효화
-      queryClient.invalidateQueries({
-        queryKey: ["posts", "detail"],
-      });
-      // 전체 게시물 목록 캐시 무효화
-      queryClient.invalidateQueries({
-        queryKey: postsQueryKey,
-      });
-    },
-  });
-};
-
 // 좋아요 토글 Mutation
 export const useToggleLike = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: toggleLikeMutationFn,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // 게시물 상세 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ["posts", "detail"],

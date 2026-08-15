@@ -7,7 +7,7 @@ import {
 
 /** 목록/카드에 필요한 게시물 컬럼 (본문 contents 제외) */
 const POST_LIST_COLUMNS =
-  "id, slug, title, author_id, author_name, visibility, created_at, updated_at, view_count, like_count, category_id, liked_by_user";
+  "id, slug, title, author_id, author_name, visibility, created_at, updated_at, like_count, category_id, liked_by_user";
 
 export const postsQueryKey = ["posts"] as const;
 export const bookmarkQueryKey = (userId?: string) =>
@@ -91,7 +91,7 @@ export const fetchFeaturedPostsQueryFn = async (
 export const popularPostsQueryKey = (limit: number) =>
   ["posts", "popular", limit] as const;
 
-/** 인기 글 사이드바용 — 조회수 상위 공개 게시물 (limit개) */
+/** 인기 글 사이드바용 — 좋아요 상위 공개 게시물 (limit개) */
 export const fetchPopularPostsQueryFn = async (
   limit = 4
 ): Promise<PostStateWithoutContents[]> => {
@@ -99,7 +99,7 @@ export const fetchPopularPostsQueryFn = async (
     .from("posts")
     .select(POST_LIST_COLUMNS)
     .eq("visibility", "public")
-    .order("view_count", { ascending: false })
+    .order("like_count", { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -187,30 +187,6 @@ export const fetchPostByIdQueryFn = async (
   }
 
   return data as PostState;
-};
-
-export const incrementViewCountMutationFn = async (postId: number) => {
-  const postIdNum = Number(postId);
-
-  const { data, error } = await supabase
-    .from("posts")
-    .select("view_count")
-    .eq("id", postIdNum)
-    .single();
-
-  if (error) {
-    throw new Error(`조회수 증가 중 에러: ${error.message}`);
-  }
-
-  const viewCount = data?.view_count ?? 0;
-  const { error: updateError } = await supabase
-    .from("posts")
-    .update({ view_count: viewCount + 1 })
-    .eq("id", postIdNum);
-
-  if (updateError) {
-    throw new Error(`조회수 업데이트 실패: ${updateError.message}`);
-  }
 };
 
 interface ToggleLikePayload {

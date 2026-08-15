@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  EyeIcon,
+  CalendarDays,
   HeartIcon,
   MessageSquareTextIcon,
 } from "lucide-react";
@@ -11,8 +11,8 @@ import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { CommentCountRow } from "@components/queries/commentQueries";
 import { lowerURL } from "@components/lib/util/lowerURL";
-import { HomePanelHeader } from "./HomePanelHeader";
 import { CategoryLabel } from "@components/components/CategoryLabel";
+import { formatDate } from "@components/lib/util/dayjs";
 
 interface ArticleListProps {
   posts: PostStateWithoutContents[];
@@ -28,16 +28,20 @@ export function ArticleList({
   isFetching = false,
 }: ArticleListProps) {
   return (
-    <section className="min-w-0 overflow-hidden bg-white dark:bg-zinc-950">
-      <HomePanelHeader title="Latest Posts" href="/posts" />
+    <section className="min-w-0">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold tracking-[-0.03em] text-gray-950 dark:text-white">
+          전체 아티클
+        </h2>
+      </div>
 
       {posts.length === 0 ? (
         <div className="flex h-48 items-center justify-center">
-          <p className="text-metricsText">게시물이 없습니다.</p>
+          <p className="text-metricsText">아티클이 없습니다.</p>
         </div>
       ) : (
         <ul
-          className={`flex flex-col list-none p-0 m-0 ${
+          className={`m-0 flex list-none flex-col gap-10 p-0 ${
             isFetching ? "opacity-50" : "opacity-100"
           }`}
         >
@@ -53,27 +57,29 @@ export function ArticleList({
             ).length;
 
             return (
-              <li
-                key={post.id}
-                className="border-b border-gray-200 last:border-b-0 dark:border-white/10"
-              >
-                <Link
-                  href={`/posts/${categorySlug}/${post.slug}`}
-                  className="group flex min-w-0 items-stretch gap-4 px-4 py-4 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03] sm:gap-6 sm:px-5 sm:py-5"
-                >
+              <li key={post.id}>
+                <div className="group flex min-w-0 items-center gap-5 sm:gap-8">
                   <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
-                    <div className="flex items-center gap-2 text-xs">
-                      <CategoryLabel name={categoryName} />
+                    <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs">
+                      <CategoryLabel
+                        name={categoryName}
+                        href={category ? `/articles?category=${category.id}` : "/articles"}
+                      />
+                      <span className="max-w-40 truncate rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
+                        {post.author_name}
+                      </span>
                     </div>
 
-                    <h3 className="line-clamp-2 text-lg sm:text-xl font-semibold leading-snug text-gray-900 dark:text-gray-100 group-hover:text-gray-600 dark:group-hover:text-white">
-                      {post.title}
-                    </h3>
+                    <Link href={`/articles/${categorySlug}/${post.slug}`}>
+                      <h3 className="mt-1 line-clamp-2 text-xl font-bold leading-snug tracking-[-0.02em] text-gray-950 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300 sm:text-2xl">
+                        {post.title}
+                      </h3>
+                    </Link>
 
-                    <div className="mt-1 flex items-center gap-4 text-sm text-metricsText">
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-metricsText">
                       <span className="flex items-center gap-1.5">
-                        <EyeIcon size={15} />
-                        {post.view_count ?? 0}
+                        <CalendarDays size={15} />
+                        {formatDate(post.created_at)}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <HeartIcon size={15} />
@@ -87,18 +93,21 @@ export function ArticleList({
                   </div>
 
                   {thumbnailUrl && (
-                    <div className="relative h-20 w-28 shrink-0 overflow-hidden border border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-900 sm:h-28 sm:w-44">
+                    <Link
+                      href={`/articles/${categorySlug}/${post.slug}`}
+                      className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-zinc-900 sm:h-32 sm:w-56"
+                    >
                       <Image
                         src={thumbnailUrl}
                         alt={post.title}
                         fill
-                        quality={60}
-                        className="object-cover"
-                        sizes="(max-width: 640px) 112px, 176px"
+                        quality={65}
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                        sizes="(max-width: 640px) 128px, 224px"
                       />
-                    </div>
+                    </Link>
                   )}
-                </Link>
+                </div>
               </li>
             );
           })}

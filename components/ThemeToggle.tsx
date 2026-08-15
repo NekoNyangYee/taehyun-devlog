@@ -33,7 +33,6 @@ export default function ThemeToggle() {
     };
   }, [isOpen]);
 
-  // 헤더 아이콘은 사용자가 선택한 모드 그대로 반영 (system → Monitor)
   const CurrentIcon =
     theme === "dark" ? MoonIcon : theme === "system" ? Monitor : SunIcon;
 
@@ -44,9 +43,9 @@ export default function ThemeToggle() {
         aria-label="테마 변경"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/40 hover:backdrop-blur-md dark:hover:bg-white/10 dark:hover:backdrop-blur-md transition-colors"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-[rgba(3,18,40,0.7)] transition-colors hover:bg-white/40 hover:backdrop-blur-md dark:text-gray-200 dark:hover:bg-white/10 dark:hover:backdrop-blur-md"
       >
-        <CurrentIcon size={18} className="text-gray-700 dark:text-gray-200" />
+        <CurrentIcon size={18} />
       </button>
 
       <AnimatePresence>

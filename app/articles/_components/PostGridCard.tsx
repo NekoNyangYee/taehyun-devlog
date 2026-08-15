@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   BookmarkIcon,
-  EyeIcon,
   HeartIcon,
   MessageSquareTextIcon,
 } from "lucide-react";
@@ -37,12 +36,11 @@ export function PostGridCard({
   onBookmarkToggle,
 }: PostGridCardProps) {
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg dark:hover:border-white/20">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg dark:hover:border-white/20">
       <Link
-        href={`/posts/${encodeURIComponent(categorySlug)}/${post.slug}`}
-        className="flex flex-col h-full"
+        href={`/articles/${encodeURIComponent(categorySlug)}/${post.slug}`}
+        className="relative h-40 w-full bg-gray-100 dark:bg-zinc-800"
       >
-        <div className="relative h-40 w-full bg-gray-100 dark:bg-zinc-800">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -54,11 +52,14 @@ export function PostGridCard({
               이미지 없음
             </div>
           )}
-        </div>
+      </Link>
 
-        <div className="flex flex-1 flex-col gap-3 p-5">
+      <div className="flex flex-1 flex-col gap-3 p-5">
           <div className="flex items-center justify-between">
-            <CategoryLabel name={categoryName} />
+            <CategoryLabel
+              name={categoryName}
+              href={`/articles?category=${encodeURIComponent(categorySlug)}`}
+            />
             {showBookmark && (
               <button
                 onClick={onBookmarkToggle}
@@ -75,18 +76,16 @@ export function PostGridCard({
             )}
           </div>
 
-          <h3 className="truncate text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100">
-            {post.title}
-          </h3>
+          <Link href={`/articles/${encodeURIComponent(categorySlug)}/${post.slug}`}>
+            <h3 className="truncate text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100">
+              {post.title}
+            </h3>
+          </Link>
           <p className="text-sm text-metricsText">
             {formatDate(post.created_at)}
           </p>
 
           <div className="mt-auto flex items-center gap-4 pt-3 text-sm text-metricsText">
-            <span className="flex items-center gap-1">
-              <EyeIcon size={16} />
-              {post.view_count}
-            </span>
             <span className="flex items-center gap-1">
               <HeartIcon size={16} />
               {post.like_count}
@@ -96,8 +95,7 @@ export function PostGridCard({
               {commentCount}
             </span>
           </div>
-        </div>
-      </Link>
-    </div>
+      </div>
+    </article>
   );
 }

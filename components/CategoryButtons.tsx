@@ -56,10 +56,15 @@ export default function CategorySelect<
       onValueChange={(value) => {
         if (value === "all") {
           setSelectedCategory(null);
-          router.push("/posts");
+          router.push("/articles");
         } else {
           setSelectedCategory(value);
-          router.push(`/posts/${lowerURL(value)}`);
+          const categoryId = categories.find(
+            (category) => category.name === value,
+          )?.id;
+          router.push(
+            categoryId ? `/articles?category=${categoryId}` : "/articles",
+          );
         }
       }}
     >

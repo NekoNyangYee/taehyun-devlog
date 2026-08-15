@@ -11,25 +11,23 @@ interface AccountInfoSectionProps {
 
 export function AccountInfoSection({ accountDetails }: AccountInfoSectionProps) {
   return (
-    <section className="border-b border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950">
-      <div className="border-b border-gray-200 bg-gray-50 px-5 py-4 dark:border-white/10 dark:bg-zinc-900">
-        <h2 className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:text-gray-200">
-          Account Details
+    <section>
+      <div>
+        <h2 className="text-2xl font-bold tracking-[-0.03em] text-gray-950 dark:text-white">
+          계정 정보
         </h2>
         <p className="mt-1 text-sm text-metricsText">
           로그인, 세션, 계정 식별 정보를 한곳에서 확인합니다.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2">
-        {accountDetails.map(({ label, value, description, icon: Icon }, index) => (
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {accountDetails.map(({ label, value, description, icon: Icon }) => (
           <div
             key={label}
-            className={`flex min-w-0 items-center gap-3 border-b border-gray-200 px-5 py-5 dark:border-white/10 md:px-6 ${
-              index % 2 === 0 ? "md:border-r" : ""
-            }`}
+            className="flex min-w-0 items-center gap-4 rounded-2xl bg-gray-100/80 p-5 dark:bg-white/[0.055] sm:p-6"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-950 text-white dark:bg-white dark:text-black">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gray-700 ring-1 ring-gray-200 dark:bg-white/[0.07] dark:text-gray-200 dark:ring-white/10">
               <Icon size={18} />
             </span>
             <div className="min-w-0 text-left">

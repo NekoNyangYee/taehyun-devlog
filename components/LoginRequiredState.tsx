@@ -1,6 +1,6 @@
 "use client";
 
-import { LogInIcon } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@components/lib/utils";
 
 interface LoginRequiredStateProps {
@@ -12,9 +12,9 @@ interface LoginRequiredStateProps {
 }
 
 export function LoginRequiredState({
-  title = "로그인이 필요합니다.",
-  description = "로그인 후 이용할 수 있습니다.",
-  actionLabel = "로그인하러 가기",
+  title = "로그인하고 계속해 볼까요?",
+  description = "로그인하면 저장한 아티클과 내 활동을 편하게 확인할 수 있어요.",
+  actionLabel = "로그인하기",
   className,
   onLoginClick,
 }: LoginRequiredStateProps) {
@@ -25,9 +25,15 @@ export function LoginRequiredState({
         className,
       )}
     >
-      <div className="flex h-14 w-14 items-center justify-center rounded-container bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300">
-        <LogInIcon size={28} />
-      </div>
+      <Image
+        src="/need-login.png"
+        alt="로그인이 필요한 서비스"
+        width={192}
+        height={192}
+        quality={75}
+        className="h-auto w-40 sm:w-48"
+        sizes="(max-width: 640px) 160px, 192px"
+      />
       <h1 className="text-2xl font-semibold text-gray-950 dark:text-gray-50">
         {title}
       </h1>

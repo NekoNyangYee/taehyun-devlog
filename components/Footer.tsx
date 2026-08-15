@@ -1,52 +1,58 @@
-import React from "react";
+import { Mail } from "lucide-react";
+import Image from "next/image";
 import LogoIcon from "./icons/LogoIcon";
 
-const GITHUB_URL = "https://github.com/kth08"; // 깃허브 주소는 필요시 수정
-const EMAIL = "mailto:kth08.dev@gmail.com"; // 이메일 주소는 필요시 수정
+const GITHUB_URL = "https://github.com/kth08";
+const EMAIL = "mailto:kth08.dev@gmail.com";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-gray-100 dark:bg-zinc-950 border-t border-gray-200 dark:border-white/10 mt-auto py-6 px-4 flex flex-col items-center text-gray-700 dark:text-gray-300 text-sm">
-      <div className="flex items-center gap-2 mb-2 dark:[&_svg_path]:fill-white dark:[&_svg_rect]:fill-white dark:[&_svg_path]:stroke-white">
-        <LogoIcon />
-        <span className="font-bold text-base">TaeHyun&apos;s Devlog</span>
-      </div>
-      <p className="mb-2 text-center max-w-xl">
-        개발과 성장의 기록을 남기는 블로그입니다. <br className="sm:hidden" />
-        다양한 개발 지식과 경험을 공유합니다.
-      </p>
-      <div className="flex gap-4 mb-2">
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub"
-        >
-          <img
-            src="/github.svg"
-            alt="GitHub"
-            className="w-6 h-6 hover:opacity-70 transition dark:invert"
-          />
-        </a>
-        <a href={EMAIL} aria-label="Email">
-          <svg
-            className="w-6 h-6 hover:opacity-70 transition"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            ></path>
-          </svg>
-        </a>
-      </div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-        &copy; 2025 TaeHyun-Devlog. All rights reserved.
+    <footer className="mt-auto w-full border-t border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-950">
+      <div className="site-container flex min-h-24 flex-col justify-between gap-4 py-4 text-gray-700 dark:text-gray-300 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 dark:[&_svg_path]:fill-white dark:[&_svg_path]:stroke-white dark:[&_svg_rect]:fill-white">
+            <LogoIcon />
+            <span className="whitespace-nowrap text-base font-bold text-gray-900 dark:text-white">
+              TaeHyun&apos;s Devlog
+            </span>
+          </div>
+
+          <span className="hidden h-5 w-px bg-gray-300 dark:bg-white/15 sm:block" />
+
+          <div className="flex items-center gap-1">
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
+            >
+              <Image
+                src="/github.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="h-5 w-5 dark:invert"
+              />
+            </a>
+            <a
+              href={EMAIL}
+              aria-label="이메일"
+              className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
+            >
+              <Mail size={20} />
+            </a>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1 text-left sm:items-end sm:text-right">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            개발 과정에서 배운 내용과 경험을 기록하는 기술 블로그입니다.
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            &copy; 2025 - 2026 TaeHyun&apos;s Devlog. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

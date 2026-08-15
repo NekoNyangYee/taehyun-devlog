@@ -25,8 +25,8 @@ export function SortSelect({ value, onChange }: SortSelectProps) {
             <SelectContent className={cn("w-auto rounded-none bg-white dark:bg-zinc-900 dark:border-white/10")}>
                 <SelectItem value="new-sort">최신순</SelectItem>
                 <SelectItem value="old-sort">오래된순</SelectItem>
-                <SelectItem value="max-view-sort">조회 많은순</SelectItem>
-                <SelectItem value="min-view-sort">조회 적은순</SelectItem>
+                <SelectItem value="max-like-sort">좋아요 많은순</SelectItem>
+                <SelectItem value="min-like-sort">좋아요 적은순</SelectItem>
             </SelectContent>
         </Select>
     );

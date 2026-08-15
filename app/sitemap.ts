@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 1.0,
         },
         {
-            url: `${baseUrl}/posts`,
+            url: `${baseUrl}/articles`,
             lastModified: new Date(),
             changeFrequency: "daily",
             priority: 0.9,
@@ -78,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             const categoryName = rawCategory?.name || "uncategorized";
 
             return {
-                url: `${baseUrl}/posts/${encodeURIComponent(categoryName)}/${post.slug}`,
+                url: `${baseUrl}/articles/${encodeURIComponent(categoryName)}/${post.slug}`,
                 lastModified: new Date(post.updated_at || post.created_at),
                 changeFrequency: "weekly" as const,
                 priority: 0.8,

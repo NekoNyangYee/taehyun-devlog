@@ -1,14 +1,10 @@
 "use client";
 
-import {
-  MessageSquare,
-  Search,
-  X,
-} from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { useSessionStore } from "@components/store/sessionStore";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   postsQueryKey,
@@ -21,11 +17,12 @@ import {
   fetchCategoriesQueryFn,
 } from "@components/queries/categoryQueries";
 import {
-  commentsQueryKey,
-  fetchCommentsQueryFn,
+  commentCountsQueryKey,
+  fetchCommentCountsQueryFn,
 } from "@components/queries/commentQueries";
 import { PostStateWithoutContents } from "@components/types/post";
-import { CommentRow } from "@components/types/comment";
+import { lowerURL } from "@components/lib/util/lowerURL";
+import { PostListItem } from "./PostListItem";
 
 export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +30,6 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
   const [keyword, setKeyword] = useState("");
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [showAllBookmarks, setShowAllBookmarks] = useState(false);
-  const [showAllComments, setShowAllComments] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const { session } = useSessionStore();
@@ -60,9 +56,9 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
 
   const postIds = useMemo(() => posts.map((post) => post.id), [posts]);
 
-  const { data: comments = [] } = useQuery({
-    queryKey: commentsQueryKey(postIds),
-    queryFn: () => fetchCommentsQueryFn(postIds),
+  const { data: commentCounts = [] } = useQuery({
+    queryKey: commentCountsQueryKey(postIds),
+    queryFn: () => fetchCommentCountsQueryFn(postIds),
     enabled: isVisible && postIds.length > 0,
   });
 
@@ -77,12 +73,6 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
       )
     : [];
 
-  const filteredComments = normalizedKeyword
-    ? comments.filter((comment) =>
-        comment.content.toLowerCase().includes(normalizedKeyword)
-      )
-    : [];
-
   const filteredBookmarkedPosts = normalizedKeyword
     ? bookmarkedPosts.filter((post) =>
         post.title.toLowerCase().includes(normalizedKeyword)
@@ -92,49 +82,20 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
   const getCategory = (post: PostStateWithoutContents) =>
     categories.find((cat) => cat.id === post.category_id);
 
-  const getCategoryName = (post: PostStateWithoutContents) =>
-    getCategory(post)?.name ?? "";
-
-  const getCommentPost = (comment: CommentRow) =>
-    posts.find((post) => post.id === comment.post_id);
-
-  const highlightKeyword = (text: string) => {
-    if (!keyword.trim()) return text;
-
-    const regex = new RegExp(
-      `(${keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-
-    return text.split(regex).map((part, index) =>
-      part.toLowerCase() === normalizedKeyword ? (
-        <mark
-          key={`${part}-${index}`}
-          className="rounded bg-amber-100 px-0.5 text-amber-900 dark:bg-amber-300/20 dark:text-amber-100"
-        >
-          {part}
-        </mark>
-      ) : (
-        <span key={`${part}-${index}`}>{part}</span>
-      )
-    );
-  };
-
-  const resetExpandedState = () => {
+  const resetExpandedState = useCallback(() => {
     setShowAllPosts(false);
     setShowAllBookmarks(false);
-    setShowAllComments(false);
-  };
+  }, []);
 
   const handleOpen = () => {
     setIsVisible(true);
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsOpen(false);
     resetExpandedState();
     setTimeout(() => setKeyword(""), 300);
-  };
+  }, [resetExpandedState]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -156,7 +117,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [handleClose, isOpen]);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -176,64 +137,27 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
 
   const renderPostItem = (
     post: PostStateWithoutContents,
-    variant: "post" | "bookmark" = "post"
+    variant: "post" | "bookmark" = "post",
   ) => {
     const category = getCategory(post);
+    const commentCount = commentCounts.filter(
+      (comment) => comment.post_id === post.id,
+    ).length;
 
     return (
-      <Link
+      <div
         key={`${variant}-${post.id}`}
-        href={`/posts/${getCategoryName(post)}/${post.slug}`}
-        className="group flex min-h-20 items-center gap-4 border-b border-gray-200 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5"
         onClick={handleClose}
       >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-            <span className="truncate">{category?.name || "미분류"}</span>
-            {variant === "bookmark" && (
-              <span className="border border-gray-200 bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
-                북마크
-              </span>
-            )}
-          </div>
-          <p className="mt-1 truncate text-sm font-semibold text-gray-950 dark:text-gray-50">
-            {highlightKeyword(post.title)}
-          </p>
-        </div>
-        {category?.thumbnail && (
-          <img
-            src={category.thumbnail}
-            alt=""
-            className="h-14 w-14 shrink-0 border border-gray-200 object-cover dark:border-white/10"
-          />
-        )}
-      </Link>
-    );
-  };
-
-  const renderCommentItem = (comment: CommentRow) => {
-    const post = getCommentPost(comment);
-    if (!post) return null;
-
-    return (
-      <Link
-        key={`comment-${comment.id}`}
-        href={`/posts/${getCategoryName(post)}/${post.slug}`}
-        className="group flex min-h-20 items-start gap-3 border-b border-gray-200 px-4 py-3 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5"
-        onClick={handleClose}
-      >
-        <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center border border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
-          <MessageSquare size={18} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-medium text-gray-500 dark:text-gray-400">
-            {post.title}
-          </p>
-          <p className="mt-1 line-clamp-2 text-sm font-medium text-gray-950 dark:text-gray-50">
-            {highlightKeyword(comment.content)}
-          </p>
-        </div>
-      </Link>
+        <PostListItem
+          post={post}
+          categoryName={category?.name || "미분류"}
+          categorySlug={lowerURL(category?.name || "")}
+          thumbnailUrl={category?.thumbnail}
+          commentCount={commentCount}
+          variant="compact"
+        />
+      </div>
     );
   };
 
@@ -244,6 +168,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
     showAll,
     onToggle,
     renderItem,
+    hideHeader = false,
   }: {
     title: string;
     count: number;
@@ -251,24 +176,25 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
     showAll: boolean;
     onToggle: () => void;
     renderItem: (item: T) => React.ReactNode;
+    hideHeader?: boolean;
   }) => {
     if (count === 0) return null;
 
     return (
-      <section className="border-t border-gray-200 first:border-t-0 dark:border-white/10">
-        <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 dark:border-white/10 dark:bg-zinc-900">
-          <h3 className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:text-gray-200">
-            {title}
-          </h3>
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {count}
-          </span>
-        </div>
-        <div>{items.map(renderItem)}</div>
+      <section className="mb-8 last:mb-0">
+        {!hideHeader && (
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-950 dark:text-white">
+              {title}
+            </h3>
+            <span className="text-sm font-medium text-metricsText">{count}</span>
+          </div>
+        )}
+        <div className="flex flex-col gap-6">{items.map(renderItem)}</div>
         {count > 5 && (
-          <div className="border-t border-gray-200 dark:border-white/10">
+          <div className="mt-8">
             <button
-              className="w-full bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 dark:bg-zinc-950 dark:text-gray-100 dark:hover:bg-white/5"
+              className="w-full rounded-xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-200 dark:bg-white/10 dark:text-gray-100 dark:hover:bg-white/15"
               onClick={onToggle}
             >
               {showAll ? "접기" : `더보기 (${count - 5}개)`}
@@ -281,21 +207,19 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
 
   const hasKeyword = keyword.trim().length > 0;
   const hasResults =
-    filteredPosts.length > 0 ||
-    filteredComments.length > 0 ||
-    filteredBookmarkedPosts.length > 0;
+    filteredPosts.length > 0 || filteredBookmarkedPosts.length > 0;
 
   const popup = (
     <div className="fixed inset-0 z-50">
       <div
-        className={`absolute inset-0 bg-black/45 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
         onClick={handleClose}
       />
-      <div className="absolute left-1/2 top-[65px] w-full max-w-2xl -translate-x-1/2 px-0 sm:px-4">
+      <div className="absolute left-1/2 top-20 w-full max-w-4xl -translate-x-1/2 px-3 sm:top-24 sm:px-5">
         <div
-          className={`flex max-h-[calc(100vh-65px)] flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl shadow-black/20 transition-all duration-300 dark:border-white/10 dark:bg-zinc-950 dark:shadow-black/50 ${
+          className={`flex h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl shadow-black/20 ring-1 ring-black/5 transition-all duration-300 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/10 sm:h-[42rem] ${
             isOpen
               ? "translate-y-0 opacity-100"
               : "-translate-y-2 opacity-0"
@@ -304,20 +228,20 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
           aria-modal="true"
           aria-label="검색"
         >
-          <div className="flex min-h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 pl-5 dark:border-white/10 dark:bg-zinc-900">
-            <span className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:text-gray-200">
+          <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-6 sm:px-8 sm:pt-7">
+            <span className="text-xl font-bold tracking-[-0.02em] text-gray-950 dark:text-white">
               Search
             </span>
             <button
               type="button"
-              className="flex h-12 w-12 shrink-0 items-center justify-center border-l border-gray-200 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-50"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-50"
               onClick={handleClose}
               aria-label="검색 닫기"
             >
               <X size={18} />
             </button>
           </div>
-          <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 px-4 dark:border-white/10">
+          <div className="mx-6 mb-5 mt-3 flex h-16 shrink-0 items-center gap-3 rounded-2xl bg-gray-100 px-5 dark:bg-white/[0.07] sm:mx-8">
             <Search size={20} className="shrink-0 text-gray-500 dark:text-gray-400" />
             <input
               type="text"
@@ -334,27 +258,40 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
 
           <div
             id="search-results-container"
-            className="min-h-0 flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-zinc-950"
+            className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide sm:px-8 sm:pb-8"
           >
             {!hasKeyword && (
-              <div className="flex min-h-48 flex-col items-center justify-center px-6 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center border border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
-                  <Search size={22} />
-                </div>
-                <p className="mt-4 text-sm font-semibold text-gray-950 dark:text-gray-50">
-                  게시물, 북마크, 댓글을 검색할 수 있어요.
+              <div className="flex h-full min-h-0 flex-col items-center justify-center px-6 py-12 text-center">
+                <Image
+                  src="/search.png"
+                  alt="아티클 검색"
+                  width={240}
+                  height={160}
+                  quality={75}
+                  className="h-auto w-48 sm:w-56"
+                  sizes="(max-width: 640px) 192px, 224px"
+                  priority
+                />
+                <p className="text-sm font-semibold text-gray-950 dark:text-gray-50">
+                  궁금한 아티클을 찾아보세요.
                 </p>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  제목이나 댓글 내용을 입력해 주세요.
+                <p className="mt-1 text-sm text-center text-gray-500 dark:text-gray-400">
+                  제목을 입력하면 관련 아티클과 북마크를 함께 확인할 수 있어요.
                 </p>
               </div>
             )}
 
             {hasKeyword && !hasResults && (
-              <div className="flex min-h-48 flex-col items-center justify-center px-6 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center border border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/10 dark:text-gray-300">
-                  <Search size={22} />
-                </div>
+              <div className="flex h-full min-h-0 flex-col items-center justify-center px-6 py-12 text-center">
+                <Image
+                  src="/search.png"
+                  alt="검색 결과 없음"
+                  width={240}
+                  height={160}
+                  quality={75}
+                  className="h-auto w-48 sm:w-56"
+                  sizes="(max-width: 640px) 192px, 224px"
+                />
                 <p className="mt-4 text-sm font-semibold text-gray-950 dark:text-gray-50">
                   검색 결과가 없습니다.
                 </p>
@@ -367,7 +304,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
             {hasKeyword &&
               hasResults &&
               renderSection({
-                title: "게시물",
+                title: "아티클",
                 count: filteredPosts.length,
                 items: filteredPosts.slice(
                   0,
@@ -376,6 +313,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
                 showAll: showAllPosts,
                 onToggle: () => setShowAllPosts((current) => !current),
                 renderItem: (post) => renderPostItem(post),
+                hideHeader: true,
               })}
 
             {hasKeyword &&
@@ -393,19 +331,6 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
                 renderItem: (post) => renderPostItem(post, "bookmark"),
               })}
 
-            {hasKeyword &&
-              hasResults &&
-              renderSection({
-                title: "댓글",
-                count: filteredComments.length,
-                items: filteredComments.slice(
-                  0,
-                  showAllComments ? filteredComments.length : 5
-                ),
-                showAll: showAllComments,
-                onToggle: () => setShowAllComments((current) => !current),
-                renderItem: renderCommentItem,
-              })}
           </div>
         </div>
       </div>
@@ -418,10 +343,10 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
         <button
           onClick={handleOpen}
           aria-label="검색"
-          className={`flex h-9 w-9 items-center justify-center transition-colors duration-300 ${
+          className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-300 ${
             isLight
               ? "text-white hover:bg-white/15"
-              : "text-gray-700 hover:bg-white/40 hover:backdrop-blur-md dark:text-gray-200 dark:hover:bg-white/10 dark:hover:backdrop-blur-md"
+              : "text-[rgba(3,18,40,0.7)] hover:bg-white/40 hover:backdrop-blur-md dark:text-gray-200 dark:hover:bg-white/10 dark:hover:backdrop-blur-md"
           }`}
         >
           <Search size={20} className="transition-colors duration-300" />

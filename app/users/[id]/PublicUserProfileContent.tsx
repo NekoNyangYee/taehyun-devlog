@@ -109,7 +109,7 @@ export default function PublicUserProfileContent() {
 
               <div className="mt-4 flex flex-wrap gap-5 text-sm">
                 <span>
-                  게시물 <strong className="font-semibold">{userPosts.length}</strong>
+                  아티클 <strong className="font-semibold">{userPosts.length}</strong>
                 </span>
                 <span>
                   권한{" "}

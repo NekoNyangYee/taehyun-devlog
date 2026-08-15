@@ -67,7 +67,7 @@ export function ProfileInfo({
 
   return (
     <>
-      <section className="border-b border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-zinc-950 md:px-8 md:py-7">
+      <section className="p-5 md:px-8 md:py-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-gray-100 dark:bg-zinc-800">
@@ -115,7 +115,7 @@ export function ProfileInfo({
 
               <div className="mt-4 flex flex-wrap gap-5 text-sm">
                 <span>
-                  게시물 <strong className="font-semibold">{postCount}</strong>
+                  아티클 <strong className="font-semibold">{postCount}</strong>
                 </span>
                 <span>
                   권한{" "}
@@ -129,7 +129,7 @@ export function ProfileInfo({
 
           <button
             onClick={handleShare}
-            className="inline-flex h-10 items-center justify-center gap-2 border border-gray-200 bg-gray-50 px-4 text-sm font-medium text-gray-800 transition hover:bg-gray-100 md:w-44 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-100 dark:hover:bg-white/10"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-gray-800 ring-1 ring-gray-200 transition hover:bg-gray-50 md:w-44 dark:bg-white/[0.07] dark:text-gray-100 dark:ring-white/10 dark:hover:bg-white/10"
           >
             <Share2Icon size={15} />
             프로필 공유

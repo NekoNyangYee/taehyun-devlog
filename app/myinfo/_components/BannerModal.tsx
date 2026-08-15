@@ -156,37 +156,37 @@ export function BannerModal({
         aria-modal="true"
         aria-labelledby="banner-modal-title"
         onClick={(event) => event.stopPropagation()}
-        className={`relative max-h-[calc(100vh-2rem)] w-full max-w-[860px] overflow-y-auto border border-gray-200 bg-white shadow-2xl transition-all duration-300 scrollbar-hide dark:border-white/10 dark:bg-zinc-950 ${
+        className={`relative max-h-[calc(100vh-2rem)] w-full max-w-[860px] overflow-y-auto rounded-3xl bg-white shadow-2xl transition-all duration-300 scrollbar-hide dark:bg-zinc-950 ${
           isOpen && isAnimating
             ? "translate-y-0 scale-100 opacity-100"
             : "translate-y-3 scale-[0.97] opacity-0"
         }`}
       >
-        <div className="flex h-12 items-center justify-between border-b border-gray-200 bg-gray-50 pl-5 dark:border-white/10 dark:bg-zinc-900">
+        <div className="flex items-center justify-between px-5 pb-3 pt-5 sm:px-7 sm:pt-7">
           <h2
             id="banner-modal-title"
-            className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-600 dark:text-gray-300"
+            className="text-xl font-bold tracking-[-0.02em] text-gray-950 dark:text-white"
           >
-            Banner Editor
+            배경 편집
           </h2>
           <button
             type="button"
             onClick={onCancel}
             disabled={isUpdating}
             aria-label="닫기"
-            className="flex h-12 w-12 items-center justify-center border-l border-gray-200 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
           >
             <XIcon size={19} />
           </button>
         </div>
 
-        <div className="grid md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-          <section className="border-b border-gray-200 dark:border-white/10 md:border-b-0 md:border-r">
-            <div className="flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-5 text-xs font-medium text-metricsText dark:border-white/10 dark:bg-zinc-900">
-              Preview
-            </div>
-            <div className="p-5 md:p-6">
-              <div className="relative aspect-[47/12] w-full overflow-hidden border border-gray-200 bg-gray-100 dark:border-white/10 dark:bg-zinc-900">
+        <div className="grid gap-5 px-5 pb-5 sm:px-7 sm:pb-7 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
+          <section className="rounded-2xl bg-gray-100/80 p-4 dark:bg-white/[0.055] sm:p-5">
+            <h3 className="text-sm font-bold text-gray-950 dark:text-white">
+              미리보기
+            </h3>
+            <div className="mt-4">
+              <div className="relative aspect-[47/12] w-full overflow-hidden rounded-2xl bg-gray-200 dark:bg-zinc-900">
                 {!imageError ? (
                   <Image
                     src={displayBanner}
@@ -194,7 +194,7 @@ export function BannerModal({
                     fill
                     unoptimized
                     sizes="(max-width: 767px) 100vw, 500px"
-                    className="object-cover"
+                    className="object-contain object-center"
                     onError={() => setImageError(true)}
                     onLoad={() => setImageError(false)}
                   />
@@ -211,15 +211,15 @@ export function BannerModal({
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col">
-            <div className="flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-5 text-xs font-medium text-metricsText dark:border-white/10 dark:bg-zinc-900">
-              Image File
-            </div>
-            <div className="flex flex-1 items-center p-5 md:p-6">
+          <section className="flex min-h-0 flex-col rounded-2xl bg-gray-100/80 p-4 dark:bg-white/[0.055] sm:p-5">
+            <h3 className="text-sm font-bold text-gray-950 dark:text-white">
+              이미지 선택
+            </h3>
+            <div className="flex flex-1 items-center pt-4">
               <div className="w-full">
                 <div className="mb-4">
                   <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    배너 이미지 1개
+                    사용할 이미지
                   </p>
                   <p className="mt-1 text-xs leading-5 text-metricsText">
                     한 장의 이미지만 선택할 수 있으며 새 파일을 고르면 기존 선택을 대체합니다.
@@ -227,9 +227,9 @@ export function BannerModal({
                 </div>
 
                 {selectedFile || (hasCustomBanner && !willDeleteBanner) ? (
-                <div className="border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.03]">
+                <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200 dark:bg-white/[0.06] dark:ring-white/10">
                   <div className="flex min-w-0 items-center gap-3 p-4">
-                    <div className="flex size-11 shrink-0 items-center justify-center bg-gray-950 text-white dark:bg-white dark:text-black">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gray-950 text-white dark:bg-white dark:text-black">
                       <Upload size={19} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -247,10 +247,10 @@ export function BannerModal({
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 border-t border-gray-200 dark:border-white/10">
+                  <div className="grid grid-cols-2 gap-2 px-4 pb-4">
                     <label
                       htmlFor="bannerFileReselect"
-                      className="flex h-10 cursor-pointer items-center justify-center gap-2 border-r border-gray-200 text-xs font-medium transition hover:bg-gray-100 dark:border-white/10 dark:hover:bg-white/10"
+                      className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-100 text-xs font-semibold transition hover:bg-gray-200 dark:bg-white/[0.07] dark:hover:bg-white/10"
                     >
                       <Upload size={15} />
                       다시 선택
@@ -259,7 +259,7 @@ export function BannerModal({
                       type="button"
                       onClick={onDeleteBanner}
                       disabled={isUpdating}
-                      className="flex h-10 items-center justify-center gap-2 text-xs font-medium transition hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-white/10"
+                      className="flex h-10 items-center justify-center gap-2 rounded-xl bg-gray-100 text-xs font-semibold transition hover:bg-gray-200 disabled:opacity-50 dark:bg-white/[0.07] dark:hover:bg-white/10"
                     >
                       <XIcon size={15} />
                       {selectedFile ? "선택 취소" : "배너 삭제"}
@@ -277,7 +277,7 @@ export function BannerModal({
                 ) : (
                 <label
                   htmlFor="bannerFile"
-                  className="flex h-44 w-full cursor-pointer flex-col items-center justify-center border border-dashed border-gray-300 bg-gray-50 text-center transition hover:bg-gray-100 dark:border-white/15 dark:bg-white/[0.03] dark:hover:bg-white/10"
+                  className="flex h-44 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white text-center transition hover:bg-gray-50 dark:border-white/15 dark:bg-white/[0.06] dark:hover:bg-white/10"
                 >
                   <Upload size={28} className="text-metricsText" />
                   <span className="mt-3 text-sm font-semibold">파일 선택</span>
@@ -310,12 +310,12 @@ export function BannerModal({
           </section>
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-zinc-900">
+        <div className="flex items-center justify-end gap-2 px-5 pb-5 sm:px-7 sm:pb-7">
           <button
             type="button"
             onClick={onCancel}
             disabled={isUpdating}
-            className="h-10 border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/15 dark:bg-zinc-950 dark:text-gray-200 dark:hover:bg-white/10"
+            className="h-11 rounded-xl bg-gray-100 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white/[0.07] dark:text-gray-200 dark:hover:bg-white/10"
           >
             취소
           </button>
@@ -323,7 +323,7 @@ export function BannerModal({
             type="button"
             onClick={onUpdate}
             disabled={!canSubmit || isUpdating}
-            className="h-10 bg-gray-950 px-5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:disabled:bg-white/20 dark:disabled:text-gray-500"
+            className="h-11 rounded-xl bg-gray-950 px-5 text-sm font-semibold text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300 dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:disabled:bg-white/20 dark:disabled:text-gray-500"
           >
             {isUpdating ? "변경 중..." : "변경 사항 저장"}
           </button>

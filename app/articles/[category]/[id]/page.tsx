@@ -88,18 +88,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // 게시물이 없으면 기본 메타데이터 반환
   if (!post) {
     return {
-      title: "게시물을 찾을 수 없습니다 | TaeHyun's Devlog",
-      description: "요청하신 게시물을 찾을 수 없습니다.",
+      title: "아티클을 찾을 수 없습니다 | TaeHyun's Devlog",
+      description: "요청하신 아티클을 찾을 수 없습니다.",
     };
   }
 
   const categoryData = await getCategory(post.category_id);
 
   // description은 제목 기반으로 생성 (본문이 없으므로)
-  const description = `${post.title} - ${categoryData?.name || ''} 카테고리의 게시물입니다.`;
+  const description = `${post.title} - ${categoryData?.name || ''} 카테고리의 아티클입니다.`;
 
   const baseUrl = SITE_URL;
-  const postUrl = `${baseUrl}/posts/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
+  const postUrl = `${baseUrl}/articles/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
   const ogImageVersion = post.updated_at ?? post.slug;
   const ogImage = `${postUrl}/opengraph-image?v=${encodeURIComponent(ogImageVersion)}`;
 

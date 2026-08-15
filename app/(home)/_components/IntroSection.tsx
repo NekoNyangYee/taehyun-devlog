@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpenText, EyeIcon, HeartIcon } from "lucide-react";
+import { ArrowRight, BookOpenText, HeartIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -27,11 +27,10 @@ export function IntroSection() {
     queryFn: fetchPostsQueryFn,
   });
 
-  const { totalPosts, totalLikes, totalViews } = useMemo(() => {
+  const { totalPosts, totalLikes } = useMemo(() => {
     const totalPosts = posts.length;
     const totalLikes = posts.reduce((sum, p) => sum + (p.like_count ?? 0), 0);
-    const totalViews = posts.reduce((sum, p) => sum + (p.view_count ?? 0), 0);
-    return { totalPosts, totalLikes, totalViews };
+    return { totalPosts, totalLikes };
   }, [posts]);
 
   return (
@@ -67,11 +66,11 @@ export function IntroSection() {
 
           <div className="flex flex-wrap gap-3 mt-1">
             <Link
-              href="/posts"
+              href="/articles"
               className="group inline-flex items-center gap-2 rounded-full bg-zinc-800 dark:bg-zinc-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-colors"
             >
               <BookOpenText size={16} />
-              게시물 둘러보기
+              아티클 둘러보기
               <ArrowRight
                 size={16}
                 className="group-hover:translate-x-1 transition-transform"
@@ -86,7 +85,7 @@ export function IntroSection() {
           </div>
 
           {/* 통계 */}
-          <div className="grid grid-cols-3 gap-3 mt-3 max-w-md">
+          <div className="grid grid-cols-2 gap-3 mt-3 max-w-sm">
             <StatCard
               label="POSTS"
               value={formatMetric(totalPosts)}
@@ -96,11 +95,6 @@ export function IntroSection() {
               label="LIKES"
               value={formatMetric(totalLikes)}
               icon={HeartIcon}
-            />
-            <StatCard
-              label="VIEWS"
-              value={formatMetric(totalViews)}
-              icon={EyeIcon}
             />
           </div>
         </div>

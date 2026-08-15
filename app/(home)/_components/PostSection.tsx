@@ -55,7 +55,7 @@ export function PostSection({
         </div>
         {showViewAll && (
           <Link
-            href="/posts"
+            href="/articles"
             className="group flex items-center gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition shrink-0"
           >
             전체보기
@@ -70,7 +70,7 @@ export function PostSection({
       {posts.length === 0 ? (
         <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/15 bg-white dark:bg-zinc-900">
           <p className="text-lg font-semibold text-metricsText">
-            게시물이 없습니다.
+            아티클이 없습니다.
           </p>
         </div>
       ) : (

@@ -6,7 +6,7 @@
 
 @layer components {
   .site-container {
-    @apply mx-auto w-full max-w-[77.5rem] px-4 lg:px-8;
+    @apply mx-auto w-full max-w-[77.5rem] px-4 sm:px-5 md:px-6 lg:px-8;
   }
 
   .skeleton-bone {
@@ -41,6 +41,16 @@
 
   .skeleton-bone-static::after {
     animation: none;
+  }
+
+  .category-label {
+    background-color: #e8f3ff;
+    color: #3182f6;
+  }
+
+  .dark .category-label {
+    background-color: rgb(49 130 246 / 0.18);
+    color: #90c2ff;
   }
 }
 
@@ -97,6 +107,7 @@ pre code.hljs {
   margin: 20px auto;
   max-width: 100%;
   height: auto;
+  border-radius: 1rem;
 }
 
 h1 {
@@ -169,11 +180,7 @@ hr {
 }
 
 blockquote {
-  @apply bg-gray-100 border-l-4 border-gray-500 p-4 my-4;
-}
-
-.dark blockquote {
-  @apply bg-white/5 border-gray-400;
+  @apply my-4;
 }
 
 /* ========== 게시물 본문 텍스트 톤 ==========
@@ -208,16 +215,60 @@ blockquote {
 .dark .post-content a {
   color: #93c5fd; /* blue-300 */
 }
+
+.post-content blockquote {
+  position: relative;
+  margin: 2rem 0;
+  padding: 1.5rem 1.75rem 1.5rem 4rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 1rem;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.post-content blockquote::before {
+  content: "\201C";
+  position: absolute;
+  top: 0.8rem;
+  left: 1.25rem;
+  color: #3182f6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.post-content blockquote p {
+  margin: 0;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.85;
+}
+
+.post-content blockquote p + p {
+  margin-top: 0.75rem;
+}
+
+.dark .post-content blockquote {
+  background: rgba(255, 255, 255, 0.06);
+  color: #d1d5db;
+}
+
+.dark .post-content blockquote::before {
+  color: #60a5fa;
+}
 .dark hr {
   border-color: hsl(var(--border));
 }
 
 .post-content .code-block {
-  --code-bg: #f8fafc;
-  --code-toolbar-bg: #f1f5f9;
-  --code-border: #dbe3ec;
-  --code-text: #243044;
-  --code-muted: #64748b;
+  --code-bg: #f6f7f9;
+  --code-toolbar-bg: #eceff3;
+  --code-border: #e5e7eb;
+  --code-text: #1f2937;
+  --code-muted: #6b7280;
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -225,18 +276,18 @@ blockquote {
   margin: 1.75rem 0;
   overflow: hidden;
   border: 1px solid var(--code-border);
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--code-bg);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
 }
 
 .dark .post-content .code-block {
-  --code-bg: #0d1117;
-  --code-toolbar-bg: #161b22;
-  --code-border: #30363d;
-  --code-text: #c9d1d9;
-  --code-muted: #8b949e;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  --code-bg: #111318;
+  --code-toolbar-bg: #1a1d24;
+  --code-border: rgba(255, 255, 255, 0.1);
+  --code-text: #e5e7eb;
+  --code-muted: #9ca3af;
+  box-shadow: none;
 }
 
 .post-content .code-block-toolbar {
@@ -244,11 +295,11 @@ blockquote {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  min-height: 2.75rem;
+  min-height: 3rem;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.45rem 0.65rem 0.45rem 1rem;
+  padding: 0.5rem 0.75rem 0.5rem 1.1rem;
   border-bottom: 1px solid var(--code-border);
   background: var(--code-toolbar-bg);
 }
@@ -284,11 +335,11 @@ blockquote {
   flex: 0 0 auto;
   align-items: center;
   gap: 0.4rem;
-  min-width: 4.25rem;
+  min-width: 4.5rem;
   justify-content: center;
   padding: 0.4rem 0.65rem;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--code-muted);
   font-size: 0.75rem;
   font-weight: 600;
@@ -327,12 +378,12 @@ blockquote {
 
 @media (prefers-color-scheme: dark) {
   :root:not([style*="color-scheme: light"]) .post-content .code-block {
-    --code-bg: #0d1117;
-    --code-toolbar-bg: #161b22;
-    --code-border: #30363d;
-    --code-text: #c9d1d9;
-    --code-muted: #8b949e;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+    --code-bg: #111318;
+    --code-toolbar-bg: #1a1d24;
+    --code-border: rgba(255, 255, 255, 0.1);
+    --code-text: #e5e7eb;
+    --code-muted: #9ca3af;
+    box-shadow: none;
   }
 }
 
@@ -434,6 +485,17 @@ blockquote {
 }
 
 @media (max-width: 640px) {
+  .post-content blockquote {
+    margin: 1.5rem 0;
+    padding: 1.25rem 1.25rem 1.25rem 3.25rem;
+  }
+
+  .post-content blockquote::before {
+    top: 0.75rem;
+    left: 1rem;
+    font-size: 2.75rem;
+  }
+
   .post-content .code-block {
     margin: 1.35rem 0;
     border-radius: 12px;

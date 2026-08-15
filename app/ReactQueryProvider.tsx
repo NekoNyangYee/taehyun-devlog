@@ -40,9 +40,12 @@ export function ReactQueryProvider({ children }: PropsWithChildren) {
       persistOptions={{
         persister,
         maxAge: 1000 * 60 * 60 * 24, // 24시간
+        buster: "v2-no-comment-cache",
         dehydrateOptions: {
           shouldDehydrateQuery: (query) =>
-            query.state.status === "success" && query.queryKey[0] !== "posts",
+            query.state.status === "success" &&
+            query.queryKey[0] !== "posts" &&
+            query.queryKey[0] !== "comments",
         },
       }}
     >

@@ -9,7 +9,6 @@ export interface PostState {
   visibility?: string;
   created_at: string;
   updated_at: string;
-  view_count?: number;
   like_count?: number;
   category_id: number;
   liked_by_user?: string[];
@@ -22,5 +21,5 @@ export type PostMeta = Pick<
 >;
 export type PostMetrics = Pick<
   PostStateWithoutContents,
-  "id" | "view_count" | "like_count" | "liked_by_user"
+  "id" | "like_count" | "liked_by_user"
 >;

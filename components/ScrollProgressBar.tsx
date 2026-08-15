@@ -27,7 +27,7 @@ export default function ScrollProgressBar() {
     return () => window.removeEventListener("scroll", handleClientScrollBar);
   }, []);
 
-  const shouldShowProgressBar = /^\/posts\/[^\/]+\/\d+$/.test(currentPath);
+  const shouldShowProgressBar = /^\/articles\/[^\/]+\/[^\/]+$/.test(currentPath);
 
   return shouldShowProgressBar && !isPostLoading ? (
     <div className="fixed top-0 left-0 w-full h-1 z-40 pointer-events-none">

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { lowerURL } from "@components/lib/util/lowerURL";
-import { HomePanelHeader } from "./HomePanelHeader";
 
 interface PopularSidebarProps {
   posts: PostStateWithoutContents[];
@@ -15,9 +14,11 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="min-w-0 overflow-hidden bg-white dark:bg-zinc-950">
-      <HomePanelHeader title="Popular Posts" />
-      <ol className="m-0 flex list-none flex-col p-0">
+    <section className="min-w-0 rounded-3xl bg-gray-100 p-6 dark:bg-zinc-900">
+      <h2 className="mb-5 text-lg font-bold text-gray-700 dark:text-gray-200">
+        인기 아티클
+      </h2>
+      <ol className="m-0 flex list-none flex-col gap-3 p-0">
         {posts.map((post, i) => {
           const category = categories.find(
             (cat) => cat.id === post.category_id,
@@ -25,19 +26,16 @@ export function PopularSidebar({ posts, categories }: PopularSidebarProps) {
           const categorySlug = lowerURL(category?.name || "");
 
           return (
-            <li
-              key={post.id}
-              className="border-b border-gray-200 last:border-b-0 dark:border-white/10"
-            >
+            <li key={post.id}>
               <Link
-                href={`/posts/${categorySlug}/${post.slug}`}
-                className="group flex min-w-0 items-start gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03]"
+                href={`/articles/${categorySlug}/${post.slug}`}
+                className="group flex min-w-0 items-start gap-3 px-1 py-2"
               >
-                <span className="shrink-0 font-mono text-sm font-bold leading-snug text-blue-600 dark:text-blue-400">
-                  {String(i + 1).padStart(2, "0")}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white font-mono text-sm font-bold text-blue-600 dark:bg-zinc-800 dark:text-blue-400">
+                  {i + 1}
                 </span>
-                <div className="min-w-0 flex flex-col gap-1">
-                  <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-800 dark:text-gray-100 group-hover:text-gray-500 dark:group-hover:text-white">
+                <div className="min-w-0 flex flex-col gap-1 pt-1">
+                  <p className="line-clamp-2 text-sm font-semibold leading-relaxed text-gray-800 transition-colors group-hover:text-gray-500 dark:text-gray-100 dark:group-hover:text-gray-300">
                     {post.title}
                   </p>
                 </div>

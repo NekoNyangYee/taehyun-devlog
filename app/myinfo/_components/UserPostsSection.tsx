@@ -15,36 +15,36 @@ export function UserPostsSection({
   categories,
 }: UserPostsSectionProps) {
   return (
-    <section className="bg-white dark:bg-zinc-950">
-      <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 px-5 dark:border-white/10 dark:bg-zinc-900">
+    <section>
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h2 className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-700 dark:text-gray-200">
-            My Posts
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-gray-950 dark:text-white">
+            내 아티클
           </h2>
-          <span className="font-mono text-xs text-metricsText">
-            {String(posts.length).padStart(2, "0")}
+          <span className="text-sm font-semibold text-gray-400 dark:text-gray-500">
+            {posts.length}
           </span>
         </div>
         <Link
-          href="/posts"
-          className="text-xs font-medium text-metricsText transition hover:text-gray-950 dark:hover:text-white"
+          href="/articles"
+          className="text-sm font-semibold text-gray-500 transition hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-300"
         >
-          전체 게시물 보기 →
+          전체 아티클 보기 →
         </Link>
       </div>
 
       {posts.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center px-5 text-center text-metricsText">
-          <p className="text-sm font-medium">아직 작성한 게시물이 없습니다.</p>
+        <div className="mt-5 flex h-48 flex-col items-center justify-center rounded-3xl bg-gray-100/80 px-5 text-center text-metricsText dark:bg-white/[0.055]">
+          <p className="text-sm font-medium">아직 작성한 아티클이 없습니다.</p>
           <Link
-            href="/posts"
-            className="mt-4 border border-gray-300 px-4 py-2 text-sm transition hover:bg-gray-100 dark:border-white/15 dark:hover:bg-white/10"
+            href="/articles"
+            className="mt-4 rounded-xl bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 dark:bg-white dark:text-gray-950 dark:hover:bg-gray-200"
           >
-            게시물 보러가기
+            아티클 보러가기
           </Link>
         </div>
       ) : (
-        <div>
+        <div className="mt-5 flex flex-col gap-4">
           {posts.slice(0, 6).map((post) => {
             const category = categories.find(
               (item) => item.id === post.category_id,

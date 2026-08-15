@@ -67,15 +67,15 @@ export default function MobileTOC({
           collapsible
           value={openValue}
           onValueChange={setOpenValue}
-          className="min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/10 dark:bg-zinc-900"
+          className="min-w-0 flex-1 overflow-hidden rounded-2xl bg-gray-100/95 backdrop-blur-md dark:bg-zinc-900/95"
         >
           <AccordionItem value="toc" className="border-none">
-            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+            <AccordionTrigger className="px-5 py-4 hover:no-underline">
               <span className="text-sm font-semibold truncate text-left flex-1 pr-2">
                 {activeHeading?.text || "목차"}
               </span>
             </AccordionTrigger>
-            <AccordionContent className="px-4 max-h-[60vh] overflow-y-auto">
+            <AccordionContent className="max-h-[60vh] overflow-y-auto px-5 pb-5">
               <nav className="flex flex-col gap-3">
                 {headingGroups.map((group, index) => (
                   <div key={group.h2.id} className="flex flex-col gap-2">

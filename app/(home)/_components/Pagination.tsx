@@ -25,21 +25,23 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
   for (let i = start; i <= end; i++) pages.push(i);
 
   const base =
-    "flex h-9 min-w-9 items-center justify-center border border-transparent px-3 text-sm font-medium transition-colors";
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg p-0 text-sm font-semibold transition-colors";
   const ghost =
-    "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10";
+    "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white";
+  const disabled =
+    "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-500 dark:disabled:hover:bg-transparent dark:disabled:hover:text-gray-400";
 
   return (
     <nav
       aria-label="페이지네이션"
-      className="flex items-center justify-center gap-1 border-t border-gray-200 py-4 dark:border-white/10"
+      className="mt-12 flex items-center justify-center gap-1 py-4"
     >
       <button
         type="button"
         onClick={() => onChange(page - 1)}
         disabled={page === 1}
         aria-label="이전 페이지"
-        className={`${base} border-gray-200 dark:border-white/15 ${ghost} disabled:cursor-not-allowed disabled:opacity-40`}
+        className={`${base} ${ghost} ${disabled}`}
       >
         <ChevronLeft size={16} />
       </button>
@@ -67,7 +69,7 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
           aria-current={n === page ? "page" : undefined}
           className={`${base} ${
             n === page
-              ? "border-action bg-action text-action-foreground"
+              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950"
               : ghost
           }`}
         >
@@ -95,7 +97,7 @@ export function Pagination({ page, totalPages, onChange }: PaginationProps) {
         onClick={() => onChange(page + 1)}
         disabled={page === totalPages}
         aria-label="다음 페이지"
-        className={`${base} border-gray-200 dark:border-white/15 ${ghost} disabled:cursor-not-allowed disabled:opacity-40`}
+        className={`${base} ${ghost} ${disabled}`}
       >
         <ChevronRight size={16} />
       </button>

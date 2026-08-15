@@ -7,7 +7,6 @@ import { PostStateWithoutContents } from "@components/types/post";
 import { Category } from "@components/types/category";
 import { CommentRow } from "@components/types/comment";
 import { lowerURL } from "@components/lib/util/lowerURL";
-import { HomePanelHeader } from "./HomePanelHeader";
 
 interface RecentCommentsProps {
   comments: CommentRow[];
@@ -25,15 +24,17 @@ export function RecentComments({
   const recent = comments.slice(0, RECENT_COUNT);
 
   return (
-    <section className="min-w-0 overflow-hidden border-t border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950">
-      <HomePanelHeader title="Recent Comments" />
+    <section className="min-w-0 rounded-3xl bg-gray-100 p-6 dark:bg-zinc-900">
+      <h2 className="mb-5 text-lg font-bold text-gray-700 dark:text-gray-200">
+        최근 댓글
+      </h2>
 
       {recent.length === 0 ? (
         <div className="flex min-h-24 items-center justify-center px-4 text-center text-sm text-metricsText">
           아직 표시할 댓글이 없습니다.
         </div>
       ) : (
-        <ul className="m-0 flex list-none flex-col p-0">
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {recent.map((comment) => {
             const post = posts.find((p) => p.id === comment.post_id);
             const category = post
@@ -41,7 +42,7 @@ export function RecentComments({
               : undefined;
             const categorySlug = lowerURL(category?.name || "");
             const href = post
-              ? `/posts/${categorySlug}/${post.slug}`
+              ? `/articles/${categorySlug}/${post.slug}`
               : undefined;
 
             const body = (
@@ -81,7 +82,7 @@ export function RecentComments({
             return (
               <li
                 key={comment.id}
-                className="border-b border-gray-200 px-4 py-3.5 last:border-b-0 dark:border-white/10"
+                className="rounded-xl bg-white px-4 py-4 dark:bg-zinc-800"
               >
                 {href ? (
                   <Link href={href} className="group block min-w-0">

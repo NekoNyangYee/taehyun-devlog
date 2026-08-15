@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { PostState } from "@components/types/post";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import dayjs, { formatDate } from "@components/lib/util/dayjs";
+import { useParams, useRouter } from "next/navigation";
+import { formatDate } from "@components/lib/util/dayjs";
 import Link from "next/link";
 import {
   ArrowLeftCircle,
@@ -16,11 +16,9 @@ import {
   EyeOffIcon,
   Heart,
   LockIcon,
-  MessageSquareXIcon,
   PencilIcon,
   SendIcon,
   Share2Icon,
-  TagIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react";
@@ -30,6 +28,7 @@ import { useSessionStore } from "@components/store/sessionStore";
 import { cn } from "@components/lib/utils";
 import { Textarea } from "@components/components/ui/textarea";
 import Image from "next/image";
+import noCommentsImage from "../../../../public/no-comments.png";
 import { useUIStore } from "@components/store/postLoadingStore";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import NotFound from "@components/app/not-found";
@@ -49,10 +48,7 @@ import {
   commentsQueryKey,
   fetchCommentsQueryFn,
 } from "@components/queries/commentQueries";
-import {
-  useIncrementViewCount,
-  useToggleLike,
-} from "@components/queries/postMutations";
+import { useToggleLike } from "@components/queries/postMutations";
 import {
   useAddComment,
   useDeleteComment,
@@ -62,11 +58,11 @@ import {
   profileQueryKey,
   fetchProfileQueryFn,
 } from "@components/queries/profileQueries";
-import ImageViewer from "@components/components/ImageViewer";
 import MobileTOC from "@components/components/MobileTOC";
 import { useLoginModalStore } from "@components/store/loginModalStore";
 import { useCommentStore } from "@components/store/commentStore";
 import { motion } from "framer-motion";
+import { CategoryLabel } from "@components/components/CategoryLabel";
 
 interface Heading {
   id: string;
@@ -248,33 +244,22 @@ function extractHeadings(htmlContent: string) {
 /**
  * 별도 컴포넌트로 분리: 부모 재렌더 시에도 컴포넌트 아이덴티티 유지되어 깜빡임 방지
  */
-function RenderedContent({
-  html,
-  onImagesExtracted,
-  onImageClick,
-}: {
-  html: string;
-  onImagesExtracted?: (images: string[]) => void;
-  onImageClick?: (index: number) => void;
-}) {
+function RenderedContent({ html }: { html: string }) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!ref.current) return;
     ref.current.innerHTML = html || "";
 
-    // 이미지 스타일 적용 및 이미지 목록 수집
-    const extractedImages: string[] = [];
+    // 본문 이미지는 원본 비율로 표시한다.
     ref.current.querySelectorAll("img").forEach((img) => {
       const el = img as HTMLImageElement;
       el.style.display = "block";
       el.style.margin = "20px auto";
       el.style.maxWidth = "100%";
       el.style.height = "auto";
-      el.style.cursor = "zoom-in";
-      extractedImages.push(el.src);
+      el.style.cursor = "default";
     });
-    onImagesExtracted?.(extractedImages);
 
     // 제목 여백
     ref.current.querySelectorAll("h1, h2, h3").forEach((heading) => {
@@ -366,9 +351,9 @@ function RenderedContent({
       }
     };
     tryHighlight();
-  }, [html, onImagesExtracted]);
+  }, [html]);
 
-  // 이벤트 위임: 컨테이너 onClick으로 이미지 클릭 감지
+  // 이벤트 위임: 코드 복사 버튼 처리
   const handleClick = useCallback(
     async (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
@@ -397,13 +382,8 @@ function RenderedContent({
         return;
       }
 
-      const img = target.closest("img") as HTMLImageElement | null;
-      if (!img || !ref.current) return;
-      const images = Array.from(ref.current.querySelectorAll("img"));
-      const index = images.indexOf(img);
-      if (index !== -1) onImageClick?.(index);
     },
-    [onImageClick],
+    [],
   );
 
   return (
@@ -417,13 +397,11 @@ function RenderedContent({
 
 export default function PostDetailClient() {
   const { session } = useSessionStore();
-  const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
   const { id, category: urlCategory } = params;
 
   const [post, setPost] = useState<PostState | null>(null);
-  const [hasIncremented, setHasIncremented] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [comment, setComment] = useState<string>("");
   const [isAdmin] = useState<boolean>(false);
@@ -434,10 +412,6 @@ export default function PostDetailClient() {
   const [isStatus, setIsStatus] = useState<boolean>(true);
   const [isReplyStatus, setIsReplyStatus] = useState<boolean>(true);
   const [isNotFound, setIsNotFound] = useState<boolean>(false);
-  const [postImages, setPostImages] = useState<string[]>([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
-    null,
-  );
   const [activeHeadingId, setActiveHeadingId] = useState<string>("");
   const [shareUrl, setShareUrl] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -498,7 +472,6 @@ export default function PostDetailClient() {
   const authorProfile = authorProfiles[0];
 
   // ✅ Mutation hooks
-  const viewCountMutation = useIncrementViewCount();
   const toggleLikeMutation = useToggleLike();
   const addCommentMutation = useAddComment(currentPostIds);
   const deleteCommentMutation = useDeleteComment(currentPostIds);
@@ -513,7 +486,6 @@ export default function PostDetailClient() {
     console.error("게시물 상세 로드 실패:", postDetailQuery.error);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsNotFound(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(false);
     setPostLoading(false);
   }, [postDetailQuery.error, setPostLoading]);
@@ -554,36 +526,13 @@ export default function PostDetailClient() {
         actual: postCategory.name,
       });
       const correctSlug = encodeURIComponent(lowerURL(postCategory.name));
-      router.replace(`/posts/${correctSlug}/${post.slug}`);
+      router.replace(`/articles/${correctSlug}/${post.slug}`);
     }
   }, [post, categories, urlCategory, router, resolvedPostSlug]);
 
   useEffect(() => {
     setPostLoading(isHydratingPost);
   }, [isHydratingPost, setPostLoading]);
-
-  useEffect(() => {
-    if (post && !hasIncremented) {
-      const incrementView = async () => {
-        try {
-          await viewCountMutation.mutateAsync(post.id);
-          setHasIncremented(true);
-          const newViewCount = (post.view_count ?? 0) + 1;
-          setPost((prev) =>
-            prev ? { ...prev, view_count: newViewCount } : prev,
-          );
-        } catch (error) {
-          console.error("조회수 증가 실패:", error);
-        }
-      };
-      incrementView();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post?.id, hasIncremented]);
-
-  useEffect(() => {
-    setShareUrl(window.location.href);
-  }, [post?.id]);
 
   // 본문 내용이 바뀔 때만 목차 재계산 (좋아요로 인한 불필요한 재계산 방지)
   const postContents = post?.contents;
@@ -771,7 +720,7 @@ export default function PostDetailClient() {
       try {
         await navigator.share({
           title: post.title,
-          text: `${post.title} 글을 확인해보세요.`,
+          text: `${post.title} 아티클을 확인해 보세요.`,
           url,
         });
         return;
@@ -780,6 +729,7 @@ export default function PostDetailClient() {
       }
     }
 
+    setShareUrl(url);
     setIsShareModalOpen(true);
   };
 
@@ -862,7 +812,7 @@ export default function PostDetailClient() {
 
     return (
       <p className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex shrink-0 items-center border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:border-white/15 dark:bg-zinc-800 dark:text-gray-200">
+        <span className="inline-flex shrink-0 items-center rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
           @{mentionMatch[1]}
         </span>
         {body && <span className="min-w-0 whitespace-pre-wrap">{body}</span>}
@@ -871,13 +821,13 @@ export default function PostDetailClient() {
   };
 
   const renderReplyComposer = (parentId: number) => (
-    <div className="overflow-hidden border-y border-l border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950">
-      <div className="flex min-h-40 items-start gap-2 bg-white p-container dark:bg-zinc-900">
+    <div className="rounded-2xl bg-white p-4 ring-1 ring-gray-200 dark:bg-zinc-900 dark:ring-white/10 sm:p-5">
+      <div className="flex min-h-32 items-start gap-2">
         {replyTarget && isReplyMentionVisible && (
           <button
             type="button"
             onClick={() => setIsReplyMentionVisible(false)}
-            className="inline-flex shrink-0 items-center gap-1 border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:border-white/15 dark:bg-zinc-800 dark:text-gray-200"
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-400/10 dark:text-blue-300 dark:hover:bg-blue-400/15"
             aria-label="답글 태그 삭제"
           >
             @{replyTarget.author_name}
@@ -885,7 +835,7 @@ export default function PostDetailClient() {
           </button>
         )}
         <Textarea
-          className="min-h-32 min-w-0 flex-1 resize-none rounded-none border-none bg-transparent p-0 dark:bg-transparent dark:text-gray-100"
+          className="min-h-28 min-w-0 flex-1 resize-none rounded-xl border-0 bg-gray-50 p-4 shadow-none focus-visible:ring-1 focus-visible:ring-gray-300 dark:bg-white/[0.05] dark:text-gray-100 dark:focus-visible:ring-white/20"
           placeholder="답글을 입력하세요"
           value={replyContent}
           onChange={(e) => setReplyContent(e.target.value)}
@@ -901,7 +851,7 @@ export default function PostDetailClient() {
           }}
         />
       </div>
-      <div className="flex justify-end border-t border-gray-200 dark:border-white/10">
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
         <Button
           variant="ghost"
           onClick={() => {
@@ -909,14 +859,14 @@ export default function PostDetailClient() {
             setReplyContent("");
             setIsReplyMentionVisible(false);
           }}
-          className="rounded-none border-l border-gray-200 dark:border-white/10"
+          className="h-10 rounded-xl px-4 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
         >
           취소
         </Button>
         <Button
           variant="outline"
           onClick={() => setIsReplyStatus((prev) => !prev)}
-          className="rounded-none border-y-0 border-l border-r-0 border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
+          className="h-10 rounded-xl border-0 bg-gray-100 px-4 text-gray-700 shadow-none hover:bg-gray-200 dark:bg-white/[0.07] dark:text-gray-200 dark:hover:bg-white/10"
         >
           {isReplyStatus ? (
             <>
@@ -930,7 +880,7 @@ export default function PostDetailClient() {
         </Button>
         <Button
           onClick={() => handleSubmitSubCommment(parentId)}
-          className="flex items-center gap-2 rounded-none border-l border-gray-200 bg-action text-action-foreground hover:bg-action-hover dark:border-white/10"
+          className="flex h-10 items-center gap-2 rounded-xl bg-action px-4 font-semibold text-action-foreground shadow-none hover:bg-action-hover"
         >
           <SendIcon size={20} />
           등록
@@ -949,24 +899,16 @@ export default function PostDetailClient() {
 
   return (
     <motion.div
-      className="relative my-6 flex min-w-0 w-full flex-1 flex-col border border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 md:my-8"
+      className="relative my-6 flex min-w-0 w-full flex-1 flex-col md:my-8"
     >
-      <div className="flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-4 dark:border-white/10 dark:bg-zinc-900 sm:px-5">
-        <span className="font-mono text-sm font-semibold tracking-[0.08em] text-gray-600 dark:text-gray-300">
-          Post Detail
-        </span>
-      </div>
-
       {/* 제목 / 카테고리 / 메타 정보 */}
-      <div className="flex w-full flex-col gap-4 border-b border-gray-200 px-5 py-8 dark:border-white/10 md:px-8 md:py-10">
-        <Link
-          href={`/posts/${encodeURIComponent(category?.name || "")}`}
-          className="inline-flex items-center gap-2 self-start text-sm text-gray-600 transition-colors hover:text-gray-950 dark:text-gray-300 dark:hover:text-white"
-        >
-          <TagIcon size={14} />
-          {postCategory(post.category_id)}
-        </Link>
-        <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-gray-100 md:text-4xl">
+      <header className="flex w-full max-w-4xl flex-col gap-5 py-10 sm:py-14 lg:py-16">
+        <CategoryLabel
+          name={postCategory(post.category_id)}
+          href={category ? `/articles?category=${category.id}` : "/articles"}
+          className="self-start"
+        />
+        <h1 className="text-3xl font-bold leading-[1.35] tracking-[-0.03em] text-gray-950 dark:text-white sm:text-4xl lg:text-5xl">
           {post.title}
         </h1>
         <div className="flex flex-wrap items-center gap-4 text-sm text-metricsText">
@@ -974,15 +916,11 @@ export default function PostDetailClient() {
             <CalendarRangeIcon size={16} />
             {formatDate(post.created_at)}
           </span>
-          <span className="flex items-center gap-1.5">
-            <EyeIcon size={16} />
-            {post.view_count}
-          </span>
         </div>
-      </div>
+      </header>
 
       {/* 본문 영역 */}
-      <div className="relative z-10">
+      <div className="relative z-10 border-t border-gray-100 pt-8 dark:border-white/10 sm:pt-10">
         <div className="min-h-screen">
           <MobileTOC
             headingGroups={headingGroups}
@@ -990,29 +928,25 @@ export default function PostDetailClient() {
             onScrollTo={scrollToHeading}
           />
           <div className="w-full break-words whitespace-pre-wrap">
-      <div className="flex flex-col-reverse lg:flex-row">
-        <article className="min-w-0 flex-1 px-5 py-8 md:px-8 lg:px-10 lg:py-10">
-          <RenderedContent
-            html={updatedContent || post?.contents || ""}
-            onImagesExtracted={setPostImages}
-            onImageClick={setSelectedImageIndex}
-          />
+      <div className="flex flex-col-reverse gap-10 lg:flex-row lg:items-start xl:gap-14">
+        <article className="min-w-0 flex-1 py-4 lg:py-0">
+          <RenderedContent html={updatedContent || post?.contents || ""} />
         </article>
         {headingGroups.length > 0 && (
-          <aside className="hidden h-[calc(100vh-65px)] w-full self-start border-y border-l border-gray-200 bg-white dark:border-white/10 dark:bg-zinc-950 lg:sticky lg:top-[65px] lg:flex lg:w-[320px] lg:flex-col">
+          <aside className="hidden max-h-[calc(100vh-7rem)] w-[18rem] shrink-0 self-start overflow-hidden rounded-3xl bg-gray-100/80 dark:bg-white/[0.06] lg:sticky lg:top-24 lg:flex lg:flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <div className="flex min-h-12 items-center border-b border-gray-200 bg-gray-50 px-5 font-mono text-sm font-semibold tracking-[0.08em] text-gray-600 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-300">
-                Table of Contents
+              <div className="flex min-h-14 items-center px-5 text-base font-bold text-gray-950 dark:text-white">
+                목차
               </div>
               <nav className="flex flex-col">
               {headingGroups.map((group, index) => (
                 <div key={group.h2.id} className="flex flex-col">
                   <button
                     onClick={() => scrollToHeading(group.h2.id)}
-                    className={`cursor-pointer px-3 py-2.5 text-left text-sm font-bold transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${
+                    className={`mx-2 cursor-pointer rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-gray-200/70 dark:hover:bg-white/10 ${
                       activeHeadingId === group.h2.id
-                        ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
-                        : ""
+                        ? "text-blue-500 dark:text-blue-300"
+                        : "text-gray-800 dark:text-gray-200"
                     }`}
                   >
                     {`${index + 1}. ${group.h2.text}`}
@@ -1023,9 +957,9 @@ export default function PostDetailClient() {
                         <button
                           key={subHeading.id}
                           onClick={() => scrollToHeading(subHeading.id)}
-                          className={`cursor-pointer px-3 py-2.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${
+                          className={`mx-2 cursor-pointer rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-gray-200/70 dark:hover:bg-white/10 ${
                             activeHeadingId === subHeading.id
-                              ? "text-blue-500 bg-blue-50 dark:bg-blue-500/15 dark:text-blue-300"
+                              ? "text-blue-500 dark:text-blue-300"
                               : "text-gray-600 dark:text-gray-400"
                           }`}
                         >
@@ -1038,27 +972,27 @@ export default function PostDetailClient() {
               ))}
               </nav>
             </div>
-            <div className="shrink-0 border-t border-gray-200 dark:border-white/10">
+            <div className="mt-2 shrink-0 px-2 pb-2">
               <GotoTop variant="toc" />
             </div>
           </aside>
         )}
       </div>
-      <div className="flex w-full flex-col divide-y divide-gray-200 border-t border-gray-200 dark:divide-white/10 dark:border-white/10 md:grid md:grid-cols-2 md:divide-y-0">
+      <div className="mt-12 grid w-full gap-3 md:grid-cols-2">
         {previousPage && (
           <Link
-            href={`/posts/${encodeURIComponent(
+            href={`/articles/${encodeURIComponent(
               lowerURL(
                 categories.find((cat) => cat.id === previousPage.category_id)
                   ?.name || lowerURL(category?.name || ""),
               ),
             )}/${previousPage.slug}`}
-            className="min-w-0 bg-gray-50 px-5 py-4 dark:bg-zinc-900 md:col-start-1 md:border-r md:border-gray-200 md:dark:border-white/10"
+            className="min-w-0 rounded-2xl bg-gray-100 px-5 py-4 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:hover:bg-white/10 md:col-start-1"
           >
             <div className="flex gap-4 items-center justify-between">
               <ArrowLeftCircle size={34} className="text-gray-500" />
               <div className="flex flex-col">
-                <p className="text-sm text-gray-700 dark:text-gray-300 text-right">이전 게시물</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 text-right">이전 아티클</p>
                 <p className="truncate max-w-[200px] overflow-hidden text-ellipsis text-right font-bold">
                   {previousPage.title}
                 </p>
@@ -1068,17 +1002,17 @@ export default function PostDetailClient() {
         )}
         {nextPage && (
           <Link
-            href={`/posts/${encodeURIComponent(
+            href={`/articles/${encodeURIComponent(
               lowerURL(
                 categories.find((cat) => cat.id === nextPage.category_id)
                   ?.name || lowerURL(category?.name || ""),
               ),
             )}/${nextPage.slug}`}
-            className="min-w-0 bg-gray-50 px-5 py-4 dark:bg-zinc-900 md:col-start-2"
+            className="min-w-0 rounded-2xl bg-gray-100 px-5 py-4 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:hover:bg-white/10 md:col-start-2"
           >
             <div className="flex gap-4 items-center justify-between">
               <div className="flex flex-col">
-                <p className="text-sm text-gray-700 dark:text-gray-300">다음 게시물</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">다음 아티클</p>
                 <p className="truncate leading-tight max-w-[200px] overflow-hidden text-ellipsis font-bold">
                   {nextPage.title}
                 </p>
@@ -1088,7 +1022,7 @@ export default function PostDetailClient() {
           </Link>
         )}
       </div>
-      <div className="flex justify-center gap-2 border-t border-gray-200 px-5 py-5 dark:border-white/10 md:px-8">
+      <div className="flex justify-center gap-2 py-8">
         <Button
           onClick={handleHeartClick}
           className={cn(
@@ -1116,10 +1050,10 @@ export default function PostDetailClient() {
           공유
         </Button>
       </div>
-      <Link href="/profile">
-        <div className="flex items-center justify-between gap-4 border-t border-gray-200 px-5 py-6 hover:cursor-pointer dark:border-white/10 md:px-8">
+      <Link href="/profile" className="mt-4 block rounded-3xl bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:hover:bg-white/10">
+        <div className="flex items-center justify-between gap-4 px-5 py-6 hover:cursor-pointer md:px-7">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full overflow-hidden shadow-md flex-shrink-0">
+            <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
               <Image
                 src={authorProfile?.profile_image || "/default.png"}
                 alt="작성자 프로필"
@@ -1139,62 +1073,78 @@ export default function PostDetailClient() {
           </div>
         </div>
       </Link>
-      <div className="border-y border-gray-200 dark:border-white/10">
-        <div className="flex min-h-12 items-center justify-between border-b border-gray-200 bg-gray-50 pl-5 dark:border-white/10 dark:bg-zinc-900">
-          <span className="font-bold">{totalCommentCount}개의 댓글</span>
-          <div className="flex h-12 shrink-0 items-stretch">
-            {session ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsStatus((prev) => !prev)}
-                  className="h-12 rounded-none border-0 border-l border-gray-200 bg-gray-100 px-4 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
-                >
-                  {isStatus ? (
-                    <>
-                      <EyeIcon /> 공개
-                    </>
-                  ) : (
-                    <>
-                      <EyeOffIcon /> 비공개
-                    </>
-                  )}
-                </Button>
-                <Button
-                  className="h-12 rounded-none border-0 border-l border-gray-200 bg-action px-4 text-action-foreground hover:bg-action-hover dark:border-white/10"
-                  onClick={handleSubmitReply}
-                >
-                  <SendIcon size={20} />
-                  등록
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={openLogin}
-                className="h-12 rounded-none border-0 border-l border-gray-200 bg-action px-4 text-action-foreground hover:bg-action-hover dark:border-white/10"
-              >
-                로그인 하러 가기
-              </Button>
-            )}
-          </div>
+      <section className="mt-16">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold tracking-[-0.02em] text-gray-950 dark:text-white">
+            댓글 {totalCommentCount}
+          </h2>
         </div>
-        <Textarea
-          className="min-h-40 w-full resize-none rounded-none border-0 bg-white p-container dark:bg-zinc-900 dark:text-gray-100"
-          placeholder={
-            session
-              ? "댓글을 입력하세요. (최대 1000자)"
-              : "로그인을 한 후 이용 가능합니다."
-          }
-          value={comment}
-          onChange={(e) => {
-            if (e.target.value.length > 1000)
-              alert("최대 1000자까지 입력 가능합니다.");
-            setComment(e.target.value);
-          }}
-          disabled={!session}
-          maxLength={1000}
-        />
-      </div>
+
+        <div className="mt-8">
+          {session ? (
+            <div className="flex items-center gap-3">
+              <Image
+                src={session.user.user_metadata?.avatar_url || "/default.png"}
+                alt="댓글 작성자 프로필"
+                width={48}
+                height={48}
+                className="h-12 w-12 shrink-0 rounded-full object-cover"
+              />
+              <div className="flex h-12 min-w-0 flex-1 items-center justify-between gap-3 px-1">
+                <span className="min-w-0 truncate text-sm font-bold text-gray-900 dark:text-gray-100">
+                  {session.user.user_metadata?.full_name ||
+                    session.user.user_metadata?.name ||
+                    "사용자"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsStatus((prev) => !prev)}
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-950 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/15 dark:hover:text-white"
+                >
+                  {isStatus ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
+                  {isStatus ? "공개" : "비공개"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={openLogin}
+              className="h-12 rounded-xl bg-action px-5 text-sm font-semibold text-action-foreground transition-colors hover:bg-action-hover"
+            >
+              로그인하고 댓글 남기기
+            </button>
+          )}
+
+          <Textarea
+            className="mt-4 min-h-36 w-full resize-y rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-6 shadow-none placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-gray-300 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus-visible:ring-white/20"
+            placeholder={
+              session
+                ? "댓글을 입력하세요. (최대 1000자)"
+                : "로그인하면 댓글을 남길 수 있어요."
+            }
+            value={comment}
+            onChange={(e) => {
+              if (e.target.value.length > 1000)
+                alert("최대 1000자까지 입력 가능합니다.");
+              setComment(e.target.value);
+            }}
+            disabled={!session}
+            maxLength={1000}
+          />
+
+          {session && (
+            <div className="mt-4 flex justify-end">
+              <Button
+                className="h-11 rounded-xl bg-action px-5 text-sm font-semibold text-action-foreground transition-colors hover:bg-action-hover"
+                onClick={handleSubmitReply}
+              >
+                댓글 남기기
+              </Button>
+            </div>
+          )}
+        </div>
+      </section>
       {comments.length > 0 ? (
         comments
           .filter((comment) => !comment?.parent_id)
@@ -1202,7 +1152,7 @@ export default function PostDetailClient() {
             <div
               key={comment.id}
               className={cn(
-                "flex flex-col border-b border-gray-200 dark:border-white/10",
+                "mt-6 flex flex-col overflow-hidden rounded-2xl bg-gray-50 dark:bg-white/[0.04]",
                 session &&
                   canViewComment(comment) &&
                   editingCommentId !== comment.id &&
@@ -1339,9 +1289,9 @@ export default function PostDetailClient() {
                   </div>
                 )}
               </div>
-              <div className="ml-5 md:ml-8">
+              <div className="mx-4 mb-4 flex flex-col gap-3 sm:mx-5 md:ml-20 md:mr-6 md:mb-6">
                 {replyingTo === comment.id && (
-                  <div className="pb-4 pl-8">
+                  <div>
                     {renderReplyComposer(Number(comment.id))}
                   </div>
                 )}
@@ -1349,11 +1299,11 @@ export default function PostDetailClient() {
                 {/* 대댓글 렌더링 */}
                 {comments
                   .filter((reply) => reply.parent_id === comment.id)
-                  .map((reply, replyIndex) => (
+                  .map((reply) => (
                     <div
                       key={reply.id}
                       className={cn(
-                        "relative pl-8",
+                        "relative",
                         session &&
                           canViewComment(reply) &&
                           editingCommentId !== reply.id &&
@@ -1378,10 +1328,14 @@ export default function PostDetailClient() {
                     >
                       <div
                         className={cn(
-                          "flex flex-col gap-2 border-l border-b border-gray-200 p-4 dark:border-white/10",
-                          replyIndex === 0 && "border-t",
+                          "flex flex-col gap-3 rounded-2xl bg-white p-4 ring-1 ring-gray-200 dark:bg-white/[0.035] dark:ring-white/10 sm:p-5",
                         )}
                       >
+                      <CornerDownRight
+                        size={18}
+                        aria-hidden="true"
+                        className="absolute -left-7 top-5 hidden text-gray-400 md:block dark:text-gray-500"
+                      />
                       {canViewComment(reply) && (
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-4">
@@ -1449,7 +1403,7 @@ export default function PostDetailClient() {
                       <div
                         className={cn(
                           "flex min-w-0 flex-col",
-                          canViewComment(reply) && "ml-14",
+                          canViewComment(reply) && "ml-0 sm:ml-14",
                         )}
                       >
                         {editingCommentId === reply.id ? (
@@ -1503,7 +1457,7 @@ export default function PostDetailClient() {
                       </div>
                       </div>
                       {replyingTo === reply.id && (
-                        <div className="-mt-px">
+                        <div>
                           {renderReplyComposer(Number(comment.id))}
                         </div>
                       )}
@@ -1514,12 +1468,18 @@ export default function PostDetailClient() {
           ))
       ) : (
         <div className="flex h-[300px] flex-col items-center justify-center gap-2">
-          <MessageSquareXIcon
-            size={48}
-            className="text-gray-500 items-center justify-center mx-auto"
+          <Image
+            src={noCommentsImage}
+            alt="아직 댓글이 없는 상태"
+            quality={75}
+            className="h-auto w-48 sm:w-56"
+            sizes="(max-width: 640px) 192px, 224px"
           />
-          <p className="text-center text-gray-500 text-lg flex justify-center items-center ">
-            댓글이 없습니다.
+          <p className="mt-2 text-center text-lg font-semibold text-gray-800 dark:text-gray-200">
+            아직 첫 댓글을 기다리고 있어요.
+          </p>
+          <p className="text-center text-sm text-metricsText">
+            아티클에 대한 생각을 편하게 남겨보세요.
           </p>
         </div>
       )}
@@ -1537,7 +1497,7 @@ export default function PostDetailClient() {
           >
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-lg font-semibold text-gray-950 dark:text-gray-50">
-                게시물 공유
+                아티클 공유
               </h2>
               <button
                 onClick={() => setIsShareModalOpen(false)}
@@ -1548,7 +1508,7 @@ export default function PostDetailClient() {
               </button>
             </div>
             <p className="mt-2 text-sm text-metricsText">
-              아래 링크를 복사해서 게시물을 공유할 수 있습니다.
+              아래 링크를 복사해서 아티클을 공유할 수 있습니다.
             </p>
             <div className="mt-4 flex min-w-0 items-center gap-2 rounded-container border border-gray-200 bg-gray-50 p-2 dark:border-white/10 dark:bg-white/5">
               <input
@@ -1567,12 +1527,6 @@ export default function PostDetailClient() {
           </div>
         </div>
       )}
-      <ImageViewer
-        images={postImages}
-        selectedIndex={selectedImageIndex}
-        onClose={() => setSelectedImageIndex(null)}
-        onSelect={setSelectedImageIndex}
-      />
     </motion.div>
   );
 }

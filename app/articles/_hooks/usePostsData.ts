@@ -14,6 +14,7 @@ import {
     fetchCategoriesQueryFn,
 } from "@components/queries/categoryQueries";
 import {
+    CommentCountRow,
     commentCountsQueryKey,
     fetchCommentCountsQueryFn,
 } from "@components/queries/commentQueries";
@@ -27,7 +28,8 @@ import { Category } from "@components/types/category";
  */
 export function usePostsData(
     initialPosts?: PostStateWithoutContents[],
-    initialCategories?: Category[]
+    initialCategories?: Category[],
+    initialComments?: CommentCountRow[],
 ) {
     const { session } = useSessionStore();
     const userId = session?.user?.id;
@@ -58,6 +60,7 @@ export function usePostsData(
     const { data: comments = [] } = useQuery({
         queryKey: commentCountsQueryKey(postIds),
         queryFn: () => fetchCommentCountsQueryFn(postIds),
+        initialData: initialComments,
         enabled: postIds.length > 0,
     });
 

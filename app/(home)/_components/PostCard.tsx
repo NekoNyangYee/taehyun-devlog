@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { EyeIcon, HeartIcon, MessageSquareTextIcon, Grid2X2Plus } from "lucide-react";
+import { HeartIcon, MessageSquareTextIcon, Grid2X2Plus } from "lucide-react";
 import { formatDate } from "@components/lib/util/dayjs";
 import { PostStateWithoutContents } from "@components/types/post";
 import { CategoryLabel } from "@components/components/CategoryLabel";
@@ -31,11 +31,7 @@ export function PostCard({
     const isPopular = variant === "popular";
 
     return (
-        <Link
-            href={`/posts/${categorySlug}/${post.slug}`}
-            className="min-w-[300px] max-w-[300px]"
-        >
-            <article className="group h-full flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-gray-300 dark:hover:border-white/20 relative">
+        <article className="group h-full min-w-[300px] max-w-[300px] flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-gray-300 dark:hover:border-white/20 relative">
                 {isPopular && (
                     <div className="absolute top-3 right-3 z-10 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white flex items-center gap-1">
                         <HeartIcon size={12} fill="currentColor" />
@@ -43,7 +39,7 @@ export function PostCard({
                     </div>
                 )}
 
-                <div className="relative h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 overflow-hidden">
+                <Link href={`/articles/${categorySlug}/${post.slug}`} className="relative h-48 w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 overflow-hidden">
                     {thumbnailUrl ? (
                         <Image
                             src={thumbnailUrl}
@@ -58,30 +54,25 @@ export function PostCard({
                             <Grid2X2Plus size={32} />
                         </div>
                     )}
-                </div>
+                </Link>
 
                 <div className="flex flex-1 flex-col gap-3 p-5">
                     <div className="flex items-center justify-between gap-2">
                         <CategoryLabel
                             name={categoryName}
-                            className={isPopular ? "text-red-600 dark:text-red-300" : undefined}
+                            href={`/articles?category=${encodeURIComponent(categorySlug)}`}
                         />
                     </div>
 
-                    <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-white transition">
-                        {post.title}
-                    </h3>
+                    <Link href={`/articles/${categorySlug}/${post.slug}`}>
+                        <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-white transition">
+                            {post.title}
+                        </h3>
+                    </Link>
 
                     <p className="text-xs text-metricsText">{formatDate(post.created_at)}</p>
 
                     <div className="mt-auto flex items-center gap-4 pt-4 text-sm text-metricsText border-t border-gray-100 dark:border-white/10">
-                        <span
-                            className={`flex items-center gap-1.5 ${isPopular ? "font-semibold text-gray-700" : "hover:text-gray-700"
-                                } transition`}
-                        >
-                            <EyeIcon size={16} />
-                            {post.view_count ?? 0}
-                        </span>
                         <span
                             className={`flex items-center gap-1.5 ${isPopular
                                 ? "font-semibold text-red-500"
@@ -97,7 +88,6 @@ export function PostCard({
                         </span>
                     </div>
                 </div>
-            </article>
-        </Link>
+        </article>
     );
 }

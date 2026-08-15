@@ -1,7 +1,7 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { ChevronDown, LogOutIcon, UserRoundCog } from "lucide-react";
+import { LogOutIcon, UserRoundCog } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -49,18 +49,12 @@ export default function HeaderProfileMenu({
         aria-label="프로필 메뉴"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        className="flex h-9 items-center gap-1 rounded-lg p-0.5 pr-1 text-gray-600 transition-colors hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10"
+        className="flex h-9 items-center rounded-lg p-0.5 text-gray-600 transition-colors hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10"
       >
         <img
           src={avatarUrl}
           alt=""
           className="h-8 w-8 rounded-md object-cover ring-1 ring-black/10 dark:ring-white/15"
-        />
-        <ChevronDown
-          size={14}
-          className={`transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
         />
       </button>
 
