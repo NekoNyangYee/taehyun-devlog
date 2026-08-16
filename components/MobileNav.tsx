@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 
 const MOBILE_NAV_ITEMS = [
   { href: "/articles", label: "Articles" },
+  { href: "/bookmarks", label: "Bookmarks" },
   { href: "/profile", label: "About" },
 ];
 
