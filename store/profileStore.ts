@@ -30,17 +30,6 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
   cachedUserId: null,
   isLoading: false,
   fetchProfiles: async (userId?: string) => {
-    const state = get();
-
-    // 캐시가 있으면 데이터베이스 호출 건너뛰기
-    if (
-      state.isCached &&
-      state.profiles.length > 0 &&
-      state.cachedUserId === (userId ?? null)
-    ) {
-      return;
-    }
-
     set({ isLoading: true });
 
     try {
@@ -91,7 +80,7 @@ export const useProfileStore = create<ProfileProps>((set, get) => ({
 
       type UserRoleRow = {
         user_id: string;
-        role_id: number;
+        role_id: string;
         roles: { name: string } | { name: string }[] | null;
       };
 

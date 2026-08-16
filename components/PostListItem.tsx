@@ -42,10 +42,10 @@ export function PostListItem({
       <Link
         href={`/articles/${encodeURIComponent(categorySlug)}/${post.slug}`}
         className={cn(
-          "group flex min-w-0 items-center",
+          "group grid min-w-0 items-center",
           isCompact
-            ? "min-h-20 gap-4 sm:min-h-24 sm:gap-5"
-            : "min-h-24 gap-5 sm:min-h-32 sm:gap-8",
+            ? "min-h-20 grid-cols-[minmax(0,1fr)_7rem] gap-x-4 gap-y-3 sm:min-h-24 sm:grid-cols-[minmax(0,1fr)_10rem] sm:gap-x-5"
+            : "min-h-24 grid-cols-[minmax(0,1fr)_8rem] gap-x-5 gap-y-3 sm:min-h-32 sm:grid-cols-[minmax(0,1fr)_14rem] sm:gap-x-8",
         )}
       >
         <div
@@ -54,11 +54,8 @@ export function PostListItem({
             isCompact ? "gap-1.5" : "gap-2",
           )}
         >
-          <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs">
+          <div className="flex min-w-0 items-center text-xs">
             <CategoryLabel name={categoryName} />
-            <span className="max-w-40 truncate rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
-              {post.author_name}
-            </span>
           </div>
 
           <h3
@@ -70,30 +67,11 @@ export function PostListItem({
             {post.title}
           </h3>
 
-          <div
-            className={cn(
-              "flex min-w-0 shrink-0 flex-wrap items-center text-metricsText",
-              isCompact ? "mt-1 gap-3 text-xs" : "mt-2 gap-4 text-sm",
-            )}
-          >
-            <span className="flex items-center gap-1.5">
-              <CalendarDays size={15} />
-              {formatDate(post.created_at)}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <HeartIcon size={15} />
-              {post.like_count ?? 0}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MessageSquareTextIcon size={15} />
-              {commentCount}
-            </span>
-          </div>
         </div>
 
         <span
           className={cn(
-            "relative shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-zinc-900",
+            "relative col-start-2 row-start-1 shrink-0 overflow-hidden rounded-xl bg-gray-100 sm:row-span-2 dark:bg-zinc-900",
             isCompact
               ? "h-20 w-28 sm:h-24 sm:w-40"
               : "h-24 w-32 sm:h-32 sm:w-56",
@@ -114,6 +92,28 @@ export function PostListItem({
             </div>
           )}
         </span>
+
+        <div
+          className={cn(
+            "col-span-2 row-start-2 flex min-w-0 items-center justify-between text-metricsText sm:col-span-1 sm:col-start-1",
+            isCompact ? "text-xs" : "text-xs sm:mt-1 sm:text-sm",
+          )}
+        >
+          <span className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+            <CalendarDays className="shrink-0" size={15} />
+            {formatDate(post.created_at)}
+          </span>
+          <span className="ml-4 flex shrink-0 items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <HeartIcon size={15} />
+              {post.like_count ?? 0}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MessageSquareTextIcon size={15} />
+              {commentCount}
+            </span>
+          </span>
+        </div>
       </Link>
 
       {showBookmark && (

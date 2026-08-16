@@ -14,6 +14,7 @@ import ThemeToggle from "./ThemeToggle";
 import HeaderProfileMenu from "./HeaderProfileMenu";
 import { usePathname, useRouter } from "next/navigation";
 import { MenuIcon, XIcon } from "lucide-react";
+import { useAnimatedMount } from "@components/lib/hooks/useAnimatedMount";
 
 type NavItem = {
   href: string;
@@ -22,7 +23,6 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/articles", label: "Articles" },
-  { href: "/bookmarks", label: "Bookmarks" },
   { href: "/profile", label: "About" },
 ];
 
@@ -34,6 +34,11 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [sessionHydrated, setSessionHydrated] = useState(false);
   const openLogin = useLoginModalStore((s) => s.open);
+  const {
+    isVisible: isMobileNavMounted,
+    isAnimating: isMobileNavAnimating,
+  } = useAnimatedMount(isMobileNavVisible, 250);
+  const hasExpandedMobileNav = isMobileNavVisible || isMobileNavMounted;
 
   const toggleMobileNav = () => setMobileNavVisible((prev) => !prev);
   const closeMobileNav = useCallback(() => setMobileNavVisible(false), []);
@@ -84,21 +89,25 @@ export default function Header() {
   return (
     <>
       <header
-        className={`w-full fixed top-0 z-30 transition-colors duration-300 ${
-          isScrolled || isMobileNavVisible
-            ? "bg-white dark:bg-zinc-950 shadow-sm dark:shadow-black/40"
-            : "bg-gradient-to-b from-white/70 via-white/30 to-transparent dark:from-zinc-950/70 dark:via-zinc-950/30 dark:to-transparent pointer-events-none"
+        className={`fixed top-0 z-30 w-full ${
+          isMobileNavVisible
+            ? "bg-white shadow-sm dark:bg-zinc-950 dark:shadow-black/40"
+            : isScrolled
+              ? "bg-white shadow-sm transition-colors duration-300 dark:bg-zinc-950 dark:shadow-black/40"
+              : "pointer-events-none bg-gradient-to-b from-white/70 via-white/30 to-transparent transition-colors duration-300 dark:from-zinc-950/70 dark:via-zinc-950/30 dark:to-transparent"
         }`}
       >
-        <div
-          className={`site-container flex h-[65px] items-center justify-between gap-4 ${
-            isScrolled || isMobileNavVisible ? "" : "pointer-events-auto"
-          }`}
-        >
+        <div className="site-container">
+          <div
+            className={`flex h-[65px] items-center justify-between gap-4 ${
+              isScrolled || hasExpandedMobileNav ? "" : "pointer-events-auto"
+            }`}
+          >
           <div className="flex items-center min-w-0">
             {/* Logo */}
             <Link
               href="/"
+              onClick={closeMobileNav}
               className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity dark:[&_svg_path]:fill-white dark:[&_svg_rect]:fill-white dark:[&_svg_path]:stroke-white"
             >
               <LogoIcon />
@@ -154,12 +163,15 @@ export default function Header() {
               {isMobileNavVisible ? <XIcon size={20} /> : <MenuIcon size={20} />}
             </button>
           </div>
+          </div>
+          <MobileNavBar
+            isOpen={isMobileNavVisible}
+            isVisible={isMobileNavMounted}
+            isAnimating={isMobileNavAnimating}
+            onClose={closeMobileNav}
+            onLoginClick={openLogin}
+          />
         </div>
-        <MobileNavBar
-          isOpen={isMobileNavVisible}
-          onClose={closeMobileNav}
-          onLoginClick={openLogin}
-        />
       </header>
       <LoginModal />
       <ScrollProgressBar />

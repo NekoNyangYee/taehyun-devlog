@@ -239,90 +239,6 @@ function PostDetailSkeleton() {
   );
 }
 
-function AccountSkeleton({ compact = false }: { compact?: boolean }) {
-  if (compact) {
-    return (
-      <LoadingRegion>
-        <div className="flex w-full flex-col gap-4 py-8 md:py-10">
-          <Skeleton className="h-52 w-full rounded-3xl" />
-          <Skeleton className="h-44 w-full rounded-3xl" />
-        </div>
-      </LoadingRegion>
-    );
-  }
-
-  return (
-    <LoadingRegion>
-      <div className="my-8 w-full flex-1 sm:my-12 lg:my-16">
-        <div className="flex flex-col gap-8 sm:gap-10">
-          <div className="overflow-hidden rounded-3xl bg-gray-100/80 dark:bg-white/[0.055]">
-            <Skeleton className="h-44 w-full sm:h-52 md:h-60" />
-            <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center md:p-8">
-              <Skeleton className="size-24 shrink-0 rounded-2xl" />
-              <div className="min-w-0 flex-1">
-                <Skeleton className="h-7 w-48 rounded-lg" />
-                <Skeleton className="mt-3 h-4 w-56 rounded-full" />
-                <Skeleton className="mt-4 h-4 w-72 max-w-full rounded-full" />
-              </div>
-              <Skeleton className="h-11 w-40 rounded-xl" />
-            </div>
-          </div>
-          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <div className="flex min-w-0 flex-col gap-8">
-              <div>
-                <Skeleton className="h-7 w-28 rounded-lg" />
-                <Skeleton className="mt-3 h-4 w-72 max-w-full rounded-full" />
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
-                  {rowKeys.map((key) => (
-                    <div
-                      className="flex h-24 items-center gap-4 rounded-2xl bg-gray-100/80 p-5 dark:bg-white/[0.055]"
-                      key={key}
-                    >
-                      <Skeleton className="size-10 shrink-0 rounded-xl" />
-                      <div className="min-w-0 flex-1">
-                        <Skeleton className="h-3 w-16 rounded-full" />
-                        <Skeleton className="mt-2 h-4 w-4/5 rounded-md" />
-                        <Skeleton className="mt-2 h-3 w-3/5 rounded-full" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between gap-4">
-                  <Skeleton className="h-7 w-28 rounded-lg" />
-                  <Skeleton className="h-4 w-24 rounded-full" />
-                </div>
-                <div className="mt-5 flex flex-col gap-4">
-                  {[0, 1, 2].map((key) => (
-                    <div className="flex min-w-0 items-center gap-5" key={key}>
-                      <div className="min-w-0 flex-1">
-                        <Skeleton className="h-5 w-4/5 rounded-md" />
-                        <Skeleton className="mt-3 h-4 w-2/5 rounded-full" />
-                      </div>
-                      <Skeleton className="h-24 w-36 shrink-0 rounded-xl sm:w-44" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <aside className="flex flex-col gap-6">
-              {[0, 1].map((key) => (
-                <div className="rounded-3xl bg-gray-100/80 p-5 dark:bg-white/[0.055]" key={key}>
-                  <Skeleton className="h-6 w-24 rounded-lg" />
-                  <Skeleton className="mt-5 h-16 w-full rounded-2xl" />
-                  <Skeleton className="mt-3 h-16 w-full rounded-2xl" />
-                </div>
-              ))}
-            </aside>
-          </div>
-        </div>
-      </div>
-    </LoadingRegion>
-  );
-}
-
 function ProfileSkeleton() {
   return (
     <LoadingRegion>
@@ -370,8 +286,6 @@ export default function PageLoading() {
   const pathname = usePathname();
 
   if (pathname === "/") return <HomeSkeleton />;
-  if (pathname === "/myinfo") return <AccountSkeleton />;
-  if (pathname.startsWith("/users/")) return <AccountSkeleton compact />;
   if (pathname === "/profile") return <ProfileSkeleton />;
   if (/^\/articles\/[^/]+\/[^/]+$/.test(pathname)) return <PostDetailSkeleton />;
   if (pathname === "/bookmarks") return <PostListSkeleton titleWidth="w-52" />;

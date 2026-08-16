@@ -6,28 +6,29 @@ import { useEffect } from "react";
 import { supabase } from "@components/lib/supabaseClient";
 import { useSessionStore } from "@components/store/sessionStore";
 import { useIsClient } from "@components/lib/hooks/useIsClient";
-import { useAnimatedMount } from "@components/lib/hooks/useAnimatedMount";
+import { createPortal } from "react-dom";
 
 const MOBILE_NAV_ITEMS = [
   { href: "/articles", label: "Articles" },
-  { href: "/bookmarks", label: "Bookmarks" },
   { href: "/profile", label: "About" },
 ];
 
 export default function MobileNavBar({
   isOpen,
+  isVisible,
+  isAnimating,
   onClose,
   onLoginClick,
 }: {
   isOpen: boolean;
+  isVisible: boolean;
+  isAnimating: boolean;
   onClose: () => void;
   onLoginClick?: () => void;
 }) {
   const router = useRouter();
   const { session, addSession } = useSessionStore();
   const isClient = useIsClient();
-  const { isVisible, isAnimating } = useAnimatedMount(isOpen, 250);
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -56,25 +57,28 @@ export default function MobileNavBar({
 
   return (
     <>
-      <button
-        type="button"
-        aria-label="모바일 메뉴 닫기"
-        className={`fixed inset-x-0 bottom-0 top-[65px] z-0 bg-black/30 backdrop-blur-sm transition-opacity duration-[250ms] lg:hidden ${
-          isAnimating ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        onClick={onClose}
-      />
+      {createPortal(
+        <button
+          type="button"
+          aria-label="모바일 메뉴 닫기"
+          className={`fixed inset-0 z-20 bg-black/30 backdrop-blur-sm transition-opacity duration-[250ms] lg:hidden ${
+            isAnimating ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+          onClick={onClose}
+        />,
+        document.body,
+      )}
 
       <nav
         aria-label="모바일 메뉴"
-        className={`relative z-10 grid bg-white transition-[grid-template-rows,opacity] duration-[250ms] ease-out dark:bg-zinc-950 lg:hidden ${
+        className={`grid transition-[grid-template-rows,opacity] duration-[250ms] ease-out lg:hidden ${
           isAnimating
             ? "grid-rows-[1fr] opacity-100"
             : "pointer-events-none grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="min-h-0 max-h-[calc(100dvh-65px)] overflow-y-auto">
-          <div className="site-container py-5 sm:py-6">
+          <div className="py-5 sm:py-6">
           <div className="flex flex-col">
             {MOBILE_NAV_ITEMS.map((item) => (
               <Link
@@ -92,7 +96,7 @@ export default function MobileNavBar({
           {isClient && session && (
             <div className="mt-5 flex items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3 dark:bg-white/[0.06]">
               <Link
-                href="/myinfo"
+                href="/bookmarks"
                 onClick={onClose}
                 className="flex min-w-0 flex-1 items-center gap-3"
               >

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { LogOutIcon, UserRoundCog } from "lucide-react";
+import { BookmarkIcon, LogOutIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -74,13 +74,13 @@ export default function HeaderProfileMenu({
 
           <div className="p-1.5">
             <Link
-              href="/myinfo"
+              href="/bookmarks"
               role="menuitem"
               onClick={() => setIsOpen(false)}
               className="flex h-10 items-center gap-2.5 rounded-md px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
             >
-              <UserRoundCog size={17} />
-              내 정보
+              <BookmarkIcon size={17} />
+              북마크
             </Link>
             <button
               type="button"

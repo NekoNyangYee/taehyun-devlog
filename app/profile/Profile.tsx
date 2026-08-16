@@ -132,8 +132,8 @@ export default function ProfileDetailPage() {
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             꾸준히 쌓아 온 개발 기록입니다.
           </p>
-          <div className="mt-5 overflow-x-auto rounded-3xl bg-gray-100/80 p-5 dark:bg-white/[0.055] sm:p-7">
-            <div className="min-w-[720px]">
+          <div className="mt-5 min-w-0 overflow-hidden rounded-3xl bg-gray-100/80 p-5 dark:bg-white/[0.055] sm:p-7">
+            <div className="min-w-0">
               <GitHubCalendar
                 username={profile.username}
                 transformData={transformData}

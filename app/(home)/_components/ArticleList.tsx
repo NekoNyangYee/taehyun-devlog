@@ -13,6 +13,7 @@ import { CommentCountRow } from "@components/queries/commentQueries";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import { CategoryLabel } from "@components/components/CategoryLabel";
 import { formatDate } from "@components/lib/util/dayjs";
+import { cn } from "@components/lib/utils";
 
 interface ArticleListProps {
   posts: PostStateWithoutContents[];
@@ -58,16 +59,20 @@ export function ArticleList({
 
             return (
               <li key={post.id}>
-                <div className="group flex min-w-0 items-center gap-5 sm:gap-8">
+                <div
+                  className={cn(
+                    "group grid min-w-0 items-center gap-y-3",
+                    thumbnailUrl
+                      ? "grid-cols-[minmax(0,1fr)_8rem] gap-x-5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:gap-x-8"
+                      : "grid-cols-1",
+                  )}
+                >
                   <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs">
+                    <div className="flex min-w-0 items-center text-xs">
                       <CategoryLabel
                         name={categoryName}
                         href={category ? `/articles?category=${category.id}` : "/articles"}
                       />
-                      <span className="max-w-40 truncate rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
-                        {post.author_name}
-                      </span>
                     </div>
 
                     <Link href={`/articles/${categorySlug}/${post.slug}`}>
@@ -75,27 +80,12 @@ export function ArticleList({
                         {post.title}
                       </h3>
                     </Link>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-metricsText">
-                      <span className="flex items-center gap-1.5">
-                        <CalendarDays size={15} />
-                        {formatDate(post.created_at)}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <HeartIcon size={15} />
-                        {post.like_count ?? 0}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <MessageSquareTextIcon size={15} />
-                        {commentCount}
-                      </span>
-                    </div>
                   </div>
 
                   {thumbnailUrl && (
                     <Link
                       href={`/articles/${categorySlug}/${post.slug}`}
-                      className="relative h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-zinc-900 sm:h-32 sm:w-56"
+                      className="relative col-start-2 row-start-1 h-24 w-32 shrink-0 overflow-hidden rounded-xl bg-gray-100 sm:row-span-2 sm:h-32 sm:w-56 dark:bg-zinc-900"
                     >
                       <Image
                         src={thumbnailUrl}
@@ -107,6 +97,30 @@ export function ArticleList({
                       />
                     </Link>
                   )}
+
+                  <div
+                    className={cn(
+                      "row-start-2 flex min-w-0 items-center justify-between text-xs text-metricsText sm:mt-1 sm:text-sm",
+                      thumbnailUrl
+                        ? "col-span-2 sm:col-span-1 sm:col-start-1"
+                        : "col-start-1",
+                    )}
+                  >
+                    <span className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+                      <CalendarDays className="shrink-0" size={15} />
+                      {formatDate(post.created_at)}
+                    </span>
+                    <span className="ml-4 flex shrink-0 items-center gap-4">
+                      <span className="flex items-center gap-1.5">
+                        <HeartIcon size={15} />
+                        {post.like_count ?? 0}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MessageSquareTextIcon size={15} />
+                        {commentCount}
+                      </span>
+                    </span>
+                  </div>
                 </div>
               </li>
             );
