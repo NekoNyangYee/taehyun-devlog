@@ -24,15 +24,16 @@ export default function ScrollProgressBar() {
     };
 
     window.addEventListener("scroll", handleClientScrollBar, { passive: true });
+    handleClientScrollBar();
     return () => window.removeEventListener("scroll", handleClientScrollBar);
   }, []);
 
   const shouldShowProgressBar = /^\/articles\/[^\/]+\/[^\/]+$/.test(currentPath);
 
   return shouldShowProgressBar && !isPostLoading ? (
-    <div className="fixed top-0 left-0 w-full h-1 z-40 pointer-events-none">
+    <div className="pointer-events-none absolute left-0 top-16 h-1 w-full">
       <div
-        className="h-1 bg-black"
+        className="h-full bg-gray-950 transition-colors dark:bg-gray-100"
         style={{ width: `${scrollProgress}%` } as CSSProperties}
       />
     </div>

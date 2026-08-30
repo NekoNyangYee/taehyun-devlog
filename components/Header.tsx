@@ -15,6 +15,7 @@ import HeaderProfileMenu from "./HeaderProfileMenu";
 import { usePathname, useRouter } from "next/navigation";
 import { MenuIcon, XIcon } from "lucide-react";
 import { useAnimatedMount } from "@components/lib/hooks/useAnimatedMount";
+import { useAppAlertDialog } from "./AppAlertDialogProvider";
 
 type NavItem = {
   href: string;
@@ -34,6 +35,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [sessionHydrated, setSessionHydrated] = useState(false);
   const openLogin = useLoginModalStore((s) => s.open);
+  const { showAlert } = useAppAlertDialog();
   const {
     isVisible: isMobileNavMounted,
     isAnimating: isMobileNavAnimating,
@@ -78,7 +80,11 @@ export default function Header() {
   }, [addSession]);
 
   const handleLogout = async () => {
-    alert("로그아웃 되었습니다.");
+    await showAlert({
+      title: "로그아웃 완료",
+      description: "로그아웃 되었습니다.",
+      type: "success",
+    });
     await supabase.auth.signOut();
     addSession(null);
     router.push("/");
@@ -172,9 +178,9 @@ export default function Header() {
             onLoginClick={openLogin}
           />
         </div>
+        <ScrollProgressBar />
       </header>
       <LoginModal />
-      <ScrollProgressBar />
     </>
   );
 }

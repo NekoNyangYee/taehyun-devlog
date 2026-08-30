@@ -10,6 +10,7 @@ import { ThemeProvider } from "@components/components/ThemeProvider";
 import Script from "next/script";
 import { ReactQueryProvider } from "./ReactQueryProvider";
 import { SITE_URL } from "@components/lib/siteUrl";
+import { AppAlertDialogProvider } from "@components/components/AppAlertDialogProvider";
 
 // FOUC 방지: body 파싱 전에 html에 dark 클래스 + color-scheme 적용
 // color-scheme은 CSS 파싱 전에 브라우저가 사용하는 기본 캔버스/스크롤바 색상까지 맞춰주어 깜빡임 최소화
@@ -114,15 +115,17 @@ export default function RootLayout({
           <></>
         </AuroraBackground>
         <ThemeProvider>
-          <ReactQueryProvider>
-            <Header />
-            <main className="site-container box-border flex flex-1 pt-[65px]">
-              <Suspense fallback={<PageLoading />}>
-                <PageTransition>{children}</PageTransition>
-              </Suspense>
-            </main>
-            <Footer />
-          </ReactQueryProvider>
+          <AppAlertDialogProvider>
+            <ReactQueryProvider>
+              <Header />
+              <main className="site-container box-border flex flex-1 pt-[65px]">
+                <Suspense fallback={<PageLoading />}>
+                  <PageTransition>{children}</PageTransition>
+                </Suspense>
+              </main>
+              <Footer />
+            </ReactQueryProvider>
+          </AppAlertDialogProvider>
         </ThemeProvider>
         <Script
           src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"

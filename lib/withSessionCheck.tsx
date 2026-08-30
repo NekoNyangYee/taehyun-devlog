@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@components/lib/supabaseClient";
 import { Session } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import PageLoading from "@components/components/loading/PageLoading";
+import { useAppAlertDialog } from "@components/components/AppAlertDialogProvider";
 
 interface WithUserProps {
   user: {
@@ -20,6 +21,8 @@ const withSessionCheck = (
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const { showAlert } = useAppAlertDialog();
+    const hasRequestedLogin = useRef(false);
 
     const getSession = useCallback(async () => {
       const {
@@ -44,11 +47,19 @@ const withSessionCheck = (
     }, [getSession]);
 
     useEffect(() => {
-      if (!loading && (!session || !session.user || !session.user.email)) {
-        alert("로그인이 필요합니다.");
-        router.push("/");
+      if (
+        !loading &&
+        (!session || !session.user || !session.user.email) &&
+        !hasRequestedLogin.current
+      ) {
+        hasRequestedLogin.current = true;
+        void showAlert({
+          title: "로그인이 필요합니다",
+          description: "로그인 후 이용할 수 있습니다.",
+          type: "warning",
+        }).then(() => router.push("/"));
       }
-    }, [loading, session, router]);
+    }, [loading, session, router, showAlert]);
 
     if (loading) {
       return <PageLoading />;

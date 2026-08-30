@@ -4,6 +4,7 @@ import {
     useAddBookmark,
     useRemoveBookmark,
 } from "@components/queries/postMutations";
+import { useAppAlertDialog } from "@components/components/AppAlertDialogProvider";
 
 /**
  * 북마크 토글 로직 Hook
@@ -13,6 +14,7 @@ import {
 export function useBookmarkToggle(userId?: string) {
     const addBookmarkMutation = useAddBookmark(userId);
     const removeBookmarkMutation = useRemoveBookmark(userId);
+    const { showAlert } = useAppAlertDialog();
 
     const toggleBookmark = async (
         postId: number,
@@ -25,7 +27,11 @@ export function useBookmarkToggle(userId?: string) {
         }
 
         if (!userId) {
-            alert("로그인이 필요합니다.");
+            await showAlert({
+                title: "로그인이 필요합니다",
+                description: "북마크를 사용하려면 로그인해주세요.",
+                type: "warning",
+            });
             return;
         }
 

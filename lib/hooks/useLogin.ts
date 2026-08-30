@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@components/lib/supabaseClient";
+import { useAppAlertDialog } from "@components/components/AppAlertDialogProvider";
 
 /**
  * 로그인 로직 Hook
@@ -11,6 +12,7 @@ import { supabase } from "@components/lib/supabaseClient";
  */
 export function useLogin() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { showAlert } = useAppAlertDialog();
 
   const getRedirectURL = () => {
     if (typeof window === "undefined") {
@@ -29,12 +31,20 @@ export function useLogin() {
       });
 
       if (error) {
-        alert("로그인 실패. 다시 시도해주세요.");
+        await showAlert({
+          title: "로그인 실패",
+          description: "다시 시도해주세요.",
+          type: "error",
+        });
         console.error("로그인 에러:", error.message);
         setIsLoading(false);
       }
     } catch (err) {
-      alert("로그인 중 문제가 발생했습니다.");
+      await showAlert({
+        title: "로그인 오류",
+        description: "로그인 중 문제가 발생했습니다.",
+        type: "error",
+      });
       console.error("handleSocialLogin 에러:", err);
       setIsLoading(false);
     }

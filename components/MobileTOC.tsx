@@ -55,34 +55,34 @@ export default function MobileTOC({
 
   return (
     <div
-      className={`lg:hidden fixed top-[75px] left-0 right-0 z-30 px-4 transition-all duration-300 ${
+      className={`fixed bottom-8 left-0 right-0 z-30 px-3 transition-all duration-300 sm:px-4 lg:hidden ${
         isVisible
           ? "opacity-100 translate-y-0"
-          : "opacity-0 -translate-y-2 pointer-events-none"
+          : "pointer-events-none translate-y-2 opacity-0"
       }`}
     >
-      <div className="mx-auto flex max-w-[600px] items-start gap-2">
+      <div className="mx-auto flex max-w-4xl items-end gap-2">
         <Accordion
           type="single"
           collapsible
           value={openValue}
           onValueChange={setOpenValue}
-          className="min-w-0 flex-1 overflow-hidden rounded-2xl bg-gray-100/95 backdrop-blur-md dark:bg-zinc-900/95"
+          className="min-w-0 flex-1 overflow-hidden rounded-[28px] bg-gray-100/95 backdrop-blur-md dark:bg-zinc-900/95"
         >
-          <AccordionItem value="toc" className="border-none">
-            <AccordionTrigger className="px-5 py-4 hover:no-underline">
-              <span className="text-sm font-semibold truncate text-left flex-1 pr-2">
+          <AccordionItem value="toc" className="flex flex-col-reverse border-none">
+            <AccordionTrigger className="min-h-12 px-6 py-3 hover:no-underline sm:px-8 [&>svg]:rotate-180 [&[data-state=open]>svg]:rotate-0">
+              <span className="flex-1 truncate pr-2 text-left text-base font-semibold leading-6">
                 {activeHeading?.text || "목차"}
               </span>
             </AccordionTrigger>
-            <AccordionContent className="max-h-[60vh] overflow-y-auto px-5 pb-5">
-              <nav className="flex flex-col gap-3">
+            <AccordionContent className="max-h-[65dvh] overflow-y-auto px-6 pb-6 pt-4 sm:px-8 sm:pb-8">
+              <nav className="flex flex-col gap-3.5">
                 {headingGroups.map((group, index) => (
-                  <div key={group.h2.id} className="flex flex-col gap-2">
+                  <div key={group.h2.id} className="flex flex-col gap-1.5">
                     <button
                       type="button"
                       onClick={() => handleClick(group.h2.id)}
-                      className={`text-sm font-bold text-left ${
+                      className={`py-1.5 text-left text-[15px] font-bold leading-6 ${
                         activeId === group.h2.id
                           ? "text-blue-500 dark:text-blue-300"
                           : "text-gray-900 dark:text-gray-100"
@@ -91,13 +91,13 @@ export default function MobileTOC({
                       {`${index + 1}. ${group.h2.text}`}
                     </button>
                     {group.h3.length > 0 && (
-                      <div className="ml-3 flex flex-col gap-2">
+                      <div className="ml-4 flex flex-col gap-1">
                         {group.h3.map((subHeading) => (
                           <button
                             key={subHeading.id}
                             type="button"
                             onClick={() => handleClick(subHeading.id)}
-                            className={`text-xs text-left ${
+                            className={`py-1 text-left text-sm leading-5 ${
                               activeId === subHeading.id
                                 ? "text-blue-500 dark:text-blue-300"
                                 : "text-gray-600 dark:text-gray-400"

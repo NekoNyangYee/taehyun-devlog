@@ -6,10 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 import { formatDate } from "@components/lib/util/dayjs";
 import Link from "next/link";
 import {
-  ArrowLeftCircle,
-  ArrowRightCircle,
+  ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   CalendarRangeIcon,
+  CheckIcon,
   CopyIcon,
   CornerDownRight,
   EyeIcon,
@@ -63,6 +64,7 @@ import { useLoginModalStore } from "@components/store/loginModalStore";
 import { useCommentStore } from "@components/store/commentStore";
 import { motion } from "framer-motion";
 import { CategoryLabel } from "@components/components/CategoryLabel";
+import { useAppAlertDialog } from "@components/components/AppAlertDialogProvider";
 
 interface Heading {
   id: string;
@@ -407,8 +409,6 @@ export default function PostDetailClient() {
   const [isAdmin] = useState<boolean>(false);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState<string>("");
-  const [isReplyMentionVisible, setIsReplyMentionVisible] =
-    useState<boolean>(false);
   const [isStatus, setIsStatus] = useState<boolean>(true);
   const [isReplyStatus, setIsReplyStatus] = useState<boolean>(true);
   const [isNotFound, setIsNotFound] = useState<boolean>(false);
@@ -420,6 +420,7 @@ export default function PostDetailClient() {
   const setPostLoading = useUIStore((state) => state.setPostLoading);
   const userId = session?.user?.id;
   const openLogin = useLoginModalStore((s) => s.open);
+  const { showAlert, showConfirm } = useAppAlertDialog();
   const {
     editingCommentId,
     editingContent,
@@ -642,12 +643,20 @@ export default function PostDetailClient() {
     currentPageIndex > 0 ? posts[currentPageIndex - 1] : null;
   const nextPage =
     currentPageIndex < posts.length - 1 ? posts[currentPageIndex + 1] : null;
+  const previousCategory = categories.find(
+    (cat) => cat.id === previousPage?.category_id,
+  );
+  const nextCategory = categories.find(
+    (cat) => cat.id === nextPage?.category_id,
+  );
 
-  const handleHeartClick = () => {
+  const handleHeartClick = async () => {
     if (!session) {
-      if (
-        confirm("로그인을 해야 좋아요를 누를 수 있습니다. 로그인 하시겠어요?")
-      ) {
+      if (await showConfirm({
+        title: "로그인이 필요합니다",
+        description: "좋아요를 누르려면 로그인해야 합니다. 로그인하시겠어요?",
+        confirmLabel: "로그인",
+      })) {
         openLogin();
       }
       return;
@@ -671,7 +680,11 @@ export default function PostDetailClient() {
 
   const handleSubmitReply = async () => {
     if (comment.trim() === "") {
-      alert("댓글을 입력하세요.");
+      await showAlert({
+        title: "댓글을 입력해주세요",
+        description: "내용을 입력한 뒤 다시 등록해주세요.",
+        type: "warning",
+      });
       return;
     }
 
@@ -695,14 +708,19 @@ export default function PostDetailClient() {
 
   const deleteHandleComment = async (commentId: string | number) => {
     if (!commentId) return;
-    if (confirm("정말 삭제하시겠습니까?")) {
+    if (await showConfirm({
+      title: "댓글을 삭제할까요?",
+      description: "삭제한 댓글은 복구할 수 없습니다.",
+      confirmLabel: "삭제",
+      variant: "destructive",
+      type: "warning",
+    })) {
       await deleteCommentMutation.mutateAsync(commentId);
     }
   };
 
   const handleStartEditComment = (targetComment: (typeof comments)[number]) => {
     setReplyingTo(null);
-    setIsReplyMentionVisible(false);
     startEditingComment(
       Number(targetComment.id),
       targetComment.content,
@@ -742,7 +760,11 @@ export default function PostDetailClient() {
 
   const handleUpdateComment = async (commentId: number) => {
     if (editingContent.trim() === "") {
-      alert("댓글을 입력하세요.");
+      await showAlert({
+        title: "댓글을 입력해주세요",
+        description: "수정할 내용을 입력한 뒤 다시 저장해주세요.",
+        type: "warning",
+      });
       return;
     }
 
@@ -766,7 +788,11 @@ export default function PostDetailClient() {
 
   const handleSubmitSubCommment = async (parentId: number) => {
     if (replyContent.trim() === "") {
-      alert("답글을 입력하세요.");
+      await showAlert({
+        title: "답글을 입력해주세요",
+        description: "내용을 입력한 뒤 다시 등록해주세요.",
+        type: "warning",
+      });
       return;
     }
 
@@ -777,10 +803,15 @@ export default function PostDetailClient() {
     const mentionTarget = comments.find(
       (item) => Number(item.id) === replyingTo,
     );
-    const submittedContent =
-      mentionTarget && isReplyMentionVisible
-        ? `@[${mentionTarget.author_name.replaceAll("]", "")}] ${replyContent}`
-        : replyContent;
+    if (!mentionTarget) {
+      await showAlert({
+        title: "답장 대상을 찾을 수 없습니다",
+        description: "페이지를 새로고침한 뒤 다시 시도해주세요.",
+        type: "error",
+      });
+      return;
+    }
+    const submittedContent = `@[${mentionTarget.author_name.replaceAll("]", "")}] ${replyContent}`;
 
     await addCommentMutation.mutateAsync({
       author_id: session?.user.id,
@@ -794,7 +825,6 @@ export default function PostDetailClient() {
 
     setReplyContent("");
     setReplyingTo(null);
-    setIsReplyMentionVisible(false);
   };
 
   const replyTarget = comments.find(
@@ -820,74 +850,123 @@ export default function PostDetailClient() {
     );
   };
 
-  const renderReplyComposer = (parentId: number) => (
-    <div className="rounded-2xl bg-white p-4 ring-1 ring-gray-200 dark:bg-zinc-900 dark:ring-white/10 sm:p-5">
-      <div className="flex min-h-32 items-start gap-2">
-        {replyTarget && isReplyMentionVisible && (
-          <button
-            type="button"
-            onClick={() => setIsReplyMentionVisible(false)}
-            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-400/10 dark:text-blue-300 dark:hover:bg-blue-400/15"
-            aria-label="답글 태그 삭제"
-          >
-            @{replyTarget.author_name}
-            <XIcon size={12} />
-          </button>
+  const renderCommentComposer = ({
+    value,
+    onChange,
+    onCancel,
+    onSubmit,
+    onTogglePrivate,
+    isPrivate,
+    mode,
+    mention,
+    isPending = false,
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+    onCancel: () => void;
+    onSubmit: () => void;
+    onTogglePrivate: () => void;
+    isPrivate: boolean;
+    mode: "edit" | "reply";
+    mention?: string;
+    isPending?: boolean;
+  }) => {
+    const detectedMention = mention
+      ? null
+      : value.match(/^@\[([^\]]+)\]\s*/);
+    const activeMention = mention || detectedMention?.[1];
+    const mentionPrefix = mention
+      ? `@[${mention.replaceAll("]", "")}] `
+      : detectedMention?.[0] || "";
+    const bodyValue = detectedMention
+      ? value.slice(detectedMention[0].length)
+      : value;
+    const totalLength = mention ? mentionPrefix.length + value.length : value.length;
+    const bodyMaxLength = Math.max(0, 1000 - mentionPrefix.length);
+
+    return (
+      <div className="border-t border-gray-200 pt-3 dark:border-white/10">
+      <div className="relative">
+        {activeMention && (
+          <span className="pointer-events-none absolute left-1 top-0 z-10 inline-flex items-center rounded-md bg-gray-200 px-2 py-1 text-xs font-semibold text-gray-700 dark:bg-white/10 dark:text-gray-200">
+            @{activeMention}
+          </span>
         )}
         <Textarea
-          className="min-h-28 min-w-0 flex-1 resize-none rounded-xl border-0 bg-gray-50 p-4 shadow-none focus-visible:ring-1 focus-visible:ring-gray-300 dark:bg-white/[0.05] dark:text-gray-100 dark:focus-visible:ring-white/20"
-          placeholder="답글을 입력하세요"
-          value={replyContent}
-          onChange={(e) => setReplyContent(e.target.value)}
-          onKeyDown={(event) => {
-            if (
-              event.key === "Backspace" &&
-              replyContent.length === 0 &&
-              isReplyMentionVisible
-            ) {
-              event.preventDefault();
-              setIsReplyMentionVisible(false);
-            }
-          }}
+          className={cn(
+            "min-h-28 w-full resize-none rounded-none border-0 bg-transparent px-1 pb-7 shadow-none focus-visible:ring-0 dark:bg-transparent dark:text-gray-100",
+            activeMention ? "pt-9" : "pt-1",
+          )}
+          placeholder={mode === "reply" ? "답글을 입력하세요" : "댓글을 수정하세요"}
+          value={bodyValue}
+          onChange={(event) =>
+            onChange(
+              detectedMention
+                ? `${detectedMention[0]}${event.target.value}`
+                : event.target.value,
+            )
+          }
+          maxLength={bodyMaxLength}
         />
+        <span className="pointer-events-none absolute bottom-2 right-1 text-xs tabular-nums text-gray-400 dark:text-gray-500">
+          {totalLength}/1000
+        </span>
       </div>
-      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+      <div className="mt-1 flex flex-wrap items-center gap-1">
         <Button
           variant="ghost"
-          onClick={() => {
-            setReplyingTo(null);
-            setReplyContent("");
-            setIsReplyMentionVisible(false);
-          }}
-          className="h-10 rounded-xl px-4 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+          onClick={onTogglePrivate}
+          className="h-9 rounded-lg px-3 text-xs text-gray-600 hover:bg-black/[0.05] dark:text-gray-300 dark:hover:bg-white/10"
+        >
+          {isPrivate ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+          {isPrivate ? "비공개" : "공개"}
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={onCancel}
+          className="ml-auto h-9 rounded-lg px-3 text-xs text-gray-600 hover:bg-black/[0.05] dark:text-gray-300 dark:hover:bg-white/10"
         >
           취소
         </Button>
         <Button
-          variant="outline"
-          onClick={() => setIsReplyStatus((prev) => !prev)}
-          className="h-10 rounded-xl border-0 bg-gray-100 px-4 text-gray-700 shadow-none hover:bg-gray-200 dark:bg-white/[0.07] dark:text-gray-200 dark:hover:bg-white/10"
+          onClick={onSubmit}
+          disabled={isPending}
+          className="h-9 rounded-lg bg-action px-3 text-xs font-semibold text-action-foreground shadow-none hover:bg-action-hover"
         >
-          {isReplyStatus ? (
-            <>
-              <EyeIcon /> 공개
-            </>
-          ) : (
-            <>
-              <EyeOffIcon /> 비공개
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={() => handleSubmitSubCommment(parentId)}
-          className="flex h-10 items-center gap-2 rounded-xl bg-action px-4 font-semibold text-action-foreground shadow-none hover:bg-action-hover"
-        >
-          <SendIcon size={20} />
-          등록
+          {mode === "edit" ? <CheckIcon size={15} /> : <SendIcon size={15} />}
+          {mode === "edit" ? "저장" : "등록"}
         </Button>
       </div>
-    </div>
-  );
+      </div>
+    );
+  };
+
+  const renderEditComposer = (commentId: number) =>
+    renderCommentComposer({
+      value: editingContent,
+      onChange: setEditingContent,
+      onCancel: cancelEditingComment,
+      onSubmit: () => handleUpdateComment(commentId),
+      onTogglePrivate: () => setEditingStatus(!editingStatus),
+      isPrivate: editingStatus,
+      mode: "edit",
+      isPending: updateCommentMutation.isPending,
+    });
+
+  const renderReplyComposer = (parentId: number) =>
+    renderCommentComposer({
+      value: replyContent,
+      onChange: setReplyContent,
+      onCancel: () => {
+        setReplyingTo(null);
+        setReplyContent("");
+      },
+      onSubmit: () => handleSubmitSubCommment(parentId),
+      onTogglePrivate: () => setIsReplyStatus((prev) => !prev),
+      isPrivate: !isReplyStatus,
+      mode: "reply",
+      mention: replyTarget?.author_name,
+    });
 
   if (loading || isHydratingPost) {
     return <PageLoading />;
@@ -983,17 +1062,32 @@ export default function PostDetailClient() {
           <Link
             href={`/articles/${encodeURIComponent(
               lowerURL(
-                categories.find((cat) => cat.id === previousPage.category_id)
-                  ?.name || lowerURL(category?.name || ""),
+                previousCategory?.name || lowerURL(category?.name || ""),
               ),
             )}/${previousPage.slug}`}
-            className="min-w-0 rounded-2xl bg-gray-100 px-5 py-4 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:hover:bg-white/10 md:col-start-1"
+            className="group relative isolate min-h-28 min-w-0 overflow-hidden rounded-2xl bg-gray-100 px-5 py-4 transition-shadow hover:ring-1 hover:ring-gray-300 dark:bg-zinc-900 dark:hover:ring-white/15 md:col-start-1"
           >
-            <div className="flex gap-4 items-center justify-between">
-              <ArrowLeftCircle size={34} className="text-gray-500" />
-              <div className="flex flex-col">
-                <p className="text-sm text-gray-700 dark:text-gray-300 text-right">이전 아티클</p>
-                <p className="truncate max-w-[200px] overflow-hidden text-ellipsis text-right font-bold">
+            {previousCategory?.thumbnail && (
+              <div className="pointer-events-none absolute inset-y-0 left-0 -z-10 w-[45%] max-w-48 overflow-hidden">
+                <Image
+                  src={previousCategory.thumbnail}
+                  alt=""
+                  fill
+                  sizes="(max-width: 767px) 45vw, 192px"
+                  className="object-cover opacity-75 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100/30 to-gray-100 dark:via-zinc-900/30 dark:to-zinc-900" />
+              </div>
+            )}
+            <div className="flex min-h-20 min-w-0 items-center gap-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-gray-700 opacity-0 ring-1 ring-black/10 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 dark:bg-black/30 dark:text-gray-100 dark:ring-white/15">
+                <ArrowLeft size={20} />
+              </span>
+              <div className="ml-auto w-[58%] min-w-0 text-right">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  이전 아티클
+                </p>
+                <p className="mt-1 truncate text-base font-bold leading-tight text-gray-950 dark:text-gray-50">
                   {previousPage.title}
                 </p>
               </div>
@@ -1004,20 +1098,35 @@ export default function PostDetailClient() {
           <Link
             href={`/articles/${encodeURIComponent(
               lowerURL(
-                categories.find((cat) => cat.id === nextPage.category_id)
-                  ?.name || lowerURL(category?.name || ""),
+                nextCategory?.name || lowerURL(category?.name || ""),
               ),
             )}/${nextPage.slug}`}
-            className="min-w-0 rounded-2xl bg-gray-100 px-5 py-4 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:hover:bg-white/10 md:col-start-2"
+            className="group relative isolate min-h-28 min-w-0 overflow-hidden rounded-2xl bg-gray-100 px-5 py-4 transition-shadow hover:ring-1 hover:ring-gray-300 dark:bg-zinc-900 dark:hover:ring-white/15 md:col-start-2"
           >
-            <div className="flex gap-4 items-center justify-between">
-              <div className="flex flex-col">
-                <p className="text-sm text-gray-700 dark:text-gray-300">다음 아티클</p>
-                <p className="truncate leading-tight max-w-[200px] overflow-hidden text-ellipsis font-bold">
+            {nextCategory?.thumbnail && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[45%] max-w-48 overflow-hidden">
+                <Image
+                  src={nextCategory.thumbnail}
+                  alt=""
+                  fill
+                  sizes="(max-width: 767px) 45vw, 192px"
+                  className="object-cover opacity-75 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-gray-100/30 to-gray-100 dark:via-zinc-900/30 dark:to-zinc-900" />
+              </div>
+            )}
+            <div className="flex min-h-20 min-w-0 items-center gap-4">
+              <div className="w-[58%] min-w-0">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  다음 아티클
+                </p>
+                <p className="mt-1 truncate text-base font-bold leading-tight text-gray-950 dark:text-gray-50">
                   {nextPage.title}
                 </p>
               </div>
-              <ArrowRightCircle size={34} className="text-gray-500" />
+              <span className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-gray-700 opacity-0 ring-1 ring-black/10 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 dark:bg-black/30 dark:text-gray-100 dark:ring-white/15">
+                <ArrowRight size={20} />
+              </span>
             </div>
           </Link>
         )}
@@ -1090,20 +1199,28 @@ export default function PostDetailClient() {
                 height={48}
                 className="h-12 w-12 shrink-0 rounded-full object-cover"
               />
-              <div className="flex h-12 min-w-0 flex-1 items-center justify-between gap-3 px-1">
+              <div className="flex min-h-12 min-w-0 flex-1 items-center justify-between gap-3 px-1">
                 <span className="min-w-0 truncate text-sm font-bold text-gray-900 dark:text-gray-100">
                   {session.user.user_metadata?.full_name ||
                     session.user.user_metadata?.name ||
                     "사용자"}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setIsStatus((prev) => !prev)}
-                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-950 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/15 dark:hover:text-white"
-                >
-                  {isStatus ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
-                  {isStatus ? "공개" : "비공개"}
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsStatus((prev) => !prev)}
+                    className="flex h-10 items-center gap-1.5 rounded-lg bg-gray-100 px-3 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-950 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/15 dark:hover:text-white"
+                  >
+                    {isStatus ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
+                    {isStatus ? "공개" : "비공개"}
+                  </button>
+                  <Button
+                    className="h-10 rounded-lg bg-action px-3 text-xs font-semibold text-action-foreground transition-colors hover:bg-action-hover sm:px-4 sm:text-sm"
+                    onClick={handleSubmitReply}
+                  >
+                    댓글 남기기
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
@@ -1126,23 +1243,17 @@ export default function PostDetailClient() {
             value={comment}
             onChange={(e) => {
               if (e.target.value.length > 1000)
-                alert("최대 1000자까지 입력 가능합니다.");
+                void showAlert({
+                  title: "입력 제한",
+                  description: "댓글은 최대 1000자까지 입력할 수 있습니다.",
+                  type: "warning",
+                });
               setComment(e.target.value);
             }}
             disabled={!session}
             maxLength={1000}
           />
 
-          {session && (
-            <div className="mt-4 flex justify-end">
-              <Button
-                className="h-11 rounded-xl bg-action px-5 text-sm font-semibold text-action-foreground transition-colors hover:bg-action-hover"
-                onClick={handleSubmitReply}
-              >
-                댓글 남기기
-              </Button>
-            </div>
-          )}
         </div>
       </section>
       {comments.length > 0 ? (
@@ -1171,7 +1282,6 @@ export default function PostDetailClient() {
                 }
 
                 setReplyingTo(Number(comment.id));
-                setIsReplyMentionVisible(true);
               }}
             >
               {canViewComment(comment) && (
@@ -1242,45 +1352,7 @@ export default function PostDetailClient() {
                 )}
               >
                 {editingCommentId === comment.id ? (
-                  <div className="overflow-hidden border border-gray-200 dark:border-white/10">
-                    <Textarea
-                      className="w-full min-h-28 resize-none rounded-none border-0 bg-white p-container dark:bg-zinc-900 dark:text-gray-100"
-                      value={editingContent}
-                      onChange={(e) => setEditingContent(e.target.value)}
-                      maxLength={1000}
-                    />
-                    <div className="flex flex-wrap justify-end border-t border-gray-200 dark:border-white/10">
-                      <Button
-                        variant="outline"
-                        onClick={() => setEditingStatus(!editingStatus)}
-                        className="rounded-none border-y-0 border-l border-r-0 border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
-                      >
-                        {editingStatus ? (
-                          <>
-                            <EyeOffIcon /> 비공개
-                          </>
-                        ) : (
-                          <>
-                            <EyeIcon /> 공개
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="rounded-none border-l border-gray-200 dark:border-white/10"
-                        onClick={cancelEditingComment}
-                      >
-                        취소
-                      </Button>
-                      <Button
-                        onClick={() => handleUpdateComment(Number(comment.id))}
-                        disabled={updateCommentMutation.isPending}
-                        className="rounded-none border-l border-gray-200 bg-action text-action-foreground hover:bg-action-hover dark:border-white/10"
-                      >
-                        저장
-                      </Button>
-                    </div>
-                  </div>
+                  renderEditComposer(Number(comment.id))
                 ) : canViewComment(comment) ? (
                   renderCommentContent(comment.content)
                 ) : (
@@ -1291,9 +1363,7 @@ export default function PostDetailClient() {
               </div>
               <div className="mx-4 mb-4 flex flex-col gap-3 sm:mx-5 md:ml-20 md:mr-6 md:mb-6">
                 {replyingTo === comment.id && (
-                  <div>
-                    {renderReplyComposer(Number(comment.id))}
-                  </div>
+                  renderReplyComposer(Number(comment.id))
                 )}
 
                 {/* 대댓글 렌더링 */}
@@ -1323,7 +1393,6 @@ export default function PostDetailClient() {
                         }
 
                         setReplyingTo(Number(reply.id));
-                        setIsReplyMentionVisible(true);
                       }}
                     >
                       <div
@@ -1407,45 +1476,7 @@ export default function PostDetailClient() {
                         )}
                       >
                         {editingCommentId === reply.id ? (
-                            <div className="overflow-hidden border border-gray-200 dark:border-white/10">
-                              <Textarea
-                                className="w-full min-h-28 resize-none rounded-none border-0 bg-white p-container dark:bg-zinc-900 dark:text-gray-100"
-                                value={editingContent}
-                                onChange={(e) => setEditingContent(e.target.value)}
-                                maxLength={1000}
-                              />
-                              <div className="flex flex-wrap justify-end border-t border-gray-200 dark:border-white/10">
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setEditingStatus(!editingStatus)}
-                                  className="rounded-none border-y-0 border-l border-r-0 border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-white/10 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
-                                >
-                                {editingStatus ? (
-                                  <>
-                                    <EyeOffIcon /> 비공개
-                                  </>
-                                ) : (
-                                  <>
-                                    <EyeIcon /> 공개
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                className="rounded-none border-l border-gray-200 dark:border-white/10"
-                                onClick={cancelEditingComment}
-                              >
-                                취소
-                              </Button>
-                              <Button
-                                onClick={() => handleUpdateComment(Number(reply.id))}
-                                disabled={updateCommentMutation.isPending}
-                                className="rounded-none border-l border-gray-200 bg-action text-action-foreground hover:bg-action-hover dark:border-white/10"
-                              >
-                                저장
-                              </Button>
-                            </div>
-                          </div>
+                          renderEditComposer(Number(reply.id))
                         ) : canViewComment(reply) ? (
                           renderCommentContent(reply.content)
                         ) : (
@@ -1457,9 +1488,7 @@ export default function PostDetailClient() {
                       </div>
                       </div>
                       {replyingTo === reply.id && (
-                        <div>
-                          {renderReplyComposer(Number(comment.id))}
-                        </div>
+                        renderReplyComposer(Number(comment.id))
                       )}
                     </div>
                   ))}

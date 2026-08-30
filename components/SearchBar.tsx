@@ -217,9 +217,9 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
         }`}
         onClick={handleClose}
       />
-      <div className="absolute left-1/2 top-20 w-full max-w-4xl -translate-x-1/2 px-3 sm:top-24 sm:px-5">
+      <div className="absolute bottom-3 left-1/2 top-20 w-full max-w-4xl -translate-x-1/2 px-3 sm:bottom-5 sm:top-24 sm:px-5">
         <div
-          className={`flex h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl shadow-black/20 ring-1 ring-black/5 transition-all duration-300 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/10 sm:h-[42rem] ${
+          className={`flex h-full max-h-[42rem] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl shadow-black/20 ring-1 ring-black/5 transition-all duration-300 dark:bg-zinc-950 dark:shadow-black/50 dark:ring-white/10 ${
             isOpen
               ? "translate-y-0 opacity-100"
               : "-translate-y-2 opacity-0"
