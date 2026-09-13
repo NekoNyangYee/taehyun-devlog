@@ -1,8 +1,10 @@
 "use client";
 
 import { GotoTop } from "@components/components/GoToTop";
+import { useIsClient } from "@components/lib/hooks/useIsClient";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, ListTree } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
 interface Heading {
@@ -35,6 +37,7 @@ export default function MobileTOC({
 }: MobileTOCProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const isClient = useIsClient();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,15 +53,21 @@ export default function MobileTOC({
   useEffect(() => {
     if (!isOpen) return;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsOpen(false);
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen]);
 
-  if (headingGroups.length === 0) return null;
+  if (!isClient || headingGroups.length === 0) return null;
 
   const activeHeading = headingGroups
     .flatMap((group) => [group.h2, ...group.h3])
@@ -69,7 +78,7 @@ export default function MobileTOC({
     onScrollTo(id);
   };
 
-  return (
+  return createPortal(
     <>
       <AnimatePresence>
         {isVisible && isOpen && (
@@ -187,6 +196,7 @@ export default function MobileTOC({
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </>,
+    document.body,
   );
 }
