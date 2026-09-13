@@ -5,7 +5,13 @@ import { useEffect, useRef, useState } from "react";
 
 type GotoTopVariant = "fixed" | "toc" | "mobile";
 
-export function GotoTop({ variant = "fixed" }: { variant?: GotoTopVariant }) {
+export function GotoTop({
+  variant = "fixed",
+  onActivate,
+}: {
+  variant?: GotoTopVariant;
+  onActivate?: () => void;
+}) {
   const [currentHeight, setCurrentHeight] = useState<boolean>(false);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const animationFrameRef = useRef<number | null>(null);
@@ -25,6 +31,7 @@ export function GotoTop({ variant = "fixed" }: { variant?: GotoTopVariant }) {
 
   const handleClick = () => {
     if (isDisabled) return;
+    onActivate?.();
     setIsDisabled(true);
     const scrollContainer = document.scrollingElement || document.documentElement;
     const startPosition = Math.max(
@@ -76,7 +83,7 @@ export function GotoTop({ variant = "fixed" }: { variant?: GotoTopVariant }) {
                 : "pointer-events-none translate-y-2 opacity-0"
             }`
           : variant === "mobile"
-            ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-lg transition-all duration-300 hover:bg-gray-100 disabled:opacity-50 dark:border-white/10 dark:bg-zinc-900 dark:text-gray-200 dark:hover:bg-white/10 ${
+            ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-gray-700 transition-colors hover:bg-gray-100 active:bg-gray-200/70 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-white/[0.07] dark:active:bg-white/10 ${
                 currentHeight
                   ? "translate-y-0 opacity-100"
                   : "pointer-events-none -translate-y-2 opacity-0"

@@ -14,7 +14,25 @@ let resvgWasmReady: Promise<void> | null = null;
 const ensureResvgWasm = (requestUrl: string) => {
   if (!resvgWasmReady) {
     const wasmUrl = new URL("/resvg.wasm", requestUrl);
-    resvgWasmReady = initWasm(fetch(wasmUrl));
+    resvgWasmReady = (async () => {
+      const response = await fetch(wasmUrl);
+
+      if (!response.ok) {
+        throw new Error(`resvg WASM could not be loaded (${response.status}).`);
+      }
+
+      try {
+        await initWasm(response);
+      } catch (error) {
+        // The package singleton can survive a route hot reload in development.
+        if (!(error instanceof Error) || !error.message.includes("Already initialized")) {
+          throw error;
+        }
+      }
+    })().catch((error) => {
+      resvgWasmReady = null;
+      throw error;
+    });
   }
 
   return resvgWasmReady;
@@ -53,18 +71,18 @@ const getPostSlugCandidates = (slug: string) => {
 };
 
 const toAbsoluteUrl = (url?: string | null) => {
-  if (!url) return `${baseUrl}/default.png`;
+  if (!url) return null;
   try {
     return new URL(url, baseUrl).toString();
   } catch {
-    return `${baseUrl}/default.png`;
+    return null;
   }
 };
 
 const toSatoriCompatibleImageUrl = (url?: string | null) => {
   const absoluteUrl = toAbsoluteUrl(url);
 
-  if (!absoluteUrl.includes("res.cloudinary.com")) {
+  if (!absoluteUrl || !absoluteUrl.includes("res.cloudinary.com")) {
     return absoluteUrl;
   }
 
@@ -91,6 +109,11 @@ const getOgFont = async (origin: string) => {
 
 const getThumbnailLogoSrc = async (origin: string) => {
   const response = await fetch(`${origin}/thumbnail-logo.svg`);
+
+  if (!response.ok) {
+    throw new Error("OG logo asset could not be loaded.");
+  }
+
   const svg = await response.text();
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 };
@@ -215,20 +238,22 @@ export async function GET(request: Request, { params }: RouteContext) {
         fontFamily: "Pretendard, Arial, sans-serif",
       }}
     >
-      <img
-        src={thumbnailUrl}
-        alt=""
-        width={1200}
-        height={630}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-      />
+      {thumbnailUrl ? (
+        <img
+          src={thumbnailUrl}
+          alt=""
+          width={1200}
+          height={630}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : null}
       <div
         style={{
           position: "absolute",

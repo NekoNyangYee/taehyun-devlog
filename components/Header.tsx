@@ -178,7 +178,7 @@ export default function Header() {
             onLoginClick={openLogin}
           />
         </div>
-        <ScrollProgressBar />
+        {!hasExpandedMobileNav && <ScrollProgressBar />}
       </header>
       <LoginModal />
     </>
