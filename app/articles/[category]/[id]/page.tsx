@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const baseUrl = SITE_URL;
   const postUrl = `${baseUrl}/articles/${encodeURIComponent(category)}/${encodeURIComponent(id)}`;
   const ogImageVersion = post.updated_at ?? post.slug;
-  const ogImage = `${postUrl}/opengraph-image?v=${encodeURIComponent(ogImageVersion)}`;
+  const ogImage = `${postUrl}/og-image?v=${encodeURIComponent(ogImageVersion)}`;
 
   return {
     title: `${post.title} | TaeHyun's Devlog`,
