@@ -254,7 +254,7 @@ function RenderedContent({ html }: { html: string }) {
     ref.current.innerHTML = html || "";
 
     // 본문 이미지는 원본 비율로 표시한다.
-    ref.current.querySelectorAll("img").forEach((img) => {
+    ref.current.querySelectorAll("img:not(.bookmark-card__image)").forEach((img) => {
       const el = img as HTMLImageElement;
       el.style.display = "block";
       el.style.margin = "20px auto";
@@ -263,6 +263,12 @@ function RenderedContent({ html }: { html: string }) {
       el.style.cursor = "default";
     });
 
+    // Bookmark thumbnails keep the card layout and disappear if unavailable.
+    ref.current.querySelectorAll<HTMLImageElement>(".bookmark-card__image").forEach((image) => {
+      const hideBrokenImage = () => { image.hidden = true; };
+      image.addEventListener("error", hideBrokenImage, { once: true });
+      if (image.complete && image.naturalWidth === 0) hideBrokenImage();
+    });
     // 제목 여백
     ref.current.querySelectorAll("h1, h2, h3").forEach((heading) => {
       const el = heading as HTMLHeadingElement;
