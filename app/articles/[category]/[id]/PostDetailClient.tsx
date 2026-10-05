@@ -1007,12 +1007,8 @@ export default function PostDetailClient() {
       {/* 본문 영역 */}
       <div className="relative z-10 border-t border-gray-100 pt-8 dark:border-white/10 sm:pt-10">
         <div className="min-h-screen">
-          <MobileTOC
-            headingGroups={headingGroups}
-            activeId={activeHeadingId}
-            onScrollTo={scrollToHeading}
-          />
           <div className="w-full break-words whitespace-pre-wrap">
+      <div>
       <div className="flex flex-col-reverse gap-10 lg:flex-row lg:items-start xl:gap-14">
         <article className="min-w-0 flex-1 py-4 lg:py-0">
           <RenderedContent html={updatedContent || post?.contents || ""} />
@@ -1062,6 +1058,12 @@ export default function PostDetailClient() {
             </div>
           </aside>
         )}
+      </div>
+        <MobileTOC
+          headingGroups={headingGroups}
+          activeId={activeHeadingId}
+          onScrollTo={scrollToHeading}
+        />
       </div>
       <div className="mt-12 grid w-full gap-3 md:grid-cols-2">
         {previousPage && (

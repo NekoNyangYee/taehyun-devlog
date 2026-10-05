@@ -4,7 +4,6 @@ import { GotoTop } from "@components/components/GoToTop";
 import { useIsClient } from "@components/lib/hooks/useIsClient";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, ListTree } from "lucide-react";
-import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
 interface Heading {
@@ -78,14 +77,17 @@ export default function MobileTOC({
     onScrollTo(id);
   };
 
-  return createPortal(
-    <>
+  return (
+    <div
+      className="sticky z-20 mt-6 h-[58px] whitespace-normal lg:hidden"
+      style={{ bottom: "calc(2rem + env(safe-area-inset-bottom))" }}
+    >
       <AnimatePresence>
         {isVisible && isOpen && (
           <motion.button
             type="button"
             aria-label="목차 닫기"
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] lg:hidden dark:bg-black/45"
+            className="fixed inset-0 z-0 bg-black/20 backdrop-blur-[2px] lg:hidden dark:bg-black/45"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -98,8 +100,9 @@ export default function MobileTOC({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="fixed inset-x-0 z-50 px-3 sm:px-4 lg:hidden"
-            style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
+            layout="position"
+            className={`inset-x-0 z-10 lg:hidden ${isOpen ? "fixed px-3 sm:px-4" : "absolute"}`}
+            style={{ bottom: isOpen ? "calc(2rem + env(safe-area-inset-bottom))" : 0 }}
             initial={{ opacity: 0, y: 28, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
@@ -108,7 +111,7 @@ export default function MobileTOC({
             <motion.div
               layout
               transition={sheetTransition}
-              className={`mx-auto w-full max-w-4xl overflow-hidden border border-black/[0.08] bg-white shadow-[0_16px_50px_rgba(15,23,42,0.24)] dark:border-white/[0.12] dark:bg-zinc-900 dark:shadow-[0_16px_50px_rgba(0,0,0,0.55)] ${
+              className={`mx-auto w-full max-w-4xl overflow-hidden border border-black/[0.08] bg-white dark:border-white/[0.12] dark:bg-zinc-900 ${
                 isOpen ? "rounded-[28px]" : "rounded-[22px]"
               }`}
             >
@@ -196,7 +199,6 @@ export default function MobileTOC({
           </motion.div>
         )}
       </AnimatePresence>
-    </>,
-    document.body,
+    </div>
   );
 }
