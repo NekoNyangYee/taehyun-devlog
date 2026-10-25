@@ -5,6 +5,7 @@ import { useIsClient } from "@components/lib/hooks/useIsClient";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, ListTree } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { RefObject } from "react";
 
 interface Heading {
   id: string;
@@ -20,6 +21,7 @@ interface MobileTOCProps {
   headingGroups: HeadingGroup[];
   activeId: string;
   onScrollTo: (id: string) => void;
+  contentEndRef: RefObject<HTMLDivElement | null>;
 }
 
 const sheetTransition = {
@@ -33,6 +35,7 @@ export default function MobileTOC({
   headingGroups,
   activeId,
   onScrollTo,
+  contentEndRef,
 }: MobileTOCProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -40,14 +43,18 @@ export default function MobileTOC({
 
   useEffect(() => {
     const handleScroll = () => {
-      const shouldBeVisible = window.scrollY > 200;
+      const contentEnd = contentEndRef.current;
+      const isPastContentEnd =
+        contentEnd !== null &&
+        contentEnd.getBoundingClientRect().top <= window.innerHeight - 24;
+      const shouldBeVisible = window.scrollY > 200 && !isPastContentEnd;
       setIsVisible(shouldBeVisible);
       if (!shouldBeVisible) setIsOpen(false);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [contentEndRef]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,7 +86,7 @@ export default function MobileTOC({
 
   return (
     <div
-      className="sticky z-20 mt-6 h-[58px] whitespace-normal lg:hidden"
+      className="fixed inset-x-0 z-20 mt-6 whitespace-normal lg:hidden"
       style={{ bottom: "calc(2rem + env(safe-area-inset-bottom))" }}
     >
       <AnimatePresence>
@@ -101,8 +108,7 @@ export default function MobileTOC({
         {isVisible && (
           <motion.div
             layout="position"
-            className={`inset-x-0 z-10 lg:hidden ${isOpen ? "fixed px-3 sm:px-4" : "absolute"}`}
-            style={{ bottom: isOpen ? "calc(2rem + env(safe-area-inset-bottom))" : 0 }}
+            className="relative z-10 px-3 lg:hidden sm:px-4"
             initial={{ opacity: 0, y: 28, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.97 }}

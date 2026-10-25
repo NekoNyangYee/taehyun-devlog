@@ -422,6 +422,7 @@ export default function PostDetailClient() {
   const [shareUrl, setShareUrl] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const contentEndRef = useRef<HTMLDivElement>(null);
 
   const setPostLoading = useUIStore((state) => state.setPostLoading);
   const userId = session?.user?.id;
@@ -1059,10 +1060,12 @@ export default function PostDetailClient() {
           </aside>
         )}
       </div>
+        <div ref={contentEndRef} aria-hidden="true" className="h-px" />
         <MobileTOC
           headingGroups={headingGroups}
           activeId={activeHeadingId}
           onScrollTo={scrollToHeading}
+          contentEndRef={contentEndRef}
         />
       </div>
       <div className="mt-12 grid w-full gap-3 md:grid-cols-2">
