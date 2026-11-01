@@ -194,7 +194,7 @@ export function FeaturedCarousel({
                 aria-label="다음 추천 아티클"
                 className="static h-9 w-9 translate-x-0 translate-y-0 border-gray-200 bg-white/80 backdrop-blur hover:bg-white dark:border-white/10 dark:bg-zinc-900/80 dark:hover:bg-zinc-800"
               />
-              <div className="ml-3 flex items-center gap-1" aria-label="추천 아티클 선택">
+              <div className="ml-3 flex items-center gap-0" aria-label="추천 아티클 선택">
                 {featured.map((post, index) => (
                   <button
                     key={post.id}
@@ -206,7 +206,7 @@ export function FeaturedCarousel({
                       if (progressRef.current) progressRef.current.style.transform = "scaleX(0)";
                       api?.scrollTo(index);
                     }}
-                    className="flex h-9 min-w-6 items-center justify-center rounded-full px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
+                    className="flex h-9 items-center justify-center rounded-full px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
                   >
                     <span className={`relative block h-2 overflow-hidden rounded-full bg-gray-300 transition-[width] dark:bg-zinc-600 ${selectedIndex === index ? "w-12" : "w-2"}`}>
                       {selectedIndex === index && (

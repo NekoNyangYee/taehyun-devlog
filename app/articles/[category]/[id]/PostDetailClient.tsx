@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { PostState } from "@components/types/post";
+import { startTransition, useEffect, useRef, useState, useMemo, useCallback, useOptimistic, useTransition } from "react";
+import { PostMetrics, PostState } from "@components/types/post";
 import { useParams, useRouter } from "next/navigation";
 import { formatDate } from "@components/lib/util/dayjs";
 import Link from "next/link";
@@ -29,7 +29,7 @@ import { useSessionStore } from "@components/store/sessionStore";
 import { cn } from "@components/lib/utils";
 import { Textarea } from "@components/components/ui/textarea";
 import Image from "next/image";
-import noCommentsImage from "../../../../public/no-comments.png";
+import noCommentsImage from "../../../../public/no-comments.webp";
 import { useUIStore } from "@components/store/postLoadingStore";
 import { lowerURL } from "@components/lib/util/lowerURL";
 import NotFound from "@components/app/not-found";
@@ -65,6 +65,7 @@ import { useCommentStore } from "@components/store/commentStore";
 import { motion } from "framer-motion";
 import { CategoryLabel } from "@components/components/CategoryLabel";
 import { useAppAlertDialog } from "@components/components/AppAlertDialogProvider";
+import { RelatedPosts } from "./RelatedPosts";
 
 interface Heading {
   id: string;
@@ -410,6 +411,13 @@ export default function PostDetailClient() {
   const { id, category: urlCategory } = params;
 
   const [post, setPost] = useState<PostState | null>(null);
+  const [optimisticPost, setOptimisticPost] = useOptimistic(
+    post,
+    (current: PostState | null, metrics: PostMetrics) =>
+      current?.id === metrics.id ? { ...current, ...metrics } : current,
+  );
+  const [isLikePending, startLikeTransition] = useTransition();
+  const likeRequestRef = useRef(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [comment, setComment] = useState<string>("");
   const [isAdmin] = useState<boolean>(false);
@@ -577,7 +585,7 @@ export default function PostDetailClient() {
   // 좋아요 상태 (파생)
   const isHeartClicked =
     !!session?.user?.id &&
-    (post?.liked_by_user?.includes(session.user.id) ?? false);
+    (optimisticPost?.liked_by_user?.includes(session.user.id) ?? false);
 
   /** 클릭 시 해당 제목으로 스크롤 이동 + URL 변경 */
   const scrollToHeading = (id: string, updateUrl = true) => {
@@ -669,20 +677,41 @@ export default function PostDetailClient() {
       return;
     }
 
-    if (!userId || !post) return;
+    if (!userId || !post || isLikePending || likeRequestRef.current) return;
 
-    toggleLikeMutation.mutate(
-      { postId: post.id, likedByUser: userId },
-      {
-        onSuccess: (metrics) => {
-          // post.liked_by_user가 업데이트되면 isHeartClicked는 자동 파생됨
-          setPost((prev) => (prev ? { ...prev, ...metrics } : prev));
-        },
-        onError: (error) => {
-          console.error("🚨 좋아요 처리 중 오류 발생:", error);
-        },
-      },
-    );
+    const likedByUser = post.liked_by_user ?? [];
+    const wasLiked = likedByUser.includes(userId);
+    likeRequestRef.current = true;
+
+    startLikeTransition(async () => {
+      setOptimisticPost({
+        id: post.id,
+        like_count: Math.max(0, (post.like_count ?? 0) + (wasLiked ? -1 : 1)),
+        liked_by_user: wasLiked
+          ? likedByUser.filter((id) => id !== userId)
+          : [...likedByUser, userId],
+      });
+
+      try {
+        const metrics = await toggleLikeMutation.mutateAsync({
+          postId: post.id,
+          likedByUser: userId,
+        });
+        startTransition(() => {
+          setPost((current) =>
+            current?.id === metrics.id ? { ...current, ...metrics } : current,
+          );
+        });
+      } catch (error) {
+        console.error("🚨 좋아요 처리 중 오류 발생:", error);
+        void showAlert({
+          title: "좋아요를 저장하지 못했습니다",
+          description: "잠시 후 다시 시도해주세요.",
+        });
+      } finally {
+        likeRequestRef.current = false;
+      }
+    });
   };
 
   const handleSubmitReply = async () => {
@@ -1142,14 +1171,20 @@ export default function PostDetailClient() {
           </Link>
         )}
       </div>
+      <RelatedPosts post={post} posts={posts} category={category} />
       <div className="flex justify-center gap-2 py-8">
         <Button
           onClick={handleHeartClick}
+          variant="outline"
+          disabled={isLikePending}
+          aria-pressed={isHeartClicked}
+          aria-label={isHeartClicked ? "좋아요 취소" : "좋아요"}
+          aria-busy={isLikePending}
           className={cn(
             `flex items-center gap-1 border rounded-button transition-colors ${
               isHeartClicked
-                ? "border-like-border bg-like-bg text-like-foreground"
-                : "border-gray-300 dark:border-white/15 text-gray-700 dark:text-gray-200 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                ? "border-like-border bg-like-bg text-like-foreground hover:bg-red-100 hover:text-like-foreground dark:hover:bg-like-bg"
+                : "border-gray-300 dark:border-white/15 text-gray-700 dark:text-gray-200 bg-white dark:bg-zinc-900 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-zinc-800 dark:hover:text-gray-200"
             }`,
           )}
         >
@@ -1159,7 +1194,7 @@ export default function PostDetailClient() {
               isHeartClicked ? "fill-like stroke-like" : "currentColor",
             )}
           />
-          {post?.like_count}
+          <span aria-live="polite">{optimisticPost?.like_count ?? 0}</span>
         </Button>
         <Button
           onClick={handleShare}

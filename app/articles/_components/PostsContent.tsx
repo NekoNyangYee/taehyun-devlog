@@ -102,7 +102,7 @@ export default function PostsContent({
           ) : (
             <div className="flex min-h-[28rem] w-full flex-col items-center justify-center px-4 text-center">
               <Image
-                src="/no-posts.png"
+                src="/no-posts.webp"
                 alt="아티클이 없는 상태"
                 width={192}
                 height={192}

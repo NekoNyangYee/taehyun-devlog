@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <section className="mx-auto flex min-h-[60vh] w-full max-w-xl flex-col items-center justify-center gap-4 px-4 text-center">
       <Image
-        src="/not-found.png"
+        src="/not-found.webp"
         alt="페이지를 찾을 수 없음"
         width={192}
         height={192}

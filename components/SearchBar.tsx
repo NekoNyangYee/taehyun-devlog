@@ -263,7 +263,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
             {!hasKeyword && (
               <div className="flex h-full min-h-0 flex-col items-center justify-center px-6 py-12 text-center">
                 <Image
-                  src="/search.png"
+                  src="/search.webp"
                   alt="아티클 검색"
                   width={240}
                   height={160}
@@ -284,7 +284,7 @@ export default function SearchBar({ isLight = false }: { isLight?: boolean }) {
             {hasKeyword && !hasResults && (
               <div className="flex h-full min-h-0 flex-col items-center justify-center px-6 py-12 text-center">
                 <Image
-                  src="/search.png"
+                  src="/search.webp"
                   alt="검색 결과 없음"
                   width={240}
                   height={160}

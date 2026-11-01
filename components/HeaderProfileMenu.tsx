@@ -42,7 +42,7 @@ export default function HeaderProfileMenu({
   }, [isOpen]);
 
   return (
-    <div ref={menuRef} className="relative">
+    <div ref={menuRef} className="relative z-20">
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}

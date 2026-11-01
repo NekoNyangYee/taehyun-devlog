@@ -80,7 +80,7 @@ export default function BookmarkContent() {
     return (
       <section className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center px-4 text-center">
         <Image
-          src="/no-bookmark.png"
+          src="/no-bookmark.webp"
           alt="저장한 아티클이 없는 상태"
           width={192}
           height={192}

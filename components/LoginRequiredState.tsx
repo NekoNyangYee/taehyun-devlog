@@ -26,7 +26,7 @@ export function LoginRequiredState({
       )}
     >
       <Image
-        src="/need-login.png"
+        src="/need-login.webp"
         alt="로그인이 필요한 서비스"
         width={192}
         height={192}

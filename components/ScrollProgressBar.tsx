@@ -35,7 +35,7 @@ export default function ScrollProgressBar() {
 
   return shouldShowProgressBar && !isPostLoading ? (
     <div
-      className="pointer-events-none absolute left-0 top-16 h-1 w-full"
+      className="pointer-events-none absolute left-0 top-16 z-10 h-1 w-full"
       style={{ opacity: scrolledPath === currentPath ? 1 : 0 }}
     >
       <div
